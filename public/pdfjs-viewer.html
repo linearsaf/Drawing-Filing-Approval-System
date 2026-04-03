@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>PDF Viewer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --viewer-bg: #f4f5f7;
+        --viewer-surface: #ffffff;
+        --viewer-border: #d6d6d6;
+        --viewer-text: #212529;
+        --viewer-muted: #666666;
+        --viewer-brand: #3a5097;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: var(--viewer-bg);
+        color: var(--viewer-text);
+        font-family: Segoe UI, Arial, sans-serif;
+      }
+
+      body {
+        padding: 12px;
+      }
+
+      .toolbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        border: 1px solid var(--viewer-border);
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.94);
+        padding: 10px 12px;
+        backdrop-filter: blur(10px);
+      }
+
+      .toolbar-group {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .toolbar button {
+        border: 1px solid var(--viewer-border);
+        border-radius: 12px;
+        background: #ffffff;
+        color: var(--viewer-text);
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 12px;
+      }
+
+      .toolbar button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      .icon-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      .pill {
+        border: 1px solid var(--viewer-border);
+        border-radius: 12px;
+        background: #ffffff;
+        color: var(--viewer-text);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 8px 12px;
+      }
+
+      .viewer {
+        min-height: calc(100vh - 88px);
+      }
+
+      .pages {
+        display: grid;
+        gap: 18px;
+      }
+
+      .page {
+        display: grid;
+        justify-items: center;
+        gap: 10px;
+      }
+
+      .page-canvas-shell {
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 4px;
+      }
+
+      .page-canvas-inner {
+        display: flex;
+        justify-content: center;
+        min-width: 100%;
+      }
+
+      .page canvas {
+        border: 1px solid var(--viewer-border);
+        border-radius: 12px;
+        background: var(--viewer-surface);
+        box-shadow: 0 12px 30px rgba(33, 37, 41, 0.08);
+      }
+
+      .page-label {
+        color: var(--viewer-muted);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .state {
+        display: grid;
+        place-items: center;
+        min-height: calc(100vh - 110px);
+        text-align: center;
+        padding: 24px;
+      }
+
+      .state-card {
+        max-width: 480px;
+        border: 1px solid var(--viewer-border);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.96);
+        padding: 24px;
+      }
+
+      .state-card h1 {
+        margin: 0 0 12px;
+        font-size: 20px;
+      }
+
+      .state-card p {
+        margin: 0;
+        color: var(--viewer-muted);
+        line-height: 1.7;
+      }
+
+      @media (max-width: 640px) {
+        body {
+          padding: 8px;
+        }
+
+        .toolbar {
+          padding: 10px;
+        }
+
+        .viewer {
+          min-height: calc(100vh - 84px);
+        }
+      }
+
+      @media print {
+        body {
+          padding: 0;
+          background: #ffffff;
+        }
+
+        .toolbar {
+          display: none;
+        }
+
+        .viewer {
+          min-height: auto;
+        }
+
+        .pages {
+          gap: 8px;
+        }
+
+        .page-canvas-shell {
+          overflow: visible;
+        }
+
+        .page canvas {
+          box-shadow: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar">
+      <div class="toolbar-group">
+        <span class="pill" id="pageCount">Memuat...</span>
+      </div>
+      <div class="toolbar-group">
+        <button class="icon-button" hidden id="printButton" type="button" title="Print drawing">
+          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+            <path
+              d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v6H7v-6Z"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+            />
+            <circle cx="17" cy="12" fill="currentColor" r="1.1" />
+          </svg>
+          <span>Print</span>
+        </button>
+        <button id="zoomOut" type="button">Zoom -</button>
+        <span class="pill" id="zoomLabel">100%</span>
+        <button id="zoomIn" type="button">Zoom +</button>
+      </div>
+    </div>
+
+    <main class="viewer">
+      <div class="pages" id="pages"></div>
+      <div class="state" id="state" hidden>
+        <div class="state-card">
+          <h1 id="stateTitle">Memuat dokumen</h1>
+          <p id="stateMessage">Menyiapkan PDF viewer...</p>
+        </div>
+      </div>
+    </main>
+
+    <script type="module">
+      import * as pdfjsLib from "/pdfjs/pdf.mjs";
+
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.mjs";
+
+      const searchParams = new URLSearchParams(window.location.search);
+      const file = searchParams.get("file");
+      const allowPrint = searchParams.get("print") === "1";
+      const printFile = searchParams.get("printFile");
+      const pagesHost = document.getElementById("pages");
+      const state = document.getElementById("state");
+      const stateTitle = document.getElementById("stateTitle");
+      const stateMessage = document.getElementById("stateMessage");
+      const pageCount = document.getElementById("pageCount");
+      const zoomLabel = document.getElementById("zoomLabel");
+      const zoomIn = document.getElementById("zoomIn");
+      const zoomOut = document.getElementById("zoomOut");
+      const printButton = document.getElementById("printButton");
+      let activePrintUrl = null;
+
+      let pdfDocument = null;
+      let zoom = 1;
+
+      function setState(title, message) {
+        state.hidden = false;
+        pagesHost.hidden = true;
+        stateTitle.textContent = title;
+        stateMessage.textContent = message;
+      }
+
+      function clearState() {
+        state.hidden = true;
+        pagesHost.hidden = false;
+      }
+
+      function updateZoomLabel() {
+        zoomLabel.textContent = `${Math.round(zoom * 100)}%`;
+        zoomOut.disabled = zoom <= 0.6;
+        zoomIn.disabled = zoom >= 2;
+      }
+
+      async function renderPages() {
+        if (!pdfDocument) {
+          return;
+        }
+
+        clearState();
+        pagesHost.innerHTML = "";
+        pageCount.textContent = `${pdfDocument.numPages} halaman`;
+
+        const availableWidth = Math.max(320, pagesHost.clientWidth - 24);
+
+        for (let pageNumber = 1; pageNumber <= pdfDocument.numPages; pageNumber += 1) {
+          const page = await pdfDocument.getPage(pageNumber);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const scale = (availableWidth / baseViewport.width) * zoom;
+          const viewport = page.getViewport({ scale });
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          const wrapper = document.createElement("section");
+          const label = document.createElement("div");
+          const shell = document.createElement("div");
+          const inner = document.createElement("div");
+          const dpr = window.devicePixelRatio || 1;
+
+          if (!context) {
+            throw new Error("Canvas context tidak tersedia.");
+          }
+
+          canvas.width = Math.floor(viewport.width * dpr);
+          canvas.height = Math.floor(viewport.height * dpr);
+          canvas.style.width = `${Math.floor(viewport.width)}px`;
+          canvas.style.height = `${Math.floor(viewport.height)}px`;
+          context.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+          await page.render({ canvasContext: context, viewport }).promise;
+
+          wrapper.className = "page";
+          label.className = "page-label";
+          shell.className = "page-canvas-shell";
+          inner.className = "page-canvas-inner";
+          label.textContent = `Halaman ${pageNumber}`;
+          inner.appendChild(canvas);
+          shell.appendChild(inner);
+          wrapper.append(label, shell);
+          pagesHost.appendChild(wrapper);
+        }
+      }
+
+      async function loadDocument() {
+        if (!file) {
+          setState("Dokumen tidak ditemukan", "Parameter file untuk viewer tidak tersedia.");
+          return;
+        }
+
+        try {
+          setState("Memuat dokumen", "Menyiapkan PDF viewer...");
+
+          const response = await fetch(file, {
+            credentials: "include",
+            cache: "no-store"
+          });
+
+          if (!response.ok) {
+            throw new Error("Dokumen tidak dapat dimuat dari server.");
+          }
+
+          const data = new Uint8Array(await response.arrayBuffer());
+          const loadingTask = pdfjsLib.getDocument({
+            data,
+            cMapUrl: "/pdfjs/cmaps/",
+            cMapPacked: true,
+            standardFontDataUrl: "/pdfjs/standard_fonts/"
+          });
+
+          pdfDocument = await loadingTask.promise;
+          await renderPages();
+        } catch (error) {
+          setState(
+            "Gagal memuat PDF",
+            error instanceof Error ? error.message : "Viewer internal tidak dapat merender dokumen ini."
+          );
+        }
+      }
+
+      zoomIn.addEventListener("click", async () => {
+        zoom = Math.min(2, Number((zoom + 0.1).toFixed(1)));
+        updateZoomLabel();
+        await renderPages();
+      });
+
+      zoomOut.addEventListener("click", async () => {
+        zoom = Math.max(0.6, Number((zoom - 0.1).toFixed(1)));
+        updateZoomLabel();
+        await renderPages();
+      });
+
+      if (allowPrint && printButton) {
+        printButton.hidden = false;
+        printButton.addEventListener("click", async () => {
+          if (!printFile) {
+            window.print();
+            return;
+          }
+
+          try {
+            const response = await fetch(printFile, {
+              credentials: "include",
+              cache: "no-store"
+            });
+
+            if (!response.ok) {
+              throw new Error("Dokumen final tidak dapat dipersiapkan untuk print.");
+            }
+
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+
+            if (activePrintUrl) {
+              URL.revokeObjectURL(activePrintUrl);
+            }
+
+            activePrintUrl = objectUrl;
+
+            const iframe = document.createElement("iframe");
+            iframe.style.position = "fixed";
+            iframe.style.right = "0";
+            iframe.style.bottom = "0";
+            iframe.style.width = "0";
+            iframe.style.height = "0";
+            iframe.style.border = "0";
+            iframe.src = objectUrl;
+
+            iframe.onload = () => {
+              setTimeout(() => {
+                iframe.contentWindow?.focus();
+                iframe.contentWindow?.print();
+              }, 150);
+            };
+
+            document.body.appendChild(iframe);
+
+            setTimeout(() => {
+              iframe.remove();
+            }, 60000);
+          } catch (error) {
+            setState(
+              "Gagal memproses print",
+              error instanceof Error ? error.message : "Dokumen final tidak dapat dicetak."
+            );
+          }
+        });
+      }
+
+      let resizeTimer = null;
+      window.addEventListener("resize", () => {
+        if (!pdfDocument) {
+          return;
+        }
+
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          void renderPages();
+        }, 120);
+      });
+
+      updateZoomLabel();
+      void loadDocument();
+    </script>
+  </body>
+</html>

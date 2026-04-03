@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-brand: #3a5097;
+  --color-bg: #f7f7f7;
+  --color-surface: #ffffff;
+  --color-border: #d6d6d6;
+  --color-text: #212529;
+  --color-text-muted: #666666;
+  --color-panel: #eeeeee;
+  --color-sage: #869791;
+  --color-danger: #e92027;
+  --color-danger-strong: #d31111;
+  --color-graphite: #292a2e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(58, 80, 151, 0.12), transparent 30%),
+    linear-gradient(180deg, #f7f7f7 0%, #eeeeee 100%);
+  color: var(--color-text);
+  font-family: Bahnschrift, "Segoe UI Variable Text", "Trebuchet MS", Tahoma, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(58, 80, 151, 0.2);
+}
+
+.app-grid {
+  background-image: linear-gradient(rgba(58, 80, 151, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58, 80, 151, 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+}

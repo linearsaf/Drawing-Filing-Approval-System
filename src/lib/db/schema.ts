@@ -1,0 +1,312 @@
+import { relations } from "drizzle-orm";
+import {
+  boolean,
+  index,
+  int,
+  json,
+  mysqlEnum,
+  mysqlTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  varchar
+} from "drizzle-orm/mysql-core";
+
+export const userRoleValues = [
+  "ADMIN",
+  "DRAFTER",
+  "DRAFT_LEADER",
+  "APPROVER_L1",
+  "HEAD",
+  "CONSUMER"
+] as const;
+
+export const revisionStatusValues = [
+  "DRAFT",
+  "WAITING_CHECK",
+  "CHECK_REJECTED",
+  "WAITING_APPROVAL_1",
+  "APPROVAL_1_REJECTED",
+  "WAITING_APPROVAL_2",
+  "APPROVAL_2_REJECTED",
+  "COMPLETED",
+  "OBSOLETE"
+] as const;
+
+export const approvalDecisionValues = ["APPROVED", "REJECTED"] as const;
+
+export const auditEntityTypeValues = ["DRAWING", "REVISION", "USER"] as const;
+
+export const userRoleEnum = mysqlEnum("user_role", userRoleValues);
+export const revisionStatusEnum = mysqlEnum("revision_status", revisionStatusValues);
+export const approvalDecisionEnum = mysqlEnum("approval_decision", approvalDecisionValues);
+export const auditEntityTypeEnum = mysqlEnum("audit_entity_type", auditEntityTypeValues);
+
+export const user = mysqlTable(
+  "user",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    email: varchar("email", { length: 191 }).notNull(),
+    emailVerified: boolean("emailVerified").notNull().default(false),
+    image: varchar("image", { length: 500 }),
+    username: varchar("username", { length: 80 }).notNull(),
+    displayUsername: varchar("displayUsername", { length: 120 }),
+    role: userRoleEnum.notNull().default("CONSUMER"),
+    isActive: boolean("isActive").notNull().default(true),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().onUpdateNow()
+  },
+  (table) => ({
+    emailUniqueIdx: uniqueIndex("user_email_unique").on(table.email),
+    usernameUniqueIdx: uniqueIndex("user_username_unique").on(table.username),
+    roleIdx: index("user_role_idx").on(table.role)
+  })
+);
+
+export const session = mysqlTable(
+  "session",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    token: varchar("token", { length: 255 }).notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().onUpdateNow(),
+    ipAddress: varchar("ipAddress", { length: 255 }),
+    userAgent: text("userAgent"),
+    userId: varchar("userId", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" })
+  },
+  (table) => ({
+    tokenUniqueIdx: uniqueIndex("session_token_unique").on(table.token),
+    userIdx: index("session_user_idx").on(table.userId)
+  })
+);
+
+export const account = mysqlTable(
+  "account",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    accountId: varchar("accountId", { length: 255 }).notNull(),
+    providerId: varchar("providerId", { length: 255 }).notNull(),
+    userId: varchar("userId", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    accessToken: text("accessToken"),
+    refreshToken: text("refreshToken"),
+    idToken: text("idToken"),
+    accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
+    refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
+    scope: varchar("scope", { length: 255 }),
+    password: varchar("password", { length: 255 }),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().onUpdateNow()
+  },
+  (table) => ({
+    providerAccountUniqueIdx: uniqueIndex("account_provider_account_unique").on(
+      table.providerId,
+      table.accountId
+    ),
+    userIdx: index("account_user_idx").on(table.userId)
+  })
+);
+
+export const verification = mysqlTable(
+  "verification",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    identifier: varchar("identifier", { length: 255 }).notNull(),
+    value: text("value").notNull(),
+    expiresAt: timestamp("expiresAt").notNull(),
+    createdAt: timestamp("createdAt").defaultNow().notNull(),
+    updatedAt: timestamp("updatedAt").defaultNow().notNull().onUpdateNow()
+  },
+  (table) => ({
+    identifierIdx: index("verification_identifier_idx").on(table.identifier)
+  })
+);
+
+export const drawings = mysqlTable(
+  "drawings",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    drawingNumber: varchar("drawing_number", { length: 100 }).notNull(),
+    drawingName: varchar("drawing_name", { length: 255 }).notNull(),
+    sacCode: varchar("sac_code", { length: 100 }).notNull(),
+    area: varchar("area", { length: 100 }).notNull(),
+    discipline: varchar("discipline", { length: 100 }).notNull(),
+    description: text("description"),
+    createdBy: varchar("created_by", { length: 36 })
+      .notNull()
+      .references(() => user.id),
+    currentRevisionId: varchar("current_revision_id", { length: 36 }),
+    currentStatus: revisionStatusEnum.notNull().default("DRAFT"),
+    latestCompletedRevisionId: varchar("latest_completed_revision_id", { length: 36 }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().onUpdateNow()
+  },
+  (table) => ({
+    drawingNumberUniqueIdx: uniqueIndex("drawings_number_unique").on(table.drawingNumber),
+    statusIdx: index("drawings_status_idx").on(table.currentStatus),
+    createdByIdx: index("drawings_created_by_idx").on(table.createdBy)
+  })
+);
+
+export const drawingRevisions = mysqlTable(
+  "drawing_revisions",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    drawingId: varchar("drawing_id", { length: 36 })
+      .notNull()
+      .references(() => drawings.id, { onDelete: "cascade" }),
+    revisionNo: varchar("revision_no", { length: 50 }).notNull(),
+    fileName: varchar("file_name", { length: 255 }).notNull(),
+    fileOriginalPath: varchar("file_original_path", { length: 500 }).notNull(),
+    fileWatermarkedPath: varchar("file_watermarked_path", { length: 500 }),
+    status: revisionStatusEnum.notNull().default("DRAFT"),
+    changeNote: text("change_note"),
+    submittedBy: varchar("submitted_by", { length: 36 }).references(() => user.id),
+    submittedAt: timestamp("submitted_at"),
+    isLatest: boolean("is_latest").notNull().default(true),
+    isCompleted: boolean("is_completed").notNull().default(false),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().onUpdateNow()
+  },
+  (table) => ({
+    drawingRevisionUniqueIdx: uniqueIndex("drawing_revision_unique").on(
+      table.drawingId,
+      table.revisionNo
+    ),
+    drawingIdx: index("drawing_revisions_drawing_idx").on(table.drawingId),
+    statusIdx: index("drawing_revisions_status_idx").on(table.status)
+  })
+);
+
+export const approvalActions = mysqlTable(
+  "approval_actions",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    revisionId: varchar("revision_id", { length: 36 })
+      .notNull()
+      .references(() => drawingRevisions.id, { onDelete: "cascade" }),
+    approvalLevel: int("approval_level").notNull(),
+    actorId: varchar("actor_id", { length: 36 })
+      .notNull()
+      .references(() => user.id),
+    actorRole: userRoleEnum.notNull(),
+    decision: approvalDecisionEnum.notNull(),
+    decisionNote: text("decision_note"),
+    actedAt: timestamp("acted_at").defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => ({
+    revisionIdx: index("approval_actions_revision_idx").on(table.revisionId),
+    actorIdx: index("approval_actions_actor_idx").on(table.actorId)
+  })
+);
+
+export const auditLogs = mysqlTable(
+  "audit_logs",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    entityType: auditEntityTypeEnum.notNull(),
+    entityId: varchar("entity_id", { length: 36 }).notNull(),
+    action: varchar("action", { length: 120 }).notNull(),
+    userId: varchar("user_id", { length: 36 }).references(() => user.id),
+    note: text("note"),
+    metadataJson: json("metadata_json"),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => ({
+    entityIdx: index("audit_logs_entity_idx").on(table.entityType, table.entityId),
+    actionIdx: index("audit_logs_action_idx").on(table.action)
+  })
+);
+
+export const downloadLogs = mysqlTable(
+  "download_logs",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    revisionId: varchar("revision_id", { length: 36 })
+      .notNull()
+      .references(() => drawingRevisions.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 }).references(() => user.id),
+    downloadedAt: timestamp("downloaded_at").defaultNow().notNull(),
+    source: varchar("source", { length: 50 }).default("APP")
+  },
+  (table) => ({
+    revisionIdx: index("download_logs_revision_idx").on(table.revisionId)
+  })
+);
+
+export const userRelations = relations(user, ({ many }) => ({
+  sessions: many(session),
+  accounts: many(account),
+  drawings: many(drawings),
+  revisions: many(drawingRevisions),
+  approvalActions: many(approvalActions)
+}));
+
+export const drawingRelations = relations(drawings, ({ one, many }) => ({
+  creator: one(user, {
+    fields: [drawings.createdBy],
+    references: [user.id]
+  }),
+  revisions: many(drawingRevisions)
+}));
+
+export const revisionRelations = relations(drawingRevisions, ({ one, many }) => ({
+  drawing: one(drawings, {
+    fields: [drawingRevisions.drawingId],
+    references: [drawings.id]
+  }),
+  submitter: one(user, {
+    fields: [drawingRevisions.submittedBy],
+    references: [user.id]
+  }),
+  approvals: many(approvalActions),
+  downloads: many(downloadLogs)
+}));
+
+export const approvalActionRelations = relations(approvalActions, ({ one }) => ({
+  revision: one(drawingRevisions, {
+    fields: [approvalActions.revisionId],
+    references: [drawingRevisions.id]
+  }),
+  actor: one(user, {
+    fields: [approvalActions.actorId],
+    references: [user.id]
+  })
+}));
+
+export const auditLogRelations = relations(auditLogs, ({ one }) => ({
+  actor: one(user, {
+    fields: [auditLogs.userId],
+    references: [user.id]
+  })
+}));
+
+export const downloadLogRelations = relations(downloadLogs, ({ one }) => ({
+  revision: one(drawingRevisions, {
+    fields: [downloadLogs.revisionId],
+    references: [drawingRevisions.id]
+  }),
+  actor: one(user, {
+    fields: [downloadLogs.userId],
+    references: [user.id]
+  })
+}));
+
+export const schema = {
+  user,
+  session,
+  account,
+  verification,
+  drawings,
+  drawingRevisions,
+  approvalActions,
+  auditLogs,
+  downloadLogs
+};
+
