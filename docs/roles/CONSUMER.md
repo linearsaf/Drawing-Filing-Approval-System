@@ -2,49 +2,47 @@
 
 ## Ringkasan
 
-Consumer adalah pengguna pembaca yang mengakses drawing final untuk kebutuhan referensi atau distribusi terkontrol.
+Consumer adalah role pembaca yang memakai final drawing untuk kebutuhan referensi kerja.
 
 ## Akses Utama
 
 - Dashboard
-- Daftar Drawing
-- Ubah Password akun sendiri
+- Drawing List
+- Account Password
 
-## Cara Kerja
-
-Consumer hanya dapat melihat drawing dengan status `COMPLETED`.
+## Kemampuan Consumer
 
 Consumer dapat:
 
-- melihat daftar drawing final
-- mencari drawing berdasarkan nomor, nama, SAC, area, revisi, dan tanggal
-- membuka detail drawing
-- melihat preview PDF
-- melihat metadata drawing
-- melihat riwayat approval dan audit
-- download drawing final
+- melihat drawing dengan status `COMPLETED`
+- search dan filter final drawing
+- membuka `Drawing Detail`
+- melihat metadata, revision history, approval history, dan audit timeline
+- preview PDF
+- print final drawing
+- download final drawing
 
 Consumer tidak dapat:
 
-- melihat drawing yang belum completed
-- membuat drawing
-- mengedit drawing
-- submit revisi
-- melakukan check
-- melakukan approval
-- membuat revisi baru
-- mengakses manajemen user
+- melihat drawing yang belum `COMPLETED`
+- create drawing
+- edit drawing
+- submit revision
+- melakukan `Check`
+- melakukan `Approval`
+- create revision baru
+- membuka `User Management`
 
 ## Penggunaan Harian
 
-1. Masuk ke sistem.
-2. Buka `Daftar Drawing`.
-3. Gunakan pencarian atau filter untuk menemukan drawing final yang dibutuhkan.
-4. Buka detail drawing untuk membaca dokumen dan melihat informasi pendukung.
-5. Gunakan `Download Final` bila diperlukan.
+1. Sign in ke workspace.
+2. Buka `Drawing List`.
+3. Gunakan search atau filter untuk menemukan final drawing.
+4. Buka `Drawing Detail` bila perlu membaca konteks tambahan.
+5. Gunakan `Open Final Drawing`, print, atau download sesuai kebutuhan.
 
 ## Poin Penting
 
-- Semua tampilan Consumer bersifat read-only.
-- Jika drawing belum completed, drawing tersebut tidak akan muncul untuk Consumer.
-- Riwayat approval dan audit dapat digunakan sebagai referensi status dan jejak keputusan.
+- seluruh akses consumer bersifat read-only
+- drawing yang belum completed tidak akan visible untuk consumer
+- approval history dan audit timeline dapat dipakai sebagai referensi jejak keputusan

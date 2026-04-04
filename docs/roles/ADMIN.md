@@ -2,72 +2,72 @@
 
 ## Ringkasan
 
-Admin memiliki akses penuh ke seluruh area aplikasi, termasuk manajemen user dan seluruh tahapan workflow drawing.
+Admin adalah role dengan kontrol penuh terhadap user, request access, dan seluruh workflow drawing.
 
 ## Akses Utama
 
 - Dashboard
-- Daftar Drawing
-- Input Drawing
+- Drawing List
+- Create Drawing
 - User Management
-- Ubah Password akun sendiri
+- Account Password
 
-## Cara Kerja
-
-Admin dapat bertindak sebagai pengawas sistem sekaligus operator cadangan untuk seluruh proses drawing.
+## Kemampuan Admin
 
 Admin dapat:
 
-- melihat semua drawing di seluruh status
-- membuat drawing baru
-- mengedit revisi dengan status `DRAFT`, `CHECK_REJECTED`, `APPROVAL_1_REJECTED`, dan `APPROVAL_2_REJECTED`
-- submit revisi ke proses check
-- melakukan check untuk status `WAITING_CHECK`
-- melakukan approval level 1 untuk status `WAITING_APPROVAL_1`
-- melakukan final approval untuk status `WAITING_APPROVAL_2`
-- membuat revisi baru dari drawing `COMPLETED`
-- download drawing final
-- membuat user baru
-- mengubah data user
-- mengaktifkan atau menonaktifkan user
-- mengganti password user lain
-
-## Penggunaan Harian
-
-1. Masuk ke sistem melalui halaman login.
-2. Buka `Dashboard` untuk melihat ringkasan pekerjaan dan antrean proses.
-3. Gunakan `Daftar Drawing` untuk mencari drawing berdasarkan nomor, nama, SAC, area, status, revisi, atau rentang tanggal.
-4. Jika perlu, buka `Input Drawing` untuk membuat drawing baru.
-5. Saat ada drawing yang menunggu proses, Admin dapat langsung membuka detail drawing lalu menjalankan aksi sesuai statusnya.
-6. Untuk pengelolaan akun, buka `User Management`.
+- melihat seluruh drawing di semua status
+- create drawing
+- edit revision pada status `DRAFT` dan seluruh status rejected
+- submit revision ke proses check
+- melakukan `Check`
+- melakukan `Approval` level 1
+- melakukan `Final Approval`
+- create revision baru dari drawing `COMPLETED`
+- preview, print, dan download final drawing
+- delete drawing
+- create user
+- edit user
+- activate/deactivate user
+- reset password user lain
+- review, approve, dan reject `Request Access`
 
 ## User Management
 
 Pada halaman `User Management`, Admin dapat:
 
-- membuat user baru beserta role dan status aktif
-- mengubah nama, email, username, role, dan status aktif user
-- mengubah password user tertentu
-- memutus seluruh sesi user saat password diubah
+- melihat user directory
+- mencari user berdasarkan nama, email, username, role, dan status
+- membuat user baru secara manual
+- memperbarui data user
+- mengganti status `Active` atau `Inactive`
+- reset password user
+- memutus session user saat reset password
 
-## Approval dan E-Sign
+## Request Access Review
 
-Saat Admin melakukan check atau approval, sistem menyediakan:
+Admin juga menangani request dari calon user baru:
 
-- kolom catatan keputusan
-- tombol `Approve`
-- tombol `Reject`
-- opsi menambahkan e-sign pada PDF saat approve
+1. buka panel `Pending Access Requests`
+2. pilih request yang masuk
+3. sesuaikan nama, email, username, dan role bila perlu
+4. simpan review atau langsung `Approve Request` / `Reject Request`
 
-Catatan penting:
+Saat request diapprove:
 
-- reject wajib menyertakan catatan
-- e-sign akan menambahkan stempel digital pada PDF
-- final approval akan mengubah revisi menjadi `COMPLETED`
+- sistem membuat user aktif
+- default password dibuat dari nama final tanpa spasi + `123!`
+- email notifikasi approval diproses
+
+## Penggunaan Harian
+
+1. Buka `Dashboard` untuk memantau queue dan activity feed.
+2. Gunakan `Drawing List` untuk mencari drawing dan menjalankan aksi lintas status.
+3. Buka `Drawing Detail` untuk membaca konteks dan lanjut ke `Check` atau `Approval`.
+4. Gunakan `User Management` untuk menjaga user dan request access tetap rapi.
 
 ## Poin Penting
 
-- Admin sebaiknya hanya mengambil alih proses operasional jika diperlukan.
-- Menonaktifkan user tidak menghapus data histori pengguna.
-- Perubahan password user lain sebaiknya dilakukan dengan komunikasi yang jelas ke pemilik akun.
-- Drawing `COMPLETED` dapat menjadi dasar pembuatan revisi baru.
+- Admin sebaiknya menjadi fallback operator, bukan pelaku utama semua approval.
+- Menonaktifkan user tidak menghapus histori akun.
+- Delete drawing hanya digunakan saat memang diperlukan, karena akan menghapus data dari workflow aktif.

@@ -89,7 +89,7 @@ function LoginContent() {
                 Drawing Filing & Approval
               </div>
               <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-tight lg:text-[2.85rem]">
-                Sistem drawing yang lebih tertib, mudah dilacak, dan siap diaudit.
+                Workspace drawing yang lebih tertib, mudah dilacak, dan siap diaudit.
               </h1>
               <p className="mt-5 max-w-xl text-sm leading-7 text-white/75">
                 Satu workspace untuk filing, review, approval, dan distribusi dokumen final secara
@@ -120,7 +120,7 @@ function LoginContent() {
           <div className="flex h-full flex-col">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">Sign In</p>
-              <h2 className="mt-3 text-3xl font-semibold text-text">Masuk ke sistem</h2>
+              <h2 className="mt-3 text-3xl font-semibold text-text">Masuk ke workspace</h2>
               <p className="mt-3 max-w-md text-sm leading-6 text-muted">
                 Gunakan email atau username yang sudah terdaftar.
               </p>
@@ -185,7 +185,7 @@ function LoginContent() {
                 disabled={isSubmitting}
                 onClick={() => void handleLogin()}
               >
-                {isSubmitting ? "Memproses..." : "Masuk ke Workspace"}
+                {isSubmitting ? "Memproses..." : "Masuk"}
               </Button>
               <p className="text-center text-xs leading-5 text-muted">
                 Dengan masuk ke sistem, Anda menggunakan hak akses sesuai role yang telah

@@ -89,15 +89,20 @@ BETTER_AUTH_URL=http://localhost:3000
 NEXT_PUBLIC_BETTER_AUTH_URL=http://localhost:3000
 ```
 
-Opsional untuk reset password via email:
+Opsional untuk email sistem:
 
 ```env
-PASSWORD_RESET_FROM_EMAIL=
-PASSWORD_RESET_SMTP_HOST=
-PASSWORD_RESET_SMTP_PORT=
-PASSWORD_RESET_SMTP_USER=
-PASSWORD_RESET_SMTP_PASS=
+SMTP_FROM_EMAIL=
+SMTP_HOST=
+SMTP_PORT=
+SMTP_USER=
+SMTP_PASS=
 ```
+
+Catatan:
+
+- konfigurasi SMTP ini dipakai bersama untuk email `Reset Password` dan `Request Access Approved`
+- kode masih mendukung env lama `PASSWORD_RESET_*` sebagai fallback kompatibilitas
 
 ### 3. Siapkan database
 

@@ -2,57 +2,56 @@
 
 ## Ringkasan
 
-Head bertugas memberikan persetujuan akhir sebelum drawing dinyatakan selesai dan tersedia sebagai dokumen final.
+Head memberikan `Final Approval` sebelum revision dinyatakan selesai dan menjadi final drawing resmi.
 
 ## Akses Utama
 
 - Dashboard
-- Daftar Drawing
-- Ubah Password akun sendiri
+- Drawing List
+- Account Password
 
-## Cara Kerja
-
-Head hanya dapat melakukan aksi final approval pada revisi dengan status `WAITING_APPROVAL_2`.
+## Kemampuan Head
 
 Head dapat:
 
-- melihat detail drawing
-- meninjau preview PDF dan metadata
-- melakukan final approval
-- melakukan reject dengan catatan
-- menambahkan e-sign pada PDF saat approve
-- download drawing final yang sudah completed
+- membuka `Drawing Detail`
+- membuka halaman `Approval` untuk revision `WAITING_APPROVAL_2`
+- meninjau metadata dan preview PDF
+- `Mark as Approved` atau `Mark as Rejected`
+- menambahkan decision note
+- menambahkan e-sign saat approve
+- preview, print, dan download final drawing
 
 Head tidak dapat:
 
-- membuat drawing
-- mengedit drawing
-- membuat revisi baru
-- melakukan check awal
+- create drawing
+- edit drawing
+- create revision baru
+- melakukan `Check`
 - melakukan approval level 1
-- mengakses manajemen user
+- membuka `User Management`
 
 ## Alur Final Approval
 
 1. Buka drawing dengan status `WAITING_APPROVAL_2`.
-2. Masuk ke halaman `Approve`.
-3. Tinjau dokumen final yang masuk ke tahap persetujuan akhir.
-4. Isi catatan jika diperlukan.
+2. Masuk ke halaman `Approval`.
+3. Tinjau file, metadata, dan konteks approval.
+4. Isi note bila diperlukan.
 5. Pilih:
-   - `Approve Final` untuk mengubah revisi menjadi `COMPLETED`
-   - `Reject` untuk mengembalikan revisi ke Drafter
+   - `Mark as Approved` untuk mengubah revision menjadi `COMPLETED`
+   - `Mark as Rejected` untuk mengembalikan revision ke Drafter
 
 ## Dampak Final Approval
 
 Jika final approval diberikan:
 
-- revisi aktif berubah menjadi `COMPLETED`
-- drawing masuk mode read-only untuk user pembaca
-- drawing final dapat diunduh oleh role yang memiliki hak akses
-- e-sign dapat ditambahkan pada PDF final
+- revision aktif menjadi `COMPLETED`
+- drawing masuk mode final
+- final drawing menjadi visible untuk consumer
+- final drawing dapat dipreview, print, dan download sesuai hak akses
 
 ## Poin Penting
 
-- Final approval adalah titik akhir workflow revisi aktif.
-- Pastikan seluruh aspek dokumen sudah sesuai sebelum menekan approve.
-- Reject wajib disertai alasan yang jelas agar revisi berikutnya lebih terarah.
+- ini adalah gate akhir sebelum final drawing dipakai sebagai referensi resmi
+- reject wajib menyertakan note yang jelas
+- pastikan seluruh konteks approval sebelumnya sudah lengkap sebelum approve

@@ -2,54 +2,47 @@
 
 ## Ringkasan
 
-Approver Level 1 bertugas memberikan persetujuan tahap pertama setelah drawing lolos proses check.
+Approver Level 1 memberikan approval tahap pertama setelah revision lolos `Check`.
 
 ## Akses Utama
 
 - Dashboard
-- Daftar Drawing
-- Ubah Password akun sendiri
+- Drawing List
+- Account Password
 
-## Cara Kerja
-
-Approver Level 1 hanya dapat melakukan aksi approval pada revisi dengan status `WAITING_APPROVAL_1`.
+## Kemampuan Approver Level 1
 
 Approver Level 1 dapat:
 
-- melihat detail drawing
+- membuka `Drawing Detail`
+- membuka halaman `Approval` untuk revision `WAITING_APPROVAL_1`
 - meninjau metadata dan preview PDF
-- menyetujui revisi pada level 1
-- menolak revisi dengan catatan
-- menambahkan e-sign pada PDF saat approve
-- download drawing final yang sudah completed
+- `Mark as Approved` atau `Mark as Rejected`
+- menambahkan decision note
+- menambahkan e-sign saat approve
+- preview, print, dan download final drawing
 
 Approver Level 1 tidak dapat:
 
-- membuat drawing
-- mengedit drawing
-- membuat revisi baru
-- melakukan check awal
-- melakukan final approval
-- mengakses manajemen user
+- create drawing
+- edit drawing
+- create revision baru
+- melakukan `Check`
+- melakukan `Final Approval`
+- membuka `User Management`
 
-## Alur Approval Level 1
+## Alur Approval
 
 1. Buka drawing dengan status `WAITING_APPROVAL_1`.
-2. Masuk ke halaman `Approve`.
-3. Periksa isi dokumen dan konteks approval.
-4. Isi catatan jika diperlukan.
+2. Masuk ke halaman `Approval`.
+3. Tinjau hasil check, metadata, dan file revision.
+4. Isi note bila diperlukan.
 5. Pilih:
-   - `Approve Level 1` untuk meneruskan ke `WAITING_APPROVAL_2`
-   - `Reject` untuk mengembalikan revisi ke Drafter
-
-## Ketentuan Keputusan
-
-- Reject wajib menyertakan catatan.
-- Approve dapat menambahkan e-sign digital pada PDF.
-- Setelah approval level 1, revisi masuk ke antrean Head.
+   - `Mark as Approved` untuk meneruskan ke `WAITING_APPROVAL_2`
+   - `Mark as Rejected` untuk mengembalikan revision ke Drafter
 
 ## Poin Penting
 
-- Periksa bahwa hasil check sebelumnya sudah sesuai.
-- Pastikan tidak ada masalah teknis atau administratif sebelum meloloskan ke final approval.
-- Catatan reject harus cukup jelas untuk tindak lanjut revisi berikutnya.
+- reject wajib menyertakan note
+- pastikan hasil check sebelumnya sudah cukup jelas
+- approval level ini sebaiknya memastikan kelayakan operasional sebelum final approval

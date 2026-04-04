@@ -2,86 +2,74 @@
 
 ## Ringkasan
 
-Drafter bertanggung jawab membuat drawing, memperbarui revisi, dan mengirim revisi ke alur persetujuan.
+Drafter bertanggung jawab membuat drawing, memperbarui revision, dan mengirim revision ke alur check dan approval.
 
 ## Akses Utama
 
 - Dashboard
-- Daftar Drawing
-- Input Drawing
-- Ubah Password akun sendiri
+- Drawing List
+- Create Drawing
+- Account Password
 
-## Cara Kerja
-
-Drafter hanya bekerja pada drawing miliknya sendiri.
+## Kemampuan Drafter
 
 Drafter dapat:
 
-- membuat drawing baru
-- upload file PDF drawing
-- melihat preview dokumen pada detail drawing
-- menyimpan drawing sebagai draft
-- mengedit revisi dengan status `DRAFT`, `CHECK_REJECTED`, `APPROVAL_1_REJECTED`, dan `APPROVAL_2_REJECTED`
-- submit revisi ke proses check
-- membuat revisi baru dari drawing `COMPLETED`
-- download drawing final yang sudah selesai
+- create drawing baru
+- upload file PDF
+- save draft
+- edit revision dengan status `DRAFT`, `CHECK_REJECTED`, `APPROVAL_1_REJECTED`, dan `APPROVAL_2_REJECTED`
+- submit revision ke proses check
+- melihat `Drawing Detail`, revision history, approval history, dan audit timeline
+- create revision baru dari drawing `COMPLETED`
+- preview, print, dan download final drawing
 
 Drafter tidak dapat:
 
-- melakukan check
-- melakukan approval level 1
-- melakukan final approval
-- mengakses manajemen user
+- melakukan `Check`
+- melakukan `Approval`
+- melakukan `Final Approval`
+- membuka `User Management`
 
 ## Alur Kerja Utama
 
-1. Buka `Input Drawing`.
-2. Isi metadata drawing:
-   - drawing number
-   - drawing name
-   - SAC code
-   - area
-   - discipline
-   - description
-   - revision
-   - change note
-3. Upload file PDF drawing.
-4. Pilih `Simpan Draft` jika pekerjaan belum final.
-5. Pilih `Submit` jika drawing siap diperiksa oleh Draft Leader.
+1. Buka `Create Drawing`.
+2. Isi metadata drawing dan `Current Revision`.
+3. Upload PDF.
+4. Pilih `Save Draft` bila pekerjaan belum siap diperiksa.
+5. Pilih `Submit to Check` bila revision siap diproses Draft Leader.
 
-## Saat Revisi Ditolak
+## Saat Revision Rejected
 
-Jika revisi ditolak pada tahap check atau approval:
+Jika revision ditolak:
 
-- status revisi akan berubah menjadi salah satu status reject
-- Drafter dapat membuka kembali drawing tersebut
-- perbaikan dapat dilakukan melalui halaman edit
-- revisi kemudian disubmit ulang ke proses berikutnya
+- status berubah ke salah satu status rejected
+- drawing kembali bisa diedit oleh Drafter
+- perbaikan dilakukan di halaman edit
+- setelah selesai, revision dikirim ulang ke `WAITING_CHECK`
 
-## Revisi Baru dari Drawing Final
+## Revision Baru dari Final Drawing
 
-Jika drawing sudah `COMPLETED`, Drafter dapat:
+Jika drawing sudah `COMPLETED`, Drafter dapat membuat revision baru.
 
-- membuat revisi baru
-- sistem akan membuat revisi berikutnya
-- revisi baru dimulai dari status `DRAFT`
+Hasilnya:
 
-## Penggunaan Daftar Drawing
+- revision baru dimulai dari `DRAFT`
+- final drawing lama tetap tersimpan di histori
+- workflow berjalan ulang dari tahap awal
 
-Halaman `Daftar Drawing` mendukung:
+## Penggunaan Drawing List
 
-- pencarian cepat
-- filter status
-- filter area
-- filter `Drawn By`
-- filter revisi
-- filter tanggal `from - to`
-- tampilan compact list untuk scan cepat
+Halaman `Drawing List` membantu Drafter untuk:
+
+- search drawing
+- filter berdasarkan status, area, drafter, revision, dan tanggal
+- scan cepat dengan `Compact List`
+- membuka action berikutnya dari card/list
 
 ## Poin Penting
 
-- Metadata `Drawn By` selalu mengikuti drafter yang membuat drawing.
-- Pastikan file yang diunggah adalah PDF.
-- Gunakan drawing number yang unik.
-- Isi change note dengan jelas agar reviewer memahami perubahan.
-- Sebelum submit, pastikan dokumen yang diunggah adalah versi yang benar.
+- gunakan `drawing number` yang unik
+- pastikan file yang diupload berformat PDF
+- isi `Change Note` dengan jelas agar reviewer memahami konteks perubahan
+- sebelum submit, cek ulang file, revision number, dan metadata utama

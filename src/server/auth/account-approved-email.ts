@@ -19,11 +19,11 @@ export async function sendAccountApprovedEmail(input: AccountApprovedEmailInput)
   console.info(`[account-approved] ${input.email}: username=${input.username}, password=${input.password}`);
 
   if (
-    !env.PASSWORD_RESET_SMTP_HOST ||
-    !env.PASSWORD_RESET_SMTP_PORT ||
-    !env.PASSWORD_RESET_SMTP_USER ||
-    !env.PASSWORD_RESET_SMTP_PASS ||
-    !env.PASSWORD_RESET_FROM_EMAIL
+    !env.SMTP_HOST ||
+    !env.SMTP_PORT ||
+    !env.SMTP_USER ||
+    !env.SMTP_PASS ||
+    !env.SMTP_FROM_EMAIL
   ) {
     return;
   }
@@ -31,17 +31,17 @@ export async function sendAccountApprovedEmail(input: AccountApprovedEmailInput)
   const { createTransport } = await import("nodemailer");
 
   const transporter = createTransport({
-    host: env.PASSWORD_RESET_SMTP_HOST,
-    port: env.PASSWORD_RESET_SMTP_PORT,
-    secure: env.PASSWORD_RESET_SMTP_PORT === 465,
+    host: env.SMTP_HOST,
+    port: env.SMTP_PORT,
+    secure: env.SMTP_PORT === 465,
     auth: {
-      user: env.PASSWORD_RESET_SMTP_USER,
-      pass: env.PASSWORD_RESET_SMTP_PASS
+      user: env.SMTP_USER,
+      pass: env.SMTP_PASS
     }
   });
 
   await transporter.sendMail({
-    from: env.PASSWORD_RESET_FROM_EMAIL,
+    from: env.SMTP_FROM_EMAIL,
     to: input.email,
     subject: "Akun Drawing Management Disetujui",
     html: `

@@ -1,6 +1,6 @@
 # Role Documentation
 
-Dokumentasi ini menjelaskan cara kerja aplikasi berdasarkan peran pengguna.
+Dokumentasi ini menjelaskan perilaku aplikasi berdasarkan role yang saat ini aktif di sistem.
 
 Daftar dokumen:
 
@@ -11,21 +11,29 @@ Daftar dokumen:
 - [HEAD.md](./HEAD.md)
 - [CONSUMER.md](./CONSUMER.md)
 
-Catatan umum:
+## Catatan Umum
 
-- Login dilakukan melalui halaman `Sign In` menggunakan email atau username.
-- Opsi `Remember me` akan mempertahankan sesi login pada perangkat yang sama.
-- Fitur `Lupa password?` tersedia pada halaman login.
-- Setiap user juga dapat mengubah password sendiri dari menu `Ubah Password`.
-- Metadata `Drawn By` menunjukkan drafter pemilik drawing dan mengikuti akun drafter yang membuat drawing tersebut.
-- Filter `Drawn By` pada daftar drawing membantu pencarian cepat saat terdapat banyak drafter aktif.
-- Status revisi utama pada aplikasi:
-  - `DRAFT`
-  - `WAITING_CHECK`
-  - `CHECK_REJECTED`
-  - `WAITING_APPROVAL_1`
-  - `APPROVAL_1_REJECTED`
-  - `WAITING_APPROVAL_2`
-  - `APPROVAL_2_REJECTED`
-  - `COMPLETED`
-  - `OBSOLETE`
+- Sign in dilakukan melalui halaman `Sign In` menggunakan email atau username.
+- Calon user baru dapat memakai halaman `Request Access` dari login page.
+- Reset password tersedia melalui halaman `Reset Password`.
+- Setiap user dapat mengganti password sendiri dari menu `Account Password`.
+- Istilah UI utama mengikuti panduan di [UI_WORDING_GUIDE.md](../UI_WORDING_GUIDE.md).
+
+## Status Revision yang Dipakai
+
+- `DRAFT`
+- `WAITING_CHECK`
+- `CHECK_REJECTED`
+- `WAITING_APPROVAL_1`
+- `APPROVAL_1_REJECTED`
+- `WAITING_APPROVAL_2`
+- `APPROVAL_2_REJECTED`
+- `COMPLETED`
+- `OBSOLETE`
+
+## Aturan Global
+
+- Semua reject wajib disertai note.
+- Consumer hanya dapat melihat drawing dengan status `COMPLETED`.
+- Revision baru dibuat sebagai row baru, bukan overwrite final drawing lama.
+- `ADMIN` memiliki akses lintas role dan dapat mengambil alih seluruh workflow bila diperlukan.
