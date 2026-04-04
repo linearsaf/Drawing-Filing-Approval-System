@@ -13,6 +13,9 @@
         --viewer-text: #212529;
         --viewer-muted: #666666;
         --viewer-brand: #3a5097;
+        --viewer-scroll-track: rgba(33, 37, 41, 0.06);
+        --viewer-scroll-thumb: rgba(90, 98, 110, 0.28);
+        --viewer-scroll-thumb-hover: rgba(90, 98, 110, 0.42);
       }
 
       * {
@@ -30,10 +33,50 @@
         background: var(--viewer-bg);
         color: var(--viewer-text);
         font-family: Segoe UI, Arial, sans-serif;
+        scrollbar-width: thin;
+        scrollbar-color: var(--viewer-scroll-thumb) var(--viewer-scroll-track);
       }
 
       body {
         padding: 12px;
+      }
+
+      html::-webkit-scrollbar,
+      body::-webkit-scrollbar,
+      .viewer::-webkit-scrollbar,
+      .pages::-webkit-scrollbar,
+      .page-canvas-shell::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      html::-webkit-scrollbar-track,
+      body::-webkit-scrollbar-track,
+      .viewer::-webkit-scrollbar-track,
+      .pages::-webkit-scrollbar-track,
+      .page-canvas-shell::-webkit-scrollbar-track {
+        background: var(--viewer-scroll-track);
+        border-radius: 999px;
+      }
+
+      html::-webkit-scrollbar-thumb,
+      body::-webkit-scrollbar-thumb,
+      .viewer::-webkit-scrollbar-thumb,
+      .pages::-webkit-scrollbar-thumb,
+      .page-canvas-shell::-webkit-scrollbar-thumb {
+        background: var(--viewer-scroll-thumb);
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background-clip: padding-box;
+      }
+
+      html::-webkit-scrollbar-thumb:hover,
+      body::-webkit-scrollbar-thumb:hover,
+      .viewer::-webkit-scrollbar-thumb:hover,
+      .pages::-webkit-scrollbar-thumb:hover,
+      .page-canvas-shell::-webkit-scrollbar-thumb:hover {
+        background: var(--viewer-scroll-thumb-hover);
+        background-clip: padding-box;
       }
 
       .toolbar {
@@ -99,11 +142,15 @@
 
       .viewer {
         min-height: calc(100vh - 88px);
+        scrollbar-width: thin;
+        scrollbar-color: var(--viewer-scroll-thumb) var(--viewer-scroll-track);
       }
 
       .pages {
         display: grid;
         gap: 18px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--viewer-scroll-thumb) var(--viewer-scroll-track);
       }
 
       .page {
@@ -117,6 +164,8 @@
         overflow-x: auto;
         overflow-y: hidden;
         padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--viewer-scroll-thumb) transparent;
       }
 
       .page-canvas-inner {

@@ -311,33 +311,37 @@ function DashboardContent({ role }: { role: UserRole }) {
             ) : (
               queue.map((drawing) => (
                 <div
-                  className="rounded-[26px] border border-border/80 bg-white p-4 transition hover:border-brand/25 hover:bg-brand/5"
+                  className="rounded-[24px] border border-border/80 bg-white px-4 py-3.5 transition hover:border-brand/25 hover:bg-brand/5"
                   key={drawing.id}
                 >
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                  <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[minmax(0,1fr)_172px] lg:gap-4">
                     <div className="min-w-0">
-                      <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">
+                      <p className="line-clamp-2 text-xs font-bold uppercase tracking-[0.18em] leading-5 text-brand">
                         {drawing.drawingNumber}
                       </p>
                       <Link href={`/drawings/${drawing.id}`}>
-                        <h3 className="mt-2 text-lg font-semibold text-text transition hover:text-brand">
+                        <h3 className="mt-1.5 text-[1.05rem] font-semibold leading-7 text-text transition hover:text-brand">
                           {drawing.drawingName}
                         </h3>
                       </Link>
-                      <p className="mt-2 text-sm text-muted">
+                      <p className="mt-1.5 text-sm text-muted">
                         {drawing.area} / {drawing.discipline} / Rev{" "}
                         {drawing.currentRevision?.revisionNo ?? "-"}
                       </p>
-                      <p className="mt-1 text-sm text-muted">
+                      <p className="mt-1 text-sm leading-6 text-muted">
                         Drafter: {drawing.drawnByName ?? drawing.drawnByUsername ?? "-"} / Updated At:{" "}
                         {formatDateTime(drawing.updatedAt)}
                       </p>
                     </div>
 
-                    <div className="flex flex-col items-start gap-3 lg:items-end">
-                      <StatusBadge status={drawing.currentStatus} />
+                    <div className="flex flex-col items-start gap-2.5 lg:w-[172px] lg:items-stretch">
+                      <div className="lg:flex lg:justify-end">
+                        <StatusBadge compact status={drawing.currentStatus} />
+                      </div>
                       <Link href={getQueueHref(role, drawing.id, drawing.currentStatus)}>
-                        <Button variant="secondary">{getQueueCtaLabel(role, drawing.currentStatus)}</Button>
+                        <Button className="w-full" variant="secondary">
+                          {getQueueCtaLabel(role, drawing.currentStatus)}
+                        </Button>
                       </Link>
                     </div>
                   </div>
@@ -366,18 +370,30 @@ function DashboardContent({ role }: { role: UserRole }) {
               />
             ) : (
               activity.map((item) => (
-                <div className="rounded-[24px] border border-border/80 bg-white p-4" key={item.id}>
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-text">{humanizeAuditAction(item.action)}</p>
-                        <p className="mt-1 text-sm text-muted">
-                          {item.drawingNumber ?? "Drawing"} / {item.drawingName ?? "Tanpa judul"}
-                          {item.revisionNo ? ` / Rev ${item.revisionNo}` : ""}
+                <div className="rounded-[20px] border border-border/80 bg-white px-3.5 py-3" key={item.id}>
+                  <div className="flex flex-col gap-2.5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[15px] font-semibold leading-6 text-text">
+                          {humanizeAuditAction(item.action)}
                         </p>
                       </div>
-                      <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                        {formatDateTime(item.createdAt)}
+                      <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/80 bg-panel/24 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                        <span>{formatActivityDate(item.createdAt)}</span>
+                        <span className="h-1 w-1 rounded-full bg-border" />
+                        <span>{formatActivityTime(item.createdAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
+                        {item.drawingNumber ?? "Drawing"}
+                      </p>
+                      <p className="mt-0.5 text-base font-semibold leading-6 text-text">
+                        {item.drawingName ?? "Tanpa judul"}
+                      </p>
+                      <p className="text-sm text-muted">
+                        {item.revisionNo ? `Rev ${item.revisionNo}` : "Revision -"}
                       </p>
                     </div>
 
@@ -385,16 +401,24 @@ function DashboardContent({ role }: { role: UserRole }) {
                       <p className="text-sm leading-6 text-muted">{item.note}</p>
                     ) : null}
 
-                    <div className="flex flex-wrap items-center gap-2">
-                      {item.currentStatus ? <StatusBadge status={item.currentStatus} /> : null}
-                      {item.actorName ? (
-                        <span className="rounded-full border border-border bg-panel/35 px-3 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-text">
-                          {item.actorName}
-                          {item.actorRole ? ` / ${getRoleLabel(item.actorRole)}` : ""}
-                        </span>
-                      ) : null}
-                      <Link className="text-sm font-semibold text-brand" href={`/drawings/${item.drawingId}`}>
-                        Open Drawing
+                    <div className="flex items-end justify-between gap-3">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        {item.currentStatus ? <StatusBadge compact status={item.currentStatus} /> : null}
+                        {item.actorName ? (
+                          <span className="max-w-full rounded-full border border-border bg-panel/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-text/90">
+                            <span className="truncate">
+                              {item.actorName}
+                              {item.actorRole ? ` / ${getRoleLabel(item.actorRole)}` : ""}
+                            </span>
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <Link
+                        className="shrink-0 text-sm font-semibold text-brand transition hover:text-brand/80"
+                        href={`/drawings/${item.drawingId}`}
+                      >
+                        Open
                       </Link>
                     </div>
                   </div>
@@ -814,4 +838,22 @@ function humanizeAuditAction(action: string) {
   };
 
   return labels[action] ?? action.replace(/_/g, " ").toLowerCase();
+}
+
+function formatActivityDate(value: string) {
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Jakarta"
+  }).format(new Date(value));
+}
+
+function formatActivityTime(value: string) {
+  return new Intl.DateTimeFormat("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+    timeZone: "Asia/Jakarta"
+  }).format(new Date(value));
 }

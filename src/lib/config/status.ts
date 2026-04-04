@@ -40,8 +40,8 @@ export const statusToneMap: Record<
     watermark: "REJECTED"
   },
   COMPLETED: {
-    badge: "bg-sage/15 text-[#49605a] border-sage/30",
-    dot: "bg-sage",
+    badge: "border-[#5f8c73]/26 bg-[#5f8c73]/12 text-[#476a58]",
+    dot: "bg-[#5f8c73]",
     watermark: "COMPLETED"
   },
   OBSOLETE: {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { AuthGuard } from "@/components/app/auth-guard";
 import { PageHeader } from "@/components/app/page-header";
@@ -490,7 +491,7 @@ function DrawingsContent({
         </div>
       ) : (
         <Card className="overflow-hidden p-0">
-          <div className="hidden grid-cols-[1.1fr_0.95fr_0.6fr_0.7fr_1fr] gap-4 border-b border-border bg-panel/55 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted lg:grid">
+          <div className="hidden grid-cols-[minmax(0,1.22fr)_minmax(0,0.62fr)_minmax(168px,0.9fr)_minmax(132px,0.74fr)_184px] gap-4 border-b border-border bg-panel/55 px-4 py-3 text-[11px] font-bold uppercase tracking-[0.22em] text-muted lg:grid">
             <div>Drawing</div>
             <div>Info</div>
             <div>Status</div>
@@ -501,35 +502,41 @@ function DrawingsContent({
           <div className="divide-y divide-border/80">
             {items.map((drawing) => (
               <div
-                className="grid gap-3 px-4 py-4 lg:grid-cols-[1.1fr_0.95fr_0.6fr_0.7fr_1fr] lg:items-center"
+                className="grid gap-3 px-4 py-4 lg:grid-cols-[minmax(0,1.22fr)_minmax(0,0.62fr)_minmax(168px,0.9fr)_minmax(132px,0.74fr)_184px] lg:items-start"
                 key={drawing.id}
               >
-                <div className="min-w-0">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-brand">
+                <div className="min-w-0 self-start">
+                  <p className="break-words text-[11px] font-bold uppercase tracking-[0.14em] leading-5 text-brand">
                     {drawing.drawingNumber}
                   </p>
-                  <p className="truncate text-sm font-semibold text-text">{drawing.drawingName}</p>
+                  <p className="mt-0.5 truncate text-sm font-semibold text-text">{drawing.drawingName}</p>
                   <p className="truncate text-sm text-muted">
                     {drawing.sacCode} / {drawing.area} / {drawing.discipline}
                   </p>
                 </div>
 
-                <div className="min-w-0 text-sm text-muted">
-                  <p className="truncate">Rev {drawing.currentRevision?.revisionNo ?? "-"}</p>
-                  <p className="truncate">
+                <div className="min-w-0 self-start pt-[2px] text-sm text-muted">
+                  <p className="truncate font-medium leading-6 text-text/88">
+                    Rev {drawing.currentRevision?.revisionNo ?? "-"}
+                  </p>
+                  <p className="truncate leading-6">
                     Drafter: {drawing.drawnByName ?? drawing.drawnByUsername ?? "-"}
                   </p>
                 </div>
 
-                <div>
-                  <StatusBadge status={drawing.currentStatus} />
+                <div className="min-w-0 self-start pt-[2px]">
+                  <StatusBadge
+                    compact
+                    label={getCompactStatusLabel(drawing.currentStatus)}
+                    status={drawing.currentStatus}
+                  />
                 </div>
 
-                <div className="text-sm text-muted">
-                  <p>{formatDateTime(drawing.updatedAt)}</p>
+                <div className="self-start pt-[4px] text-sm text-muted">
+                  <p className="leading-6">{formatDateTime(drawing.updatedAt)}</p>
                 </div>
 
-                <div className="flex flex-wrap gap-2 lg:justify-end">
+                <div className="self-start pt-[2px] lg:pl-2">
                   <ActionButtons
                     compact
                     drawing={drawing}
@@ -561,43 +568,82 @@ function ActionButtons({
   isDeleting?: boolean;
 }) {
   const currentRevision = drawing.currentRevision;
-  const className = compact ? "px-3 py-2 text-xs" : undefined;
+  const actions: ReactNode[] = [];
 
-  return (
-    <>
-      <Link href={`/drawings/${drawing.id}`}>
-        <Button className={className} variant="secondary">
-          Detail
+  actions.push(
+    <Link className={compact ? "block" : undefined} href={`/drawings/${drawing.id}`} key="detail">
+      <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined} variant="secondary">
+        Detail
+      </Button>
+    </Link>
+  );
+
+  if (currentRevision && canEditRevision(role, currentRevision.status)) {
+    actions.push(
+      <Link
+        className={compact ? "block" : undefined}
+        href={`/drawings/${drawing.id}/edit`}
+        key="edit"
+      >
+        <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined} variant="secondary">
+          Edit
         </Button>
       </Link>
-      {currentRevision && canEditRevision(role, currentRevision.status) ? (
-        <Link href={`/drawings/${drawing.id}/edit`}>
-          <Button className={className} variant="secondary">
-            Edit
-          </Button>
-        </Link>
+    );
+  }
+
+  if (currentRevision && canCheckRevision(role, currentRevision.status)) {
+    actions.push(
+      <Link
+        className={compact ? "block" : undefined}
+        href={`/drawings/${drawing.id}/check`}
+        key="check"
+      >
+        <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined}>Check</Button>
+      </Link>
+    );
+  }
+
+  if (currentRevision && canApproveRevision(role, currentRevision.status)) {
+    actions.push(
+      <Link
+        className={compact ? "block" : undefined}
+        href={`/drawings/${drawing.id}/approve`}
+        key="approve"
+      >
+        <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined}>Approve</Button>
+      </Link>
+    );
+  }
+
+  if (canDeleteDrawing(role)) {
+    actions.push(
+      <Button
+        className={compact ? "w-full px-3 py-2 text-xs" : undefined}
+        disabled={isDeleting}
+        key="delete"
+        onClick={() => void onDelete(drawing)}
+        variant="danger"
+      >
+        {isDeleting ? "Menghapus..." : "Hapus"}
+      </Button>
+    );
+  }
+
+  if (!compact) {
+    return <>{actions}</>;
+  }
+
+  const firstRow = actions.slice(0, 2);
+  const secondRow = actions.slice(2);
+
+  return (
+    <div className="w-[184px] space-y-2">
+      <div className="grid grid-cols-2 gap-2">{firstRow}</div>
+      {secondRow.length > 0 ? (
+        <div className="grid grid-cols-2 gap-2">{secondRow}</div>
       ) : null}
-      {currentRevision && canCheckRevision(role, currentRevision.status) ? (
-        <Link href={`/drawings/${drawing.id}/check`}>
-          <Button className={className}>Check</Button>
-        </Link>
-      ) : null}
-      {currentRevision && canApproveRevision(role, currentRevision.status) ? (
-        <Link href={`/drawings/${drawing.id}/approve`}>
-          <Button className={className}>Approve</Button>
-        </Link>
-      ) : null}
-      {canDeleteDrawing(role) ? (
-        <Button
-          className={className}
-          disabled={isDeleting}
-          onClick={() => void onDelete(drawing)}
-          variant="danger"
-        >
-          {isDeleting ? "Menghapus..." : "Hapus"}
-        </Button>
-      ) : null}
-    </>
+    </div>
   );
 }
 
@@ -609,6 +655,22 @@ function DrawingsLoadingState() {
       ))}
     </div>
   );
+}
+
+function getCompactStatusLabel(status: RevisionStatus) {
+  const compactLabels: Record<RevisionStatus, string> = {
+    DRAFT: "Draft",
+    WAITING_CHECK: "Waiting Check",
+    CHECK_REJECTED: "Check Rejected",
+    WAITING_APPROVAL_1: "Waiting Approval L1",
+    APPROVAL_1_REJECTED: "Rejected L1",
+    WAITING_APPROVAL_2: "Waiting Final",
+    APPROVAL_2_REJECTED: "Final Rejected",
+    COMPLETED: "Completed",
+    OBSOLETE: "Obsolete"
+  };
+
+  return compactLabels[status];
 }
 
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {

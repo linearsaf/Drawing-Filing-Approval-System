@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { statusToneMap } from "@/lib/config/status";
 import { RevisionStatus } from "@/lib/types";
 
 interface PdfPreviewProps {
@@ -28,7 +27,6 @@ export function PdfPreview({
   printUrl,
   showFullscreenAction = true
 }: PdfPreviewProps) {
-  const watermark = statusToneMap[status].watermark;
   const [isMounted, setIsMounted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -91,8 +89,8 @@ export function PdfPreview({
 
     return (
       <div className="flex h-full min-h-[400px] flex-col">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-white/85 px-3 py-2">
-          <div className="rounded-xl border border-border px-3 py-2 text-sm font-semibold text-text">
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-border/80 bg-panel/18 px-3 py-2">
+          <div className="rounded-full border border-border/80 bg-white px-3 py-1.5 text-sm font-semibold text-text">
             {drawingNumber} / Rev {revisionNo}
           </div>
 
@@ -107,7 +105,7 @@ export function PdfPreview({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-hidden rounded-[18px] border border-border bg-white/90">
+        <div className="min-h-0 flex-1 overflow-hidden rounded-[20px] border border-border/80 bg-white">
           <iframe
             className={
               mode === "fullscreen"
@@ -124,27 +122,19 @@ export function PdfPreview({
 
   return (
     <>
-      <Card className="relative overflow-hidden border-border bg-[#fcfcfc]">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(58,80,151,0.05),transparent_45%,rgba(33,37,41,0.06))]" />
-        <div className="relative rounded-[22px] border border-dashed border-border bg-white p-6">
-          <div className="mb-6 flex items-center justify-between gap-3 border-b border-border pb-4">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Preview Dokumen</p>
-              <h3 className="mt-2 text-lg font-semibold text-text">{title}</h3>
-            </div>
-            <div className="rounded-full border border-brand/20 bg-brand/8 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-brand">
-              Rev {revisionNo}
-            </div>
+      <Card className="border-border bg-white p-5 md:p-6">
+        <div className="mb-5 flex items-center justify-between gap-3 border-b border-border/80 pb-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Preview Dokumen</p>
+            <h3 className="mt-2 text-lg font-semibold text-text">{title}</h3>
           </div>
+          <div className="rounded-full border border-brand/18 bg-brand/6 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand">
+            Rev {revisionNo}
+          </div>
+        </div>
 
-          <div className="relative min-h-[520px] overflow-hidden rounded-[24px] border border-border bg-panel/35 p-4">
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <span className="rotate-[-28deg] text-4xl font-bold uppercase tracking-[0.55em] text-brand/10 md:text-6xl">
-                {watermark}
-              </span>
-            </div>
-            <div className="relative h-full">{renderViewer("panel")}</div>
-          </div>
+        <div className="min-h-[520px] rounded-[22px] border border-border/80 bg-[#fbfcfe] p-3 md:p-4">
+          {renderViewer("panel")}
         </div>
       </Card>
 
