@@ -9,8 +9,12 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
       id: schema.drawings.id,
       drawingNumber: schema.drawings.drawingNumber,
       drawingName: schema.drawings.drawingName,
+      area: schema.drawings.area,
+      discipline: schema.drawings.discipline,
       currentStatus: schema.drawings.currentStatus,
-      createdBy: schema.drawings.createdBy
+      currentRevisionId: schema.drawings.currentRevisionId,
+      createdBy: schema.drawings.createdBy,
+      updatedAt: schema.drawings.updatedAt
     })
     .from(schema.drawings);
 
@@ -32,7 +36,11 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
     .select({
       id: schema.drawingRevisions.id,
       drawingId: schema.drawingRevisions.drawingId,
-      revisionNo: schema.drawingRevisions.revisionNo
+      revisionNo: schema.drawingRevisions.revisionNo,
+      status: schema.drawingRevisions.status,
+      fileName: schema.drawingRevisions.fileName,
+      submittedAt: schema.drawingRevisions.submittedAt,
+      updatedAt: schema.drawingRevisions.updatedAt
     })
     .from(schema.drawingRevisions)
     .where(
@@ -75,16 +83,20 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
     : [];
 
   const actorIds = [...new Set(recentActivity.map((item) => item.userId).filter(Boolean) as string[])];
-  const actors = actorIds.length
+  const creatorIds = [...new Set(visible.map((item) => item.createdBy))];
+  const userIds = [...new Set([...actorIds, ...creatorIds])];
+  const actors = userIds.length
     ? await db
         .select({
           id: schema.user.id,
           name: schema.user.name,
+          username: schema.user.username,
           role: schema.user.role
         })
         .from(schema.user)
-        .where(inArray(schema.user.id, actorIds))
+        .where(inArray(schema.user.id, userIds))
     : [];
+  const actorById = new Map(actors.map((user) => [user.id, user]));
 
   const drawingLookup = new Map(
     visible.map((drawing) => [
@@ -98,21 +110,55 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
     ])
   );
 
-  const revisionLookup = new Map(
-    revisionIds.map((revision) => [
-      revision.id,
-      {
-        drawingId: revision.drawingId,
-        revisionNo: revision.revisionNo
-      }
-    ])
-  );
+  const revisionLookup = new Map(revisionIds.map((revision) => [revision.id, revision]));
 
   const rejectedStatuses: ReadonlySet<string> = new Set([
     "CHECK_REJECTED",
     "APPROVAL_1_REJECTED",
     "APPROVAL_2_REJECTED"
   ] as const);
+
+  const queue = visible
+    .filter((drawing) => matchesRoleQueue(role, drawing.currentStatus))
+    .sort((left, right) => {
+      const priorityDelta =
+        getQueuePriority(role, left.currentStatus) - getQueuePriority(role, right.currentStatus);
+
+      if (priorityDelta !== 0) {
+        return priorityDelta;
+      }
+
+      return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+    })
+    .slice(0, 6)
+    .map((drawing) => {
+      const creator = actorById.get(drawing.createdBy) ?? null;
+      const currentRevision = drawing.currentRevisionId
+        ? revisionLookup.get(drawing.currentRevisionId) ?? null
+        : null;
+
+      return {
+        id: drawing.id,
+        drawingNumber: drawing.drawingNumber,
+        drawingName: drawing.drawingName,
+        area: drawing.area,
+        discipline: drawing.discipline,
+        drawnByName: creator?.name ?? null,
+        drawnByUsername: creator?.username ?? null,
+        currentStatus: drawing.currentStatus,
+        updatedAt: drawing.updatedAt,
+        currentRevision: currentRevision
+          ? {
+              id: currentRevision.id,
+              revisionNo: currentRevision.revisionNo,
+              status: currentRevision.status,
+              fileName: currentRevision.fileName,
+              submittedAt: currentRevision.submittedAt,
+              updatedAt: currentRevision.updatedAt
+            }
+          : null
+      };
+    });
 
   return {
     summary: {
@@ -124,10 +170,11 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
       completed: visible.filter((item) => item.currentStatus === "COMPLETED").length,
       drafts: visible.filter((item) => item.currentStatus === "DRAFT").length
     },
+    queue,
     recentActivity: recentActivity.map((item) => {
-      const revision = item.entityType === "REVISION" ? revisionLookup.get(item.entityId) : null;
+      const revision = item.entityType === "REVISION" ? revisionLookup.get(item.entityId) ?? null : null;
       const drawing = drawingLookup.get(revision?.drawingId ?? item.entityId);
-      const actor = actors.find((user) => user.id === item.userId) ?? null;
+      const actor = item.userId ? actorById.get(item.userId) ?? null : null;
 
       return {
         ...item,
@@ -141,4 +188,76 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
       };
     })
   };
+}
+
+function matchesRoleQueue(role: AppRole, status: string) {
+  if (role === "DRAFTER") {
+    return ["DRAFT", "CHECK_REJECTED", "APPROVAL_1_REJECTED", "APPROVAL_2_REJECTED"].includes(status);
+  }
+
+  if (role === "DRAFT_LEADER") {
+    return status === "WAITING_CHECK";
+  }
+
+  if (role === "APPROVER_L1") {
+    return status === "WAITING_APPROVAL_1";
+  }
+
+  if (role === "HEAD") {
+    return status === "WAITING_APPROVAL_2";
+  }
+
+  if (role === "CONSUMER") {
+    return status === "COMPLETED";
+  }
+
+  return [
+    "DRAFT",
+    "WAITING_CHECK",
+    "CHECK_REJECTED",
+    "WAITING_APPROVAL_1",
+    "APPROVAL_1_REJECTED",
+    "WAITING_APPROVAL_2",
+    "APPROVAL_2_REJECTED",
+    "COMPLETED"
+  ].includes(status);
+}
+
+function getQueuePriority(role: AppRole, status: string) {
+  if (role === "DRAFTER") {
+    if (status === "APPROVAL_2_REJECTED") return 0;
+    if (status === "APPROVAL_1_REJECTED") return 1;
+    if (status === "CHECK_REJECTED") return 2;
+    if (status === "DRAFT") return 3;
+    return 9;
+  }
+
+  if (role === "DRAFT_LEADER" && status === "WAITING_CHECK") {
+    return 0;
+  }
+
+  if (role === "APPROVER_L1" && status === "WAITING_APPROVAL_1") {
+    return 0;
+  }
+
+  if (role === "HEAD" && status === "WAITING_APPROVAL_2") {
+    return 0;
+  }
+
+  if (role === "CONSUMER" && status === "COMPLETED") {
+    return 0;
+  }
+
+  if (role === "ADMIN") {
+    if (status === "WAITING_CHECK") return 0;
+    if (status === "WAITING_APPROVAL_1") return 1;
+    if (status === "WAITING_APPROVAL_2") return 2;
+    if (status === "CHECK_REJECTED") return 3;
+    if (status === "APPROVAL_1_REJECTED") return 4;
+    if (status === "APPROVAL_2_REJECTED") return 5;
+    if (status === "DRAFT") return 6;
+    if (status === "COMPLETED") return 7;
+  }
+
+  return 9;
 }

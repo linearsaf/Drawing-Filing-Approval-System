@@ -19,10 +19,12 @@ export async function GET(request: Request) {
       drawnBy: query.drawnBy,
       revision: query.revision,
       dateFrom: query.dateFrom,
-      dateTo: query.dateTo
+      dateTo: query.dateTo,
+      page: query.page,
+      pageSize: query.pageSize
     });
 
-    return apiSuccess({ items: data });
+    return apiSuccess(data);
   } catch (error) {
     return apiError(error);
   }

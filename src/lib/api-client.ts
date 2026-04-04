@@ -37,15 +37,15 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   return payload as T;
 }
 
-export function buildQuery(params: Record<string, string | undefined>) {
+export function buildQuery(params: Record<string, string | number | undefined>) {
   const searchParams = new URLSearchParams();
 
   Object.entries(params).forEach(([key, value]) => {
-    if (!value) {
+    if (value === undefined || value === "") {
       return;
     }
 
-    searchParams.set(key, value);
+    searchParams.set(key, String(value));
   });
 
   const query = searchParams.toString();

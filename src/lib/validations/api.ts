@@ -30,7 +30,9 @@ export const drawingListQuerySchema = z.object({
   drawnBy: z.string().optional(),
   revision: z.string().optional(),
   dateFrom: z.string().optional(),
-  dateTo: z.string().optional()
+  dateTo: z.string().optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(12)
 });
 
 export const revisionCreateSchema = z.object({
@@ -78,7 +80,17 @@ export const accessRequestDecisionSchema = z.object({
 });
 
 export const accessRequestListQuerySchema = z.object({
-  status: z.enum(accessRequestStatusValues).optional()
+  status: z.enum(accessRequestStatusValues).optional(),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(6)
+});
+
+export const adminUserListQuerySchema = z.object({
+  search: z.string().optional(),
+  role: z.enum(["ALL", ...userRoleValues]).optional().default("ALL"),
+  status: z.enum(["ALL", "ACTIVE", "INACTIVE"]).optional().default("ALL"),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(6)
 });
 
 export const adminUpdateUserSchema = z.object({

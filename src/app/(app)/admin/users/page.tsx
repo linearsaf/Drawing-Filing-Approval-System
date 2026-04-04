@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthGuard } from "@/components/app/auth-guard";
 import { PageHeader } from "@/components/app/page-header";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,30 @@ interface AccessRequestItem {
   createdAt: string;
 }
 
+interface UserListResponse {
+  items: UserItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  stats: {
+    totalUsers: number;
+    activeUsers: number;
+    inactiveUsers: number;
+  };
+}
+
+interface AccessRequestListResponse {
+  items: AccessRequestItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  stats: {
+    pendingCount: number;
+  };
+}
+
 const defaultForm = {
   name: "",
   email: "",
@@ -63,6 +87,22 @@ const defaultRequestForm = {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [accessRequests, setAccessRequests] = useState<AccessRequestItem[]>([]);
+  const [userTotal, setUserTotal] = useState(0);
+  const [userPage, setUserPage] = useState(1);
+  const [userPageSize, setUserPageSize] = useState(6);
+  const [userTotalPages, setUserTotalPages] = useState(1);
+  const [userStats, setUserStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    inactiveUsers: 0
+  });
+  const [requestTotal, setRequestTotal] = useState(0);
+  const [requestPage, setRequestPage] = useState(1);
+  const [requestPageSize, setRequestPageSize] = useState(6);
+  const [requestTotalPages, setRequestTotalPages] = useState(1);
+  const [requestStats, setRequestStats] = useState({
+    pendingCount: 0
+  });
   const [editingId, setEditingId] = useState<string>();
   const [selectedRequestId, setSelectedRequestId] = useState<string>();
   const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +116,11 @@ export default function AdminUsersPage() {
   const [form, setForm] = useState(defaultForm);
   const [passwordForm, setPasswordForm] = useState(defaultPasswordForm);
   const [requestForm, setRequestForm] = useState(defaultRequestForm);
+  const selectedRequestIdRef = useRef<string | undefined>(undefined);
+
+  useEffect(() => {
+    selectedRequestIdRef.current = selectedRequestId;
+  }, [selectedRequestId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -86,15 +131,46 @@ export default function AdminUsersPage() {
 
       try {
         const [usersResponse, requestsResponse] = await Promise.all([
-          apiFetch<{ items: UserItem[] }>("/api/admin/users"),
-          apiFetch<{ items: AccessRequestItem[] }>(
-            `/api/admin/access-requests${buildQuery({ status: "PENDING" })}`
+          apiFetch<UserListResponse>(
+            `/api/admin/users${buildQuery({
+              search,
+              role: roleFilter,
+              status: statusFilter,
+              page: userPage,
+              pageSize: userPageSize
+            })}`
+          ),
+          apiFetch<AccessRequestListResponse>(
+            `/api/admin/access-requests${buildQuery({
+              status: "PENDING",
+              page: requestPage,
+              pageSize: requestPageSize
+            })}`
           )
         ]);
 
         if (!cancelled) {
           setUsers(usersResponse.items);
+          setUserTotal(usersResponse.total);
+          setUserTotalPages(usersResponse.totalPages);
+          setUserStats(usersResponse.stats);
+          if (usersResponse.page !== userPage) {
+            setUserPage(usersResponse.page);
+          }
           setAccessRequests(requestsResponse.items);
+          setRequestTotal(requestsResponse.total);
+          setRequestTotalPages(requestsResponse.totalPages);
+          setRequestStats(requestsResponse.stats);
+          if (requestsResponse.page !== requestPage) {
+            setRequestPage(requestsResponse.page);
+          }
+          if (
+            selectedRequestIdRef.current &&
+            !requestsResponse.items.some((item) => item.id === selectedRequestIdRef.current)
+          ) {
+            setSelectedRequestId(undefined);
+            setRequestForm(defaultRequestForm);
+          }
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -112,24 +188,16 @@ export default function AdminUsersPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [
+    search,
+    roleFilter,
+    statusFilter,
+    userPage,
+    userPageSize,
+    requestPage,
+    requestPageSize,
+  ]);
 
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      !search ||
-      [user.name, user.email, user.username, user.role]
-        .join(" ")
-        .toLowerCase()
-        .includes(search.toLowerCase());
-    const matchesRole = roleFilter === "ALL" || user.role === roleFilter;
-    const matchesStatus =
-      statusFilter === "ALL" ||
-      (statusFilter === "ACTIVE" ? user.isActive : !user.isActive);
-
-    return matchesSearch && matchesRole && matchesStatus;
-  });
-
-  const activeUsers = users.filter((user) => user.isActive).length;
   const selectedRequest = accessRequests.find((request) => request.id === selectedRequestId) ?? null;
 
   const clearUserSelection = () => {
@@ -145,17 +213,42 @@ export default function AdminUsersPage() {
 
   const reloadPageData = async () => {
     const [usersResponse, requestsResponse] = await Promise.all([
-      apiFetch<{ items: UserItem[] }>("/api/admin/users"),
-      apiFetch<{ items: AccessRequestItem[] }>(
-        `/api/admin/access-requests${buildQuery({ status: "PENDING" })}`
+      apiFetch<UserListResponse>(
+        `/api/admin/users${buildQuery({
+          search,
+          role: roleFilter,
+          status: statusFilter,
+          page: userPage,
+          pageSize: userPageSize
+        })}`
+      ),
+      apiFetch<AccessRequestListResponse>(
+        `/api/admin/access-requests${buildQuery({
+          status: "PENDING",
+          page: requestPage,
+          pageSize: requestPageSize
+        })}`
       )
     ]);
 
     setUsers(usersResponse.items);
+    setUserTotal(usersResponse.total);
+    setUserTotalPages(usersResponse.totalPages);
+    setUserStats(usersResponse.stats);
+    if (usersResponse.page !== userPage) {
+      setUserPage(usersResponse.page);
+    }
     setAccessRequests(requestsResponse.items);
+    setRequestTotal(requestsResponse.total);
+    setRequestTotalPages(requestsResponse.totalPages);
+    setRequestStats(requestsResponse.stats);
+    if (requestsResponse.page !== requestPage) {
+      setRequestPage(requestsResponse.page);
+    }
 
     if (selectedRequestId && !requestsResponse.items.some((item) => item.id === selectedRequestId)) {
-      clearRequestSelection();
+      setSelectedRequestId(undefined);
+      setRequestForm(defaultRequestForm);
     }
   };
 
@@ -352,15 +445,15 @@ export default function AdminUsersPage() {
                   <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/55">
                     Pending Requests
                   </p>
-                  <p className="mt-2 text-5xl font-semibold">{accessRequests.length}</p>
+                  <p className="mt-2 text-5xl font-semibold">{requestStats.pendingCount}</p>
                   <p className="mt-1 text-sm text-white/65">request menunggu review</p>
                 </div>
               </div>
 
               <div className="grid gap-3 md:grid-cols-3">
-                <StatCard label="Total User" value={users.length} />
-                <StatCard label="Active User" value={activeUsers} />
-                <StatCard label="Request Pending" value={accessRequests.length} />
+                <StatCard label="Total User" value={userStats.totalUsers} />
+                <StatCard label="Active User" value={userStats.activeUsers} />
+                <StatCard label="Request Pending" value={requestStats.pendingCount} />
               </div>
             </div>
           </Card>
@@ -369,8 +462,8 @@ export default function AdminUsersPage() {
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Snapshot</p>
             <h2 className="mt-2 text-2xl font-semibold text-text">Ringkasan kerja admin</h2>
             <div className="mt-5 space-y-3">
-              <SummaryRow label="Active User" value={String(activeUsers)} />
-              <SummaryRow label="Inactive User" value={String(users.length - activeUsers)} />
+              <SummaryRow label="Active User" value={String(userStats.activeUsers)} />
+              <SummaryRow label="Inactive User" value={String(userStats.inactiveUsers)} />
               <SummaryRow label="Selected Request" value={selectedRequest?.name ?? "Belum ada"} />
               <SummaryRow label="User Form Mode" value={editingId ? "Edit User" : "Create User"} />
             </div>
@@ -403,7 +496,7 @@ export default function AdminUsersPage() {
                   </p>
                 </div>
                 <div className="rounded-full border border-border bg-panel/35 px-4 py-2 text-sm font-semibold text-text">
-                  {accessRequests.length} request visible
+                  {requestTotal} request visible
                 </div>
               </div>
 
@@ -447,6 +540,22 @@ export default function AdminUsersPage() {
                   ))
                 )}
               </div>
+
+              {!isLoading && accessRequests.length > 0 ? (
+                <div className="mt-5">
+                  <PaginationBar
+                    currentPage={requestPage}
+                    onPageChange={setRequestPage}
+                    onPageSizeChange={(nextPageSize) => {
+                      setRequestPageSize(nextPageSize);
+                      setRequestPage(1);
+                    }}
+                    pageSize={requestPageSize}
+                    total={requestTotal}
+                    totalPages={requestTotalPages}
+                  />
+                </div>
+              ) : null}
             </Card>
 
             <Card>
@@ -459,21 +568,27 @@ export default function AdminUsersPage() {
                   </p>
                 </div>
                 <div className="rounded-full border border-border bg-panel/35 px-4 py-2 text-sm font-semibold text-text">
-                  {filteredUsers.length} user visible
+                  {userTotal} user visible
                 </div>
               </div>
 
               <div className="mt-5 grid gap-4 md:grid-cols-[1.3fr_0.8fr_0.8fr]">
                 <Field label="Cari user">
                   <Input
-                    onChange={(event) => setSearch(event.target.value)}
+                    onChange={(event) => {
+                      setSearch(event.target.value);
+                      setUserPage(1);
+                    }}
                     placeholder="Nama, email, username, atau role"
                     value={search}
                   />
                 </Field>
                 <Field label="Role">
                   <Select
-                    onChange={(event) => setRoleFilter(event.target.value as "ALL" | UserRole)}
+                    onChange={(event) => {
+                      setRoleFilter(event.target.value as "ALL" | UserRole);
+                      setUserPage(1);
+                    }}
                     value={roleFilter}
                   >
                     <option value="ALL">Semua Role</option>
@@ -486,9 +601,10 @@ export default function AdminUsersPage() {
                 </Field>
                 <Field label="Status">
                   <Select
-                    onChange={(event) =>
-                      setStatusFilter(event.target.value as "ALL" | "ACTIVE" | "INACTIVE")
-                    }
+                    onChange={(event) => {
+                      setStatusFilter(event.target.value as "ALL" | "ACTIVE" | "INACTIVE");
+                      setUserPage(1);
+                    }}
                     value={statusFilter}
                   >
                     <option value="ALL">Semua Status</option>
@@ -503,13 +619,13 @@ export default function AdminUsersPage() {
               <div className="space-y-4">
                 {isLoading ? (
                   <LoadingRows count={4} heightClass="h-28" />
-                ) : filteredUsers.length === 0 ? (
+                ) : users.length === 0 ? (
                   <EmptyState
                     title="Tidak ada user yang cocok"
                     copy="Coba ubah kata kunci atau filter role dan status untuk melihat akun lain."
                   />
                 ) : (
-                  filteredUsers.map((user) => (
+                  users.map((user) => (
                     <div
                       className={`rounded-[26px] border p-4 transition ${
                         editingId === user.id
@@ -520,12 +636,12 @@ export default function AdminUsersPage() {
                     >
                       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                         <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="text-lg font-semibold text-text">{user.name}</h3>
+                          <h3 className="text-lg font-semibold text-text">{user.name}</h3>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
                             <RolePill role={user.role} />
                             <StatusPill isActive={user.isActive} />
                           </div>
-                          <p className="mt-2 text-sm text-muted">
+                          <p className="mt-3 text-sm text-muted">
                             {user.email} / {user.username}
                           </p>
                           <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
@@ -548,6 +664,22 @@ export default function AdminUsersPage() {
                   ))
                 )}
               </div>
+
+              {!isLoading && users.length > 0 ? (
+                <div className="mt-5">
+                  <PaginationBar
+                    currentPage={userPage}
+                    onPageChange={setUserPage}
+                    onPageSizeChange={(nextPageSize) => {
+                      setUserPageSize(nextPageSize);
+                      setUserPage(1);
+                    }}
+                    pageSize={userPageSize}
+                    total={userTotal}
+                    totalPages={userTotalPages}
+                  />
+                </div>
+              ) : null}
             </Card>
           </div>
 
@@ -842,6 +974,73 @@ function InfoTile({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl border border-border/80 bg-panel/20 px-4 py-3">
       <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">{label}</p>
       <p className="mt-2 text-sm font-semibold text-text">{value}</p>
+    </div>
+  );
+}
+
+function PaginationBar({
+  currentPage,
+  totalPages,
+  total,
+  pageSize,
+  onPageChange,
+  onPageSizeChange
+}: {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+}) {
+  const startItem = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, total);
+
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-border/75 bg-panel/18 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <p className="text-sm font-semibold text-text">
+          Menampilkan {startItem}-{endItem} dari {total} data
+        </p>
+        <p className="mt-1 text-sm text-muted">
+          Page {currentPage} dari {totalPages}
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-semibold text-text">Per page</span>
+          <Select
+            className="min-w-[108px]"
+            onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            value={String(pageSize)}
+          >
+            <option value="6">6 item</option>
+            <option value="12">12 item</option>
+            <option value="24">24 item</option>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            disabled={currentPage <= 1}
+            onClick={() => onPageChange(currentPage - 1)}
+            variant="secondary"
+          >
+            Previous
+          </Button>
+          <div className="rounded-full border border-border bg-white px-4 py-2 text-sm font-semibold text-text">
+            {currentPage} / {totalPages}
+          </div>
+          <Button
+            disabled={currentPage >= totalPages}
+            onClick={() => onPageChange(currentPage + 1)}
+            variant="secondary"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

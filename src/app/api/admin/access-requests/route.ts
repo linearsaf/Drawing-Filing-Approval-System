@@ -7,9 +7,13 @@ export async function GET(request: Request) {
   try {
     await requireRole(request, ["ADMIN"]);
     const query = parseQuery(request.url, accessRequestListQuerySchema);
-    const items = await listAccessRequests(query.status);
+    const items = await listAccessRequests({
+      status: query.status,
+      page: query.page,
+      pageSize: query.pageSize
+    });
 
-    return apiSuccess({ items });
+    return apiSuccess(items);
   } catch (error) {
     return apiError(error);
   }

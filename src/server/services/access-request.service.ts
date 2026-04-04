@@ -1,4 +1,4 @@
-import { and, desc, eq, ne, or } from "drizzle-orm";
+import { and, count, desc, eq, ne, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 import { HttpError } from "@/lib/server/api";
@@ -79,14 +79,46 @@ export async function createAccessRequest(input: {
   return { requestId };
 }
 
-export async function listAccessRequests(status?: "PENDING" | "APPROVED" | "REJECTED") {
-  const rows = await db
+export async function listAccessRequests(params?: {
+  status?: "PENDING" | "APPROVED" | "REJECTED";
+  page?: number;
+  pageSize?: number;
+}) {
+  const where = params?.status ? eq(schema.userAccessRequests.status, params.status) : undefined;
+  const pageSize = Math.max(1, params?.pageSize ?? 6);
+  const requestedPage = Math.max(1, params?.page ?? 1);
+
+  const [{ filteredTotal }] = await db
+    .select({ filteredTotal: count() })
+    .from(schema.userAccessRequests)
+    .where(where);
+
+  const [{ pendingCount }] = await db
+    .select({ pendingCount: count() })
+    .from(schema.userAccessRequests)
+    .where(eq(schema.userAccessRequests.status, "PENDING"));
+
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+
+  const items = await db
     .select()
     .from(schema.userAccessRequests)
-    .where(status ? eq(schema.userAccessRequests.status, status) : undefined)
-    .orderBy(desc(schema.userAccessRequests.createdAt));
+    .where(where)
+    .orderBy(desc(schema.userAccessRequests.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 
-  return rows;
+  return {
+    items,
+    total: filteredTotal,
+    page,
+    pageSize,
+    totalPages,
+    stats: {
+      pendingCount
+    }
+  };
 }
 
 export async function updateAccessRequest(

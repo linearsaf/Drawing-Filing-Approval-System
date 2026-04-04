@@ -85,6 +85,8 @@ export async function listDrawings(params: {
   revision?: string;
   dateFrom?: string;
   dateTo?: string;
+  page?: number;
+  pageSize?: number;
 }) {
   const rows = await db
     .select({
@@ -135,6 +137,7 @@ export async function listDrawings(params: {
         .from(schema.user)
         .where(inArray(schema.user.id, creatorIds))
     : [];
+  const creatorById = new Map(creators.map((creator) => [creator.id, creator]));
 
   const revisions = rows.length
     ? await db
@@ -147,10 +150,13 @@ export async function listDrawings(params: {
           )
         )
     : [];
+  const revisionById = new Map(revisions.map((revision) => [revision.id, revision]));
 
-  return rows
+  const filteredItems = rows
     .filter((drawing) => {
-      const revision = revisions.find((item) => item.id === drawing.currentRevisionId);
+      const revision = drawing.currentRevisionId
+        ? revisionById.get(drawing.currentRevisionId)
+        : undefined;
       const revisionMatches =
         !params.revision ||
         (revision?.revisionNo ?? "").toLowerCase().includes(params.revision.toLowerCase());
@@ -162,8 +168,10 @@ export async function listDrawings(params: {
       return revisionMatches && fromMatches && toMatches;
     })
     .map((drawing) => {
-      const revision = revisions.find((item) => item.id === drawing.currentRevisionId) ?? null;
-      const creator = creators.find((item) => item.id === drawing.createdBy) ?? null;
+      const revision = drawing.currentRevisionId
+        ? revisionById.get(drawing.currentRevisionId) ?? null
+        : null;
+      const creator = creatorById.get(drawing.createdBy) ?? null;
 
       return {
         ...drawing,
@@ -182,6 +190,29 @@ export async function listDrawings(params: {
           : null
       };
     });
+
+  const total = filteredItems.length;
+  const pageSize = Math.max(1, params.pageSize ?? 12);
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const page = Math.min(Math.max(1, params.page ?? 1), totalPages);
+  const startIndex = (page - 1) * pageSize;
+  const items = filteredItems.slice(startIndex, startIndex + pageSize);
+
+  return {
+    items,
+    total,
+    page,
+    pageSize,
+    totalPages,
+    summary: {
+      total,
+      drafts: filteredItems.filter((item) => item.currentStatus === "DRAFT").length,
+      waiting: filteredItems.filter((item) =>
+        ["WAITING_CHECK", "WAITING_APPROVAL_1", "WAITING_APPROVAL_2"].includes(item.currentStatus)
+      ).length,
+      completed: filteredItems.filter((item) => item.currentStatus === "COMPLETED").length
+    }
+  };
 }
 
 export async function getDrawingDetail(drawingId: string, role: AppRole, userId: string) {

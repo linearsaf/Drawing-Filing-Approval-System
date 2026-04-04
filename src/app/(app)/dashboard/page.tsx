@@ -50,6 +50,7 @@ interface DrawingListItem {
 
 interface DashboardResponse {
   summary: DashboardSummary;
+  queue: DrawingListItem[];
   recentActivity: ActivityItem[];
 }
 
@@ -80,10 +81,7 @@ function DashboardContent({ role }: { role: UserRole }) {
       setError("");
 
       try {
-        const [dashboardResponse, drawingsResponse] = await Promise.all([
-          apiFetch<DashboardResponse>("/api/dashboard/summary"),
-          apiFetch<{ items: DrawingListItem[] }>("/api/drawings")
-        ]);
+        const dashboardResponse = await apiFetch<DashboardResponse>("/api/dashboard/summary");
 
         if (cancelled) {
           return;
@@ -91,21 +89,7 @@ function DashboardContent({ role }: { role: UserRole }) {
 
         setSummary(dashboardResponse.summary);
         setActivity(dashboardResponse.recentActivity);
-        setQueue(
-          drawingsResponse.items
-            .filter((item) => matchesRoleQueue(role, item.currentStatus))
-            .sort((left, right) => {
-              const priorityDelta =
-                getQueuePriority(role, left.currentStatus) - getQueuePriority(role, right.currentStatus);
-
-              if (priorityDelta !== 0) {
-                return priorityDelta;
-              }
-
-              return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
-            })
-            .slice(0, 6)
-        );
+        setQueue(dashboardResponse.queue);
       } catch (loadError) {
         if (!cancelled) {
           setError(getErrorMessage(loadError, "Dashboard tidak dapat dimuat."));
@@ -336,7 +320,11 @@ function DashboardContent({ role }: { role: UserRole }) {
 
                     <div className="flex flex-col items-start gap-2.5 lg:w-[172px] lg:items-stretch">
                       <div className="lg:flex lg:justify-end">
-                        <StatusBadge compact status={drawing.currentStatus} />
+                        <StatusBadge
+                          compact
+                          label={getCompactDashboardStatusLabel(drawing.currentStatus)}
+                          status={drawing.currentStatus}
+                        />
                       </div>
                       <Link href={getQueueHref(role, drawing.id, drawing.currentStatus)}>
                         <Button className="w-full" variant="secondary">
@@ -478,6 +466,17 @@ function HighlightStat({
   );
 }
 
+function getCompactDashboardStatusLabel(status: RevisionStatus) {
+  const compactLabels: Partial<Record<RevisionStatus, string>> = {
+    WAITING_APPROVAL_1: "Waiting Approval L1",
+    APPROVAL_1_REJECTED: "Rejected L1",
+    WAITING_APPROVAL_2: "Waiting Final",
+    APPROVAL_2_REJECTED: "Final Rejected"
+  };
+
+  return compactLabels[status];
+}
+
 function getDashboardCopy(role: UserRole) {
   if (role === "DRAFTER") {
     return {
@@ -602,52 +601,6 @@ function getDashboardCopy(role: UserRole) {
       "Tidak ada drawing aktif yang tertahan. Mayoritas item sudah selesai atau belum ada pekerjaan berjalan.",
     headerLinkLabel: "Open Drawing List"
   };
-}
-
-function matchesRoleQueue(role: UserRole, status: RevisionStatus) {
-  if (role === "DRAFTER") {
-    return ["DRAFT", "CHECK_REJECTED", "APPROVAL_1_REJECTED", "APPROVAL_2_REJECTED"].includes(
-      status
-    );
-  }
-
-  if (role === "DRAFT_LEADER") {
-    return status === "WAITING_CHECK";
-  }
-
-  if (role === "APPROVER_L1") {
-    return status === "WAITING_APPROVAL_1";
-  }
-
-  if (role === "HEAD") {
-    return status === "WAITING_APPROVAL_2";
-  }
-
-  if (role === "CONSUMER") {
-    return status === "COMPLETED";
-  }
-
-  return !["COMPLETED", "OBSOLETE"].includes(status);
-}
-
-function getQueuePriority(role: UserRole, status: RevisionStatus) {
-  if (role === "ADMIN") {
-    const priorityMap: Record<RevisionStatus, number> = {
-      WAITING_APPROVAL_2: 1,
-      WAITING_APPROVAL_1: 2,
-      WAITING_CHECK: 3,
-      CHECK_REJECTED: 4,
-      APPROVAL_1_REJECTED: 5,
-      APPROVAL_2_REJECTED: 6,
-      DRAFT: 7,
-      COMPLETED: 8,
-      OBSOLETE: 9
-    };
-
-    return priorityMap[status];
-  }
-
-  return 1;
 }
 
 function getActionableCount(role: UserRole, summary: DashboardSummary) {

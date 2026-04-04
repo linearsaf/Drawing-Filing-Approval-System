@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, asc, count, eq, like, or } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
@@ -6,8 +6,67 @@ import { env } from "@/lib/env";
 import { HttpError } from "@/lib/server/api";
 import { createAuditLog } from "@/server/services/audit.service";
 
-export async function listUsers() {
-  return db.select().from(schema.user);
+export async function listUsers(params?: {
+  search?: string;
+  role?: "ALL" | "ADMIN" | "DRAFTER" | "DRAFT_LEADER" | "APPROVER_L1" | "HEAD" | "CONSUMER";
+  status?: "ALL" | "ACTIVE" | "INACTIVE";
+  page?: number;
+  pageSize?: number;
+}) {
+  const where = and(
+    params?.role && params.role !== "ALL" ? eq(schema.user.role, params.role) : undefined,
+    params?.status === "ACTIVE"
+      ? eq(schema.user.isActive, true)
+      : params?.status === "INACTIVE"
+        ? eq(schema.user.isActive, false)
+        : undefined,
+    params?.search
+      ? or(
+          like(schema.user.name, `%${params.search}%`),
+          like(schema.user.email, `%${params.search}%`),
+          like(schema.user.username, `%${params.search}%`),
+          like(schema.user.role, `%${params.search}%`)
+        )
+      : undefined
+  );
+
+  const pageSize = Math.max(1, params?.pageSize ?? 6);
+  const requestedPage = Math.max(1, params?.page ?? 1);
+
+  const [{ filteredTotal }] = await db
+    .select({ filteredTotal: count() })
+    .from(schema.user)
+    .where(where);
+
+  const [{ totalUsers }] = await db.select({ totalUsers: count() }).from(schema.user);
+  const [{ activeUsers }] = await db
+    .select({ activeUsers: count() })
+    .from(schema.user)
+    .where(eq(schema.user.isActive, true));
+
+  const totalPages = Math.max(1, Math.ceil(filteredTotal / pageSize));
+  const page = Math.min(requestedPage, totalPages);
+
+  const items = await db
+    .select()
+    .from(schema.user)
+    .where(where)
+    .orderBy(asc(schema.user.name))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+
+  return {
+    items,
+    total: filteredTotal,
+    page,
+    pageSize,
+    totalPages,
+    stats: {
+      totalUsers,
+      activeUsers,
+      inactiveUsers: totalUsers - activeUsers
+    }
+  };
 }
 
 export async function createUserAccount(input: {

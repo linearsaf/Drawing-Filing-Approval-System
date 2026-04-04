@@ -59,6 +59,42 @@ interface DrawingListItem {
   } | null;
 }
 
+interface DrawingPageSummary {
+  total: number;
+  drafts: number;
+  waiting: number;
+  completed: number;
+}
+
+interface DrawingListResponse {
+  items: DrawingListItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  summary: DrawingPageSummary;
+}
+
+async function fetchDrawings(
+  activeFilters: DrawingFilters,
+  activePage: number,
+  activePageSize: number
+) {
+  const query = buildQuery({
+    search: activeFilters.search,
+    status: activeFilters.status,
+    area: activeFilters.area,
+    drawnBy: activeFilters.drawnBy,
+    revision: activeFilters.revision,
+    dateFrom: activeFilters.dateFrom,
+    dateTo: activeFilters.dateTo,
+    page: activePage,
+    pageSize: activePageSize
+  });
+
+  return apiFetch<DrawingListResponse>(`/api/drawings${query}`);
+}
+
 export default function DrawingsPage() {
   const { currentUser } = useDemoApp();
   const [filters, setFilters] = useState<DrawingFilters>(defaultFilters);
@@ -93,6 +129,16 @@ function DrawingsContent({
   onViewModeChange: (mode: ViewMode) => void;
 }) {
   const [items, setItems] = useState<DrawingListItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [summary, setSummary] = useState<DrawingPageSummary>({
+    total: 0,
+    drafts: 0,
+    waiting: 0,
+    completed: 0
+  });
   const [drafters, setDrafters] = useState<DrafterOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
@@ -101,22 +147,6 @@ function DrawingsContent({
 
   const pageCopy = getDrawingsCopy(role);
   const activeFilterCount = getActiveFilterCount(filters);
-  const summary = getDrawingSummary(items);
-
-  const getDrawings = async (activeFilters: DrawingFilters) => {
-    const query = buildQuery({
-      search: activeFilters.search,
-      status: activeFilters.status,
-      area: activeFilters.area,
-      drawnBy: activeFilters.drawnBy,
-      revision: activeFilters.revision,
-      dateFrom: activeFilters.dateFrom,
-      dateTo: activeFilters.dateTo
-    });
-
-    const response = await apiFetch<{ items: DrawingListItem[] }>(`/api/drawings${query}`);
-    return response.items;
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -150,10 +180,17 @@ function DrawingsContent({
       setError("");
 
       try {
-        const nextItems = await getDrawings(filters);
+        const response = await fetchDrawings(filters, page, pageSize);
 
         if (!cancelled) {
-          setItems(nextItems);
+          setItems(response.items);
+          setSummary(response.summary);
+          setTotal(response.total);
+          setTotalPages(response.totalPages);
+
+          if (response.page !== page) {
+            setPage(response.page);
+          }
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -171,10 +208,16 @@ function DrawingsContent({
     return () => {
       cancelled = true;
     };
-  }, [filters]);
+  }, [filters, page, pageSize]);
 
   const resetFilters = () => {
     onFiltersChange(defaultFilters);
+    setPage(1);
+  };
+
+  const updateFilters = (nextFilters: DrawingFilters) => {
+    onFiltersChange(nextFilters);
+    setPage(1);
   };
 
   const handleDelete = async (drawing: DrawingListItem) => {
@@ -195,8 +238,17 @@ function DrawingsContent({
         method: "DELETE"
       });
 
-      const nextItems = await getDrawings(filters);
-      setItems(nextItems);
+      const response = await fetchDrawings(filters, page, pageSize);
+
+      if (response.items.length === 0 && response.total > 0 && page > 1) {
+        setPage((current) => Math.max(1, current - 1));
+      } else {
+        setItems(response.items);
+        setSummary(response.summary);
+        setTotal(response.total);
+        setTotalPages(response.totalPages);
+      }
+
       setSuccess(`Drawing ${drawing.drawingNumber} berhasil dihapus.`);
     } catch (deleteError) {
       setError(getErrorMessage(deleteError, "Drawing gagal dihapus."));
@@ -328,7 +380,7 @@ function DrawingsContent({
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="rounded-full border border-border bg-panel/35 px-4 py-2 text-sm font-semibold text-text">
-              {summary.total} drawing visible
+              {total} drawing visible
             </div>
             <Button onClick={resetFilters} variant="secondary">
               Reset Filter
@@ -341,7 +393,7 @@ function DrawingsContent({
             <div className="md:col-span-2 xl:col-span-6">
               <FilterField label="Kata kunci">
                 <Input
-                  onChange={(event) => onFiltersChange({ ...filters, search: event.target.value })}
+                  onChange={(event) => updateFilters({ ...filters, search: event.target.value })}
                   placeholder="Nomor drawing, nama, SAC, atau area"
                   value={filters.search}
                 />
@@ -351,7 +403,7 @@ function DrawingsContent({
               <FilterField label="Status">
                 <Select
                   onChange={(event) =>
-                    onFiltersChange({ ...filters, status: event.target.value as RevisionStatus | "ALL" })
+                    updateFilters({ ...filters, status: event.target.value as RevisionStatus | "ALL" })
                   }
                   value={filters.status}
                 >
@@ -370,7 +422,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Drafter">
                 <Select
-                  onChange={(event) => onFiltersChange({ ...filters, drawnBy: event.target.value })}
+                  onChange={(event) => updateFilters({ ...filters, drawnBy: event.target.value })}
                   value={filters.drawnBy}
                 >
                   <option value="">Semua Drafter</option>
@@ -389,14 +441,14 @@ function DrawingsContent({
               <div className="grid gap-4 md:grid-cols-[minmax(0,1.7fr)_minmax(0,0.85fr)]">
                 <FilterField label="Area">
                   <Input
-                    onChange={(event) => onFiltersChange({ ...filters, area: event.target.value })}
+                    onChange={(event) => updateFilters({ ...filters, area: event.target.value })}
                     placeholder="Semua area"
                     value={filters.area}
                   />
                 </FilterField>
                 <FilterField label="Revisi">
                   <Input
-                    onChange={(event) => onFiltersChange({ ...filters, revision: event.target.value })}
+                    onChange={(event) => updateFilters({ ...filters, revision: event.target.value })}
                     placeholder="Contoh A / B / C"
                     value={filters.revision}
                   />
@@ -406,7 +458,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Dari tanggal">
                 <Input
-                  onChange={(event) => onFiltersChange({ ...filters, dateFrom: event.target.value })}
+                  onChange={(event) => updateFilters({ ...filters, dateFrom: event.target.value })}
                   type="date"
                   value={filters.dateFrom}
                 />
@@ -415,7 +467,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Sampai tanggal">
                 <Input
-                  onChange={(event) => onFiltersChange({ ...filters, dateTo: event.target.value })}
+                  onChange={(event) => updateFilters({ ...filters, dateTo: event.target.value })}
                   type="date"
                   value={filters.dateTo}
                 />
@@ -550,6 +602,20 @@ function DrawingsContent({
           </div>
         </Card>
       )}
+
+      {!isLoading && items.length > 0 ? (
+        <PaginationBar
+          currentPage={page}
+          onPageChange={setPage}
+          onPageSizeChange={(nextPageSize) => {
+            setPageSize(nextPageSize);
+            setPage(1);
+          }}
+          pageSize={pageSize}
+          total={total}
+          totalPages={totalPages}
+        />
+      ) : null}
     </div>
   );
 }
@@ -647,6 +713,75 @@ function ActionButtons({
   );
 }
 
+function PaginationBar({
+  currentPage,
+  totalPages,
+  total,
+  pageSize,
+  onPageChange,
+  onPageSizeChange
+}: {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+}) {
+  const startItem = total === 0 ? 0 : (currentPage - 1) * pageSize + 1;
+  const endItem = Math.min(currentPage * pageSize, total);
+
+  return (
+    <Card className="border-border/80 bg-white/78">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-sm font-semibold text-text">
+            Menampilkan {startItem}-{endItem} dari {total} drawing
+          </p>
+          <p className="mt-1 text-sm text-muted">
+            Page {currentPage} dari {totalPages}
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-text">Per page</span>
+            <Select
+              className="min-w-[112px]"
+              onChange={(event) => onPageSizeChange(Number(event.target.value))}
+              value={String(pageSize)}
+            >
+              <option value="12">12 item</option>
+              <option value="24">24 item</option>
+              <option value="48">48 item</option>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2 sm:justify-end">
+            <Button
+              disabled={currentPage <= 1}
+              onClick={() => onPageChange(currentPage - 1)}
+              variant="secondary"
+            >
+              Previous
+            </Button>
+            <div className="rounded-full border border-border bg-panel/30 px-4 py-2 text-sm font-semibold text-text">
+              {currentPage} / {totalPages}
+            </div>
+            <Button
+              disabled={currentPage >= totalPages}
+              onClick={() => onPageChange(currentPage + 1)}
+              variant="secondary"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function DrawingsLoadingState() {
   return (
     <div className="grid gap-4">
@@ -719,17 +854,6 @@ function getActiveFilterCount(filters: DrawingFilters) {
     filters.dateTo,
     filters.status !== "ALL" ? filters.status : ""
   ].filter(Boolean).length;
-}
-
-function getDrawingSummary(items: DrawingListItem[]) {
-  return {
-    total: items.length,
-    drafts: items.filter((item) => item.currentStatus === "DRAFT").length,
-    waiting: items.filter((item) =>
-      ["WAITING_CHECK", "WAITING_APPROVAL_1", "WAITING_APPROVAL_2"].includes(item.currentStatus)
-    ).length,
-    completed: items.filter((item) => item.currentStatus === "COMPLETED").length
-  };
 }
 
 function getDrawingsCopy(role: UserRole) {

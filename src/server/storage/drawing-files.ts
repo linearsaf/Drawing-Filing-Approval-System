@@ -45,6 +45,14 @@ export function resolvePublicFilePath(publicPath: string) {
   return path.join(process.cwd(), "public", normalized);
 }
 
+export function resolveManagedDrawingFilePath(publicPath: string) {
+  const normalizedPath = publicPath.startsWith("/drawings/")
+    ? publicPath.replace(/^\/drawings\//, "/uploads/drawings/")
+    : publicPath;
+
+  return resolvePublicFilePath(normalizedPath);
+}
+
 async function fileExists(filePath: string) {
   try {
     await access(filePath);

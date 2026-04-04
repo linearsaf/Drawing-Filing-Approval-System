@@ -1,14 +1,21 @@
-import { apiError, apiSuccess, parseJson } from "@/lib/server/api";
+import { apiError, apiSuccess, parseJson, parseQuery } from "@/lib/server/api";
 import { requireRole } from "@/lib/server/auth";
-import { adminCreateUserSchema } from "@/lib/validations/api";
+import { adminCreateUserSchema, adminUserListQuerySchema } from "@/lib/validations/api";
 import { createUserAccount, listUsers } from "@/server/services/admin.service";
 
 export async function GET(request: Request) {
   try {
     await requireRole(request, ["ADMIN"]);
-    const users = await listUsers();
+    const query = parseQuery(request.url, adminUserListQuerySchema);
+    const users = await listUsers({
+      search: query.search,
+      role: query.role,
+      status: query.status,
+      page: query.page,
+      pageSize: query.pageSize
+    });
 
-    return apiSuccess({ items: users });
+    return apiSuccess(users);
   } catch (error) {
     return apiError(error);
   }
@@ -25,4 +32,3 @@ export async function POST(request: Request) {
     return apiError(error);
   }
 }
-
