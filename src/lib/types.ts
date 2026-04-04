@@ -6,6 +6,8 @@ export type UserRole =
   | "HEAD"
   | "CONSUMER";
 
+export type AccessRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type RevisionStatus =
   | "DRAFT"
   | "WAITING_CHECK"
@@ -30,6 +32,20 @@ export interface User {
   updatedAt: string;
 }
 
+export interface AccessRequest {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  requestedRole: UserRole;
+  status: AccessRequestStatus;
+  adminReviewNote: string | null;
+  approvedUserId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt: string | null;
+}
+
 export interface Drawing {
   id: string;
   drawingNumber: string;
@@ -39,6 +55,9 @@ export interface Drawing {
   discipline: string;
   description: string | null;
   createdBy: string;
+  drawnByUserId?: string;
+  drawnByName?: string | null;
+  drawnByUsername?: string | null;
   currentRevisionId: string | null;
   currentStatus: RevisionStatus;
   latestCompletedRevisionId: string | null;
@@ -77,7 +96,7 @@ export interface ApprovalAction {
 
 export interface AuditLog {
   id: string;
-  entityType: "DRAWING" | "REVISION" | "USER";
+  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST";
   entityId: string;
   action: string;
   userId: string | null;
@@ -100,9 +119,16 @@ export interface DrawingFilters {
   search: string;
   status: RevisionStatus | "ALL";
   area: string;
+  drawnBy: string;
   revision: string;
   dateFrom: string;
   dateTo: string;
+}
+
+export interface DrafterOption {
+  id: string;
+  name: string;
+  username: string;
 }
 
 export interface DemoSession {

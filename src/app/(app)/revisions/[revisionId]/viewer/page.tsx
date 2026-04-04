@@ -46,7 +46,7 @@ function RevisionViewerContent({ revisionId }: { revisionId: string }) {
         }
       } catch (loadError) {
         if (!cancelled) {
-          setError(getErrorMessage(loadError, "Data revisi tidak dapat dimuat."));
+          setError(getErrorMessage(loadError, "Data revision tidak dapat dimuat."));
         }
       } finally {
         if (!cancelled) {
@@ -64,17 +64,29 @@ function RevisionViewerContent({ revisionId }: { revisionId: string }) {
 
   if (isLoading) {
     return (
-      <Card>
-        <p className="text-sm text-muted">Memuat viewer revisi...</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Viewer"
+          title="Memuat Revision Viewer"
+          description="Menyiapkan dokumen dan metadata revision aktif."
+        />
+        <Card className="h-[620px] animate-pulse bg-white/70" />
+      </div>
     );
   }
 
   if (error || !data) {
     return (
-      <Card className="border-danger/15">
-        <p className="text-sm font-medium text-danger">{error || "Revisi tidak ditemukan."}</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Viewer"
+          title="Revision Viewer belum tersedia"
+          description="Terjadi kendala saat mengambil data revision."
+        />
+        <Card className="border-danger/15 bg-white/70">
+          <p className="text-sm font-medium text-danger">{error || "Revision tidak ditemukan."}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -82,11 +94,11 @@ function RevisionViewerContent({ revisionId }: { revisionId: string }) {
     <div className="space-y-8">
       <PageHeader
         eyebrow={data.drawing.drawingNumber}
-        title={`${data.drawing.drawingName} • Viewer`}
-        description={`Revisi ${data.revision.revisionNo} • ${data.revision.fileName}`}
+        title={`${data.drawing.drawingName} / Viewer`}
+        description={`Revision ${data.revision.revisionNo} / ${data.revision.fileName}`}
         actions={
           <Link href={`/drawings/${data.drawing.id}`}>
-            <Button variant="secondary">Kembali ke Detail</Button>
+            <Button variant="secondary">Kembali ke Detail Drawing</Button>
           </Link>
         }
       />

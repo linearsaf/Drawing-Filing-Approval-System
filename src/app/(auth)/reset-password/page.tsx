@@ -69,7 +69,7 @@ function ResetPasswordContent() {
       setRequestMessage(response.message);
       setPreviewUrl(response.previewUrl);
     } catch (error) {
-      setRequestError(getErrorMessage(error, "Permintaan reset password gagal diproses."));
+      setRequestError(getErrorMessage(error, "Permintaan Reset Password gagal diproses."));
     } finally {
       setIsRequesting(false);
     }
@@ -100,9 +100,9 @@ function ResetPasswordContent() {
         newPassword: "",
         confirmPassword: ""
       });
-      setResetMessage("Password berhasil diperbarui. Silakan kembali ke halaman login.");
+      setResetMessage("Password berhasil diperbarui. Silakan kembali ke halaman Sign In.");
     } catch (error) {
-      setResetError(getErrorMessage(error, "Reset password gagal diproses."));
+      setResetError(getErrorMessage(error, "Reset Password gagal diproses."));
     } finally {
       setIsResetting(false);
     }
@@ -113,20 +113,20 @@ function ResetPasswordContent() {
       <div className="mx-auto flex min-h-[92vh] max-w-6xl items-center justify-center">
         <Card className="w-full max-w-xl bg-white/94">
           <p className="text-xs font-bold uppercase tracking-[0.32em] text-brand">
-            {mode === "reset" ? "Reset Password" : "Lupa Password"}
+            {mode === "reset" ? "Reset Password" : "Reset Password"}
           </p>
           <h1 className="mt-3 text-3xl font-semibold text-text">
-            {mode === "reset" ? "Buat password baru" : "Minta tautan reset password"}
+            {mode === "reset" ? "Buat password baru" : "Minta tautan Reset Password"}
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted">
             {mode === "reset"
               ? "Masukkan password baru untuk mengaktifkan kembali akses ke akun Anda."
-              : "Masukkan email akun. Sistem akan menyiapkan tautan reset password."}
+              : "Masukkan email akun. Sistem akan menyiapkan tautan Reset Password."}
           </p>
 
           {invalidToken ? (
             <div className="mt-6 rounded-2xl border border-danger/15 bg-danger/5 px-4 py-3 text-sm text-danger">
-              Tautan reset password tidak valid atau sudah kedaluwarsa.
+              Tautan Reset Password tidak valid atau sudah kedaluwarsa.
             </div>
           ) : null}
 
@@ -141,19 +141,27 @@ function ResetPasswordContent() {
                 />
               </Field>
 
-              {requestError ? <p className="text-sm font-medium text-danger">{requestError}</p> : null}
-              {requestMessage ? <p className="text-sm font-medium text-brand">{requestMessage}</p> : null}
+              {requestError ? (
+                <div className="rounded-2xl border border-danger/15 bg-danger/5 px-4 py-3">
+                  <p className="text-sm font-medium text-danger">{requestError}</p>
+                </div>
+              ) : null}
+              {requestMessage ? (
+                <div className="rounded-2xl border border-brand/15 bg-brand/5 px-4 py-3">
+                  <p className="text-sm font-medium text-brand">{requestMessage}</p>
+                </div>
+              ) : null}
 
               {previewUrl ? (
                 <div className="rounded-2xl border border-brand/15 bg-brand/5 px-4 py-3">
                   <p className="text-sm font-medium text-text">
-                    Tautan reset siap digunakan pada lingkungan lokal ini.
+                    Tautan Reset Password siap digunakan pada lingkungan lokal ini.
                   </p>
                   <Link
                     className="mt-2 inline-block text-sm font-semibold text-brand hover:underline"
                     href={previewUrl}
                   >
-                    Buka tautan reset password
+                    Buka tautan Reset Password
                   </Link>
                 </div>
               ) : null}
@@ -163,7 +171,7 @@ function ResetPasswordContent() {
                   {isRequesting ? "Memproses..." : "Kirim Tautan Reset"}
                 </Button>
                 <Link href="/login">
-                  <Button variant="secondary">Kembali ke Login</Button>
+                  <Button variant="secondary">Kembali ke Sign In</Button>
                 </Link>
               </div>
             </div>
@@ -190,15 +198,23 @@ function ResetPasswordContent() {
                 />
               </Field>
 
-              {resetError ? <p className="text-sm font-medium text-danger">{resetError}</p> : null}
-              {resetMessage ? <p className="text-sm font-medium text-brand">{resetMessage}</p> : null}
+              {resetError ? (
+                <div className="rounded-2xl border border-danger/15 bg-danger/5 px-4 py-3">
+                  <p className="text-sm font-medium text-danger">{resetError}</p>
+                </div>
+              ) : null}
+              {resetMessage ? (
+                <div className="rounded-2xl border border-brand/15 bg-brand/5 px-4 py-3">
+                  <p className="text-sm font-medium text-brand">{resetMessage}</p>
+                </div>
+              ) : null}
 
               <div className="flex flex-wrap gap-3">
                 <Button disabled={isResetting} onClick={() => void handleResetPassword()}>
                   {isResetting ? "Menyimpan..." : "Simpan Password Baru"}
                 </Button>
                 <Link href="/login">
-                  <Button variant="secondary">Kembali ke Login</Button>
+                  <Button variant="secondary">Kembali ke Sign In</Button>
                 </Link>
               </div>
             </div>
@@ -215,7 +231,7 @@ function ResetPasswordFallback() {
       <div className="mx-auto flex min-h-[92vh] max-w-6xl items-center justify-center">
         <Card className="max-w-md text-center">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Loading</p>
-          <h2 className="mt-3 text-2xl font-semibold text-text">Menyiapkan reset password...</h2>
+          <h2 className="mt-3 text-2xl font-semibold text-text">Menyiapkan Reset Password...</h2>
         </Card>
       </div>
     </div>

@@ -72,17 +72,38 @@ function EditContent({
 
   if (isLoading) {
     return (
-      <Card>
-        <p className="text-sm text-muted">Memuat data drawing...</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Edit Drawing"
+          title="Memuat data drawing"
+          description="Menyiapkan metadata dan current revision sebelum form ditampilkan."
+        />
+        <div className="space-y-6 animate-pulse">
+          <Card className="h-56 bg-graphite/95" />
+          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <Card className="h-[540px] bg-white/70" />
+            <div className="space-y-6">
+              <Card className="h-72 bg-white/70" />
+              <Card className="h-72 bg-white/70" />
+            </div>
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (error || !data?.drawing) {
     return (
-      <Card className="border-danger/15">
-        <p className="text-sm font-medium text-danger">{error || "Drawing tidak ditemukan."}</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Edit Drawing"
+          title="Data drawing belum tersedia"
+          description="Terjadi kendala saat mengambil data untuk proses edit."
+        />
+        <Card className="border-danger/15 bg-white/70">
+          <p className="text-sm font-medium text-danger">{error || "Drawing tidak ditemukan."}</p>
+        </Card>
+      </div>
     );
   }
 
@@ -92,7 +113,7 @@ function EditContent({
     return (
       <EmptyState
         actionHref={`/drawings/${drawing.id}`}
-        actionLabel="Buka detail drawing"
+        actionLabel="Open Drawing Detail"
         description="Hanya draft atau drawing yang dikembalikan yang bisa diedit."
         title="Drawing tidak bisa diedit"
       />
@@ -103,11 +124,12 @@ function EditContent({
     <div className="space-y-8">
       <PageHeader
         eyebrow={drawing.drawingNumber}
-        title="Edit drawing"
-        description="Perbarui metadata, revisi aktif, dan file PDF sesuai kebutuhan perubahan dokumen."
+        title="Edit Drawing"
+        description="Perbarui metadata, current revision, dan file PDF dengan struktur form yang lebih jelas agar perubahan tetap rapi dan mudah ditelusuri."
       />
       <DrawingForm
         drawingId={drawing.id}
+        drawnByName={drawing.drawnByName ?? drawing.drawnByUsername ?? "-"}
         initialValues={{
           drawingNumber: drawing.drawingNumber,
           drawingName: drawing.drawingName,

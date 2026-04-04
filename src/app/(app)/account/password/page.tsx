@@ -72,13 +72,13 @@ export default function AccountPasswordPage() {
       <div className="space-y-8">
         <PageHeader
           eyebrow="Akun"
-          title="Ubah Password"
-          description="Perbarui password akun untuk menjaga keamanan akses sistem."
+          title="Update Password"
+          description="Update password akun untuk menjaga keamanan akses sistem."
         />
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <Card>
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Form Password</p>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Password Form</p>
             <div className="mt-5 space-y-4">
               <Field label="Password Saat Ini">
                 <Input
@@ -128,7 +128,7 @@ export default function AccountPasswordPage() {
 
             <div className="mt-6 flex flex-wrap gap-3">
               <Button disabled={isSubmitting} onClick={() => void handleSubmit()}>
-                {isSubmitting ? "Menyimpan..." : "Perbarui Password"}
+                {isSubmitting ? "Menyimpan..." : "Update Password"}
               </Button>
             </div>
           </Card>

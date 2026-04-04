@@ -16,6 +16,7 @@ export async function GET(request: Request) {
       search: query.search,
       status: query.status,
       area: query.area,
+      drawnBy: query.drawnBy,
       revision: query.revision,
       dateFrom: query.dateFrom,
       dateTo: query.dateTo

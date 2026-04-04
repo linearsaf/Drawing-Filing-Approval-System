@@ -130,6 +130,7 @@ export function filterDrawings(
     const matchesArea =
       filters.area.trim() === "" ||
       drawing.area.toLowerCase().includes(filters.area.trim().toLowerCase());
+    const matchesDrawnBy = filters.drawnBy.trim() === "" || drawing.createdBy === filters.drawnBy;
     const matchesRevision =
       filters.revision.trim() === "" ||
       currentRevision?.revisionNo.toLowerCase().includes(filters.revision.trim().toLowerCase());
@@ -140,7 +141,15 @@ export function filterDrawings(
     const matchesFrom = fromDate === "" || comparableDate >= fromDate;
     const matchesTo = toDate === "" || comparableDate <= toDate;
 
-    return matchesSearch && matchesStatus && matchesArea && matchesRevision && matchesFrom && matchesTo;
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesArea &&
+      matchesDrawnBy &&
+      matchesRevision &&
+      matchesFrom &&
+      matchesTo
+    );
   });
 }
 

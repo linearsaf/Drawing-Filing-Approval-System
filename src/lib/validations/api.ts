@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { approvalDecisionValues, revisionStatusValues, userRoleValues } from "@/lib/db/schema";
+import {
+  accessRequestStatusValues,
+  approvalDecisionValues,
+  revisionStatusValues,
+  userRoleValues
+} from "@/lib/db/schema";
 
 export const drawingInputSchema = z.object({
   drawingNumber: z.string().min(1),
@@ -22,6 +27,7 @@ export const drawingListQuerySchema = z.object({
   search: z.string().optional(),
   status: z.enum(["ALL", ...revisionStatusValues]).optional().default("ALL"),
   area: z.string().optional(),
+  drawnBy: z.string().optional(),
   revision: z.string().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional()
@@ -46,6 +52,33 @@ export const adminCreateUserSchema = z.object({
   password: z.string().min(8),
   role: z.enum(userRoleValues),
   isActive: z.boolean().optional().default(true)
+});
+
+export const accessRequestCreateSchema = z.object({
+  name: z.string().min(1),
+  email: z.email(),
+  username: z.string().min(3),
+  requestedRole: z.enum(userRoleValues)
+});
+
+export const accessRequestUpdateSchema = z.object({
+  name: z.string().min(1).optional(),
+  email: z.email().optional(),
+  username: z.string().min(3).optional(),
+  requestedRole: z.enum(userRoleValues).optional(),
+  adminReviewNote: z.string().optional()
+});
+
+export const accessRequestDecisionSchema = z.object({
+  name: z.string().min(1),
+  email: z.email(),
+  username: z.string().min(3),
+  requestedRole: z.enum(userRoleValues),
+  adminReviewNote: z.string().optional().default("")
+});
+
+export const accessRequestListQuerySchema = z.object({
+  status: z.enum(accessRequestStatusValues).optional()
 });
 
 export const adminUpdateUserSchema = z.object({

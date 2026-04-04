@@ -64,7 +64,7 @@ async function buildPlaceholderPdf(params: {
     color: rgb(0.25, 0.27, 0.31)
   });
 
-  page.drawText("Dokumen final asli belum tersedia pada storage. Sistem menampilkan placeholder print.", {
+  page.drawText("Final drawing asli belum tersedia pada storage. Sistem menampilkan placeholder print.", {
     x: 48,
     y: page.getHeight() - 230,
     size: 12,

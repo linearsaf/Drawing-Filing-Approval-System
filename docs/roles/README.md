@@ -17,6 +17,8 @@ Catatan umum:
 - Opsi `Remember me` akan mempertahankan sesi login pada perangkat yang sama.
 - Fitur `Lupa password?` tersedia pada halaman login.
 - Setiap user juga dapat mengubah password sendiri dari menu `Ubah Password`.
+- Metadata `Drawn By` menunjukkan drafter pemilik drawing dan mengikuti akun drafter yang membuat drawing tersebut.
+- Filter `Drawn By` pada daftar drawing membantu pencarian cepat saat terdapat banyak drafter aktif.
 - Status revisi utama pada aplikasi:
   - `DRAFT`
   - `WAITING_CHECK`

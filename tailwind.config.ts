@@ -23,6 +23,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: [
+          "\"Google Sans Flex\"",
           "Bahnschrift",
           "\"Segoe UI Variable Text\"",
           "\"Trebuchet MS\"",
@@ -31,8 +32,8 @@ const config: Config = {
         ]
       },
       boxShadow: {
-        panel: "0 18px 60px rgba(33, 37, 41, 0.08)",
-        inset: "inset 0 1px 0 rgba(255, 255, 255, 0.55)"
+        panel: "0 10px 28px rgba(29, 36, 48, 0.06), 0 2px 10px rgba(29, 36, 48, 0.035)",
+        inset: "inset 0 1px 0 rgba(255, 255, 255, 0.7)"
       }
     }
   },
@@ -40,4 +41,3 @@ const config: Config = {
 };
 
 export default config;
-

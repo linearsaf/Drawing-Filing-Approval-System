@@ -10,7 +10,7 @@ export const statusToneMap: Record<
     watermark: "DRAFT"
   },
   WAITING_CHECK: {
-    badge: "bg-brand/10 text-brand border-brand/25",
+    badge: "border-[#35559a]/22 bg-[#35559a]/10 text-[#35559a]",
     dot: "bg-brand",
     watermark: "LEAD CHECK"
   },
@@ -20,8 +20,8 @@ export const statusToneMap: Record<
     watermark: "REJECTED"
   },
   WAITING_APPROVAL_1: {
-    badge: "bg-brand/10 text-brand border-brand/25",
-    dot: "bg-brand",
+    badge: "border-[#5d5cbc]/22 bg-[#5d5cbc]/10 text-[#4d4ca6]",
+    dot: "bg-[#5d5cbc]",
     watermark: "APPROVAL LEVEL 1"
   },
   APPROVAL_1_REJECTED: {
@@ -30,9 +30,9 @@ export const statusToneMap: Record<
     watermark: "REJECTED"
   },
   WAITING_APPROVAL_2: {
-    badge: "bg-brand/10 text-brand border-brand/25",
-    dot: "bg-brand",
-    watermark: "HEAD APPROVAL"
+    badge: "border-[#b98526]/24 bg-[#b98526]/11 text-[#8a6214]",
+    dot: "bg-[#b98526]",
+    watermark: "FINAL APPROVAL"
   },
   APPROVAL_2_REJECTED: {
     badge: "bg-danger/10 text-danger border-danger/25",
@@ -50,4 +50,3 @@ export const statusToneMap: Record<
     watermark: "OBSOLETE"
   }
 };
-

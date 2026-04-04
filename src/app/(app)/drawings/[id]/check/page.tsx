@@ -74,17 +74,37 @@ function CheckContent({
 
   if (isLoading) {
     return (
-      <Card>
-        <p className="text-sm text-muted">Memuat data drawing...</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Check"
+          title="Memuat data Drawing"
+          description="Menyiapkan dokumen dan metadata sebelum halaman check ditampilkan."
+        />
+        <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <Card className="h-[620px] animate-pulse bg-white/70" />
+          <div className="space-y-6">
+            <Card className="h-72 animate-pulse bg-white/70" />
+            <Card className="h-80 animate-pulse bg-white/70" />
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (error || !data?.drawing) {
     return (
-      <Card className="border-danger/15">
-        <p className="text-sm font-medium text-danger">{error || "Data drawing tidak ditemukan."}</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Check"
+          title="Halaman check belum tersedia"
+          description="Terjadi kendala saat mengambil data drawing."
+        />
+        <Card className="border-danger/15 bg-white/70">
+          <p className="text-sm font-medium text-danger">
+            {error || "Data drawing tidak ditemukan."}
+          </p>
+        </Card>
+      </div>
     );
   }
 
@@ -94,7 +114,7 @@ function CheckContent({
     return (
       <EmptyState
         actionHref={`/drawings/${drawing.id}`}
-        actionLabel="Kembali ke detail"
+        actionLabel="Kembali ke Detail Drawing"
         description="Halaman check hanya aktif untuk revision dengan status WAITING_CHECK."
         title="Tidak ada item yang bisa di-check"
       />
@@ -105,8 +125,8 @@ function CheckContent({
     <div className="space-y-8">
       <PageHeader
         eyebrow={drawing.drawingNumber}
-        title="Draft Leader Check"
-        description="Tinjau metadata dan dokumen sebelum memutuskan approve atau reject."
+        title="Check Drawing"
+        description="Tinjau metadata dan dokumen sebelum menetapkan status Approved atau Rejected."
       />
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <PdfPreview
@@ -123,7 +143,7 @@ function CheckContent({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">
-                  Metadata Summary
+                  Drawing Summary
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-text">{drawing.drawingName}</h2>
               </div>
@@ -133,12 +153,13 @@ function CheckContent({
               <QuickRow label="SAC Code" value={drawing.sacCode} />
               <QuickRow label="Area" value={drawing.area} />
               <QuickRow label="Discipline" value={drawing.discipline} />
-              <QuickRow label="Revision" value={revision.revisionNo} />
+              <QuickRow label="Current Revision" value={revision.revisionNo} />
             </div>
           </Card>
           <DecisionPanel
-            approveLabel="Approve Check"
-            description="Jika approve, drawing akan lanjut ke approval level 1. Jika reject, catatan wajib dan status kembali ke drafter."
+            approveLabel="Mark as Approved"
+            description="Jika status Approved, drawing akan lanjut ke Approval Level 1. Jika Rejected, status kembali ke drafter dengan catatan review."
+            eyebrow="Check Decision"
             endpoint={`/api/revisions/${revision.id}/check`}
           />
         </div>

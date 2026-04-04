@@ -11,8 +11,8 @@ export function RoleSwitcher() {
   }
 
   return (
-    <div className="min-w-52 rounded-2xl border border-border bg-surface px-4 py-3">
-      <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-muted">Peran Aktif</p>
+    <div className="min-w-52 rounded-[20px] border border-border/90 bg-surface/92 px-4 py-3 shadow-inset">
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">Peran Aktif</p>
       <p className="mt-2 text-sm font-semibold text-text">{getRoleLabel(currentUser.role)}</p>
       <p className="mt-1 text-xs text-muted">{currentUser.username}</p>
     </div>

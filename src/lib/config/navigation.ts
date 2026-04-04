@@ -8,7 +8,7 @@ export interface NavItem {
 
 const sharedItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", description: "Ringkasan pekerjaan" },
-  { href: "/drawings", label: "Daftar Drawing", description: "Cari dan telusuri drawing" }
+  { href: "/drawings", label: "Drawing List", description: "Browse dan telusuri drawing" }
 ];
 
 export function getNavigation(role: UserRole): NavItem[] {
@@ -17,7 +17,7 @@ export function getNavigation(role: UserRole): NavItem[] {
   if (role === "DRAFTER" || role === "ADMIN") {
     items.push({
       href: "/drawings/new",
-      label: "Input Drawing",
+      label: "Create Drawing",
       description: "Buat drawing baru"
     });
   }

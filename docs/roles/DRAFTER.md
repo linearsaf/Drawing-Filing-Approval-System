@@ -73,12 +73,14 @@ Halaman `Daftar Drawing` mendukung:
 - pencarian cepat
 - filter status
 - filter area
+- filter `Drawn By`
 - filter revisi
 - filter tanggal `from - to`
 - tampilan compact list untuk scan cepat
 
 ## Poin Penting
 
+- Metadata `Drawn By` selalu mengikuti drafter yang membuat drawing.
 - Pastikan file yang diunggah adalah PDF.
 - Gunakan drawing number yang unik.
 - Isi change note dengan jelas agar reviewer memahami perubahan.

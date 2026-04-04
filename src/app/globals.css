@@ -1,19 +1,21 @@
+@import url("https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@6..144,400..700&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --color-brand: #3a5097;
-  --color-bg: #f7f7f7;
+  --color-brand: #35559a;
+  --color-bg: #f3f5f8;
   --color-surface: #ffffff;
-  --color-border: #d6d6d6;
-  --color-text: #212529;
-  --color-text-muted: #666666;
-  --color-panel: #eeeeee;
-  --color-sage: #869791;
-  --color-danger: #e92027;
-  --color-danger-strong: #d31111;
-  --color-graphite: #292a2e;
+  --color-border: #d6dde7;
+  --color-text: #1d2430;
+  --color-text-muted: #617083;
+  --color-panel: #edf1f6;
+  --color-sage: #6f8d7c;
+  --color-danger: #dc3136;
+  --color-danger-strong: #bd1f24;
+  --color-graphite: #232833;
 }
 
 * {
@@ -28,10 +30,14 @@ body {
   margin: 0;
   min-height: 100vh;
   background:
-    radial-gradient(circle at top left, rgba(58, 80, 151, 0.12), transparent 30%),
-    linear-gradient(180deg, #f7f7f7 0%, #eeeeee 100%);
+    radial-gradient(circle at top left, rgba(53, 85, 154, 0.1), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(111, 141, 124, 0.08), transparent 24%),
+    linear-gradient(180deg, #f7f8fb 0%, #eef2f7 100%);
   color: var(--color-text);
-  font-family: Bahnschrift, "Segoe UI Variable Text", "Trebuchet MS", Tahoma, sans-serif;
+  font-family: "Google Sans Flex", Bahnschrift, "Segoe UI Variable Text", "Trebuchet MS", Tahoma, sans-serif;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 a {
@@ -47,11 +53,11 @@ textarea {
 }
 
 ::selection {
-  background: rgba(58, 80, 151, 0.2);
+  background: rgba(53, 85, 154, 0.22);
 }
 
 .app-grid {
-  background-image: linear-gradient(rgba(58, 80, 151, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(58, 80, 151, 0.04) 1px, transparent 1px);
-  background-size: 28px 28px;
+  background-image: linear-gradient(rgba(53, 85, 154, 0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(53, 85, 154, 0.028) 1px, transparent 1px);
+  background-size: 32px 32px;
 }

@@ -74,17 +74,37 @@ function ApproveContent({
 
   if (isLoading) {
     return (
-      <Card>
-        <p className="text-sm text-muted">Memuat data drawing...</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Approval"
+          title="Memuat data Drawing"
+          description="Menyiapkan dokumen dan metadata sebelum halaman approval ditampilkan."
+        />
+        <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+          <Card className="h-[620px] animate-pulse bg-white/70" />
+          <div className="space-y-6">
+            <Card className="h-72 animate-pulse bg-white/70" />
+            <Card className="h-80 animate-pulse bg-white/70" />
+          </div>
+        </div>
+      </div>
     );
   }
 
   if (error || !data?.drawing) {
     return (
-      <Card className="border-danger/15">
-        <p className="text-sm font-medium text-danger">{error || "Data drawing tidak ditemukan."}</p>
-      </Card>
+      <div className="space-y-8">
+        <PageHeader
+          eyebrow="Approval"
+          title="Halaman approval belum tersedia"
+          description="Terjadi kendala saat mengambil data drawing."
+        />
+        <Card className="border-danger/15 bg-white/70">
+          <p className="text-sm font-medium text-danger">
+            {error || "Data drawing tidak ditemukan."}
+          </p>
+        </Card>
+      </div>
     );
   }
 
@@ -94,8 +114,8 @@ function ApproveContent({
     return (
       <EmptyState
         actionHref={`/drawings/${drawing.id}`}
-        actionLabel="Kembali ke detail"
-        description="Halaman approve hanya aktif untuk revision yang menunggu level approval sesuai role."
+        actionLabel="Kembali ke Detail Drawing"
+        description="Halaman approval hanya aktif untuk revision yang menunggu level approval sesuai role."
         title="Tidak ada item yang bisa di-approve"
       />
     );
@@ -108,7 +128,7 @@ function ApproveContent({
       <PageHeader
         eyebrow={drawing.drawingNumber}
         title={isHeadStep ? "Final Approval" : "Approval Level 1"}
-        description="Approve akan memindahkan revision ke status berikutnya. Pada level final, approval akan mengubah drawing menjadi completed."
+        description="Keputusan Approved akan memindahkan revision ke tahap berikutnya. Pada tahap final, status Drawing akan berubah menjadi completed."
       />
       <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
         <PdfPreview
@@ -125,7 +145,7 @@ function ApproveContent({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">
-                  Approval Context
+                  Approval Summary
                 </p>
                 <h2 className="mt-2 text-2xl font-semibold text-text">{drawing.drawingName}</h2>
               </div>
@@ -135,16 +155,17 @@ function ApproveContent({
               <QuickRow label="SAC Code" value={drawing.sacCode} />
               <QuickRow label="Area" value={drawing.area} />
               <QuickRow label="Discipline" value={drawing.discipline} />
-              <QuickRow label="Revision" value={revision.revisionNo} />
+              <QuickRow label="Current Revision" value={revision.revisionNo} />
             </div>
           </Card>
           <DecisionPanel
-            approveLabel={isHeadStep ? "Approve Final" : "Approve Level 1"}
+            approveLabel={isHeadStep ? "Mark as Approved" : "Mark as Approved"}
             description={
               isHeadStep
-                ? "Jika approve, drawing akan menjadi completed dan masuk mode read-only untuk consumer."
-                : "Jika approve, drawing akan lanjut ke Head untuk final approval."
+                ? "Jika status Approved, Drawing akan menjadi completed dan masuk mode read-only untuk consumer."
+                : "Jika status Approved, drawing akan lanjut ke Final Approval."
             }
+            eyebrow={isHeadStep ? "Final Approval Decision" : "Approval Decision"}
             endpoint={
               isHeadStep
                 ? `/api/revisions/${revision.id}/approve-level-2`

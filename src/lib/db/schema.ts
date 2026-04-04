@@ -21,6 +21,8 @@ export const userRoleValues = [
   "CONSUMER"
 ] as const;
 
+export const accessRequestStatusValues = ["PENDING", "APPROVED", "REJECTED"] as const;
+
 export const revisionStatusValues = [
   "DRAFT",
   "WAITING_CHECK",
@@ -35,9 +37,13 @@ export const revisionStatusValues = [
 
 export const approvalDecisionValues = ["APPROVED", "REJECTED"] as const;
 
-export const auditEntityTypeValues = ["DRAWING", "REVISION", "USER"] as const;
+export const auditEntityTypeValues = ["DRAWING", "REVISION", "USER", "ACCESS_REQUEST"] as const;
 
 export const userRoleEnum = mysqlEnum("user_role", userRoleValues);
+export const accessRequestStatusEnum = mysqlEnum(
+  "access_request_status",
+  accessRequestStatusValues
+);
 export const revisionStatusEnum = mysqlEnum("revision_status", revisionStatusValues);
 export const approvalDecisionEnum = mysqlEnum("approval_decision", approvalDecisionValues);
 export const auditEntityTypeEnum = mysqlEnum("audit_entity_type", auditEntityTypeValues);
@@ -124,6 +130,28 @@ export const verification = mysqlTable(
   },
   (table) => ({
     identifierIdx: index("verification_identifier_idx").on(table.identifier)
+  })
+);
+
+export const userAccessRequests = mysqlTable(
+  "user_access_requests",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    name: varchar("name", { length: 120 }).notNull(),
+    email: varchar("email", { length: 191 }).notNull(),
+    username: varchar("username", { length: 80 }).notNull(),
+    requestedRole: userRoleEnum.notNull().default("CONSUMER"),
+    status: accessRequestStatusEnum.notNull().default("PENDING"),
+    adminReviewNote: text("admin_review_note"),
+    approvedUserId: varchar("approved_user_id", { length: 36 }).references(() => user.id),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().onUpdateNow(),
+    reviewedAt: timestamp("reviewed_at")
+  },
+  (table) => ({
+    emailIdx: index("access_requests_email_idx").on(table.email),
+    usernameIdx: index("access_requests_username_idx").on(table.username),
+    statusIdx: index("access_requests_status_idx").on(table.status)
   })
 );
 
@@ -243,9 +271,17 @@ export const downloadLogs = mysqlTable(
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
+  accessRequests: many(userAccessRequests),
   drawings: many(drawings),
   revisions: many(drawingRevisions),
   approvalActions: many(approvalActions)
+}));
+
+export const accessRequestRelations = relations(userAccessRequests, ({ one }) => ({
+  approvedUser: one(user, {
+    fields: [userAccessRequests.approvedUserId],
+    references: [user.id]
+  })
 }));
 
 export const drawingRelations = relations(drawings, ({ one, many }) => ({
@@ -303,10 +339,10 @@ export const schema = {
   session,
   account,
   verification,
+  userAccessRequests,
   drawings,
   drawingRevisions,
   approvalActions,
   auditLogs,
   downloadLogs
 };
-

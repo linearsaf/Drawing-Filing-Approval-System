@@ -18,12 +18,12 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 export const STATUS_LABELS: Record<RevisionStatus, string> = {
   DRAFT: "Draft",
-  WAITING_CHECK: "Menunggu Check",
-  CHECK_REJECTED: "Check Ditolak",
-  WAITING_APPROVAL_1: "Menunggu Approval L1",
-  APPROVAL_1_REJECTED: "Approval L1 Ditolak",
-  WAITING_APPROVAL_2: "Menunggu Approval Head",
-  APPROVAL_2_REJECTED: "Approval Head Ditolak",
+  WAITING_CHECK: "Waiting Check",
+  CHECK_REJECTED: "Check Rejected",
+  WAITING_APPROVAL_1: "Waiting Approval L1",
+  APPROVAL_1_REJECTED: "Approval L1 Rejected",
+  WAITING_APPROVAL_2: "Waiting Final Approval",
+  APPROVAL_2_REJECTED: "Final Approval Rejected",
   COMPLETED: "Completed",
   OBSOLETE: "Obsolete"
 };

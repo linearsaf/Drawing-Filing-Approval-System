@@ -10,11 +10,13 @@ import { apiFetch, getErrorMessage } from "@/lib/api-client";
 export function DecisionPanel({
   endpoint,
   approveLabel,
-  description
+  description,
+  eyebrow = "Review Decision"
 }: {
   endpoint: string;
   approveLabel: string;
   description: string;
+  eyebrow?: string;
 }) {
   const router = useRouter();
   const [note, setNote] = useState("");
@@ -47,15 +49,15 @@ export function DecisionPanel({
 
   return (
     <Card>
-      <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Decision Panel</p>
+      <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">{eyebrow}</p>
       <h3 className="mt-3 text-xl font-semibold text-text">{approveLabel}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{description}</p>
 
       <div className="mt-5">
-        <label className="mb-2 block text-sm font-semibold text-text">Catatan Keputusan</label>
+        <label className="mb-2 block text-sm font-semibold text-text">Catatan Review</label>
         <Textarea
           onChange={(event) => setNote(event.target.value)}
-          placeholder="Isi catatan approval atau alasan reject"
+          placeholder="Tulis catatan approved atau alasan rejected"
           value={note}
         />
       </div>
@@ -68,7 +70,7 @@ export function DecisionPanel({
           type="checkbox"
         />
         <div>
-          <p className="text-sm font-semibold text-text">Tambahkan e-sign pada PDF saat approve</p>
+          <p className="text-sm font-semibold text-text">Tambahkan e-sign pada PDF jika status Approved</p>
           <p className="text-xs leading-5 text-muted">
             Sistem akan menambahkan stempel digital berisi nama approver, role, dan waktu keputusan.
           </p>
@@ -86,10 +88,12 @@ export function DecisionPanel({
           onClick={() => void handleDecision("REJECTED")}
           variant="danger"
         >
-          Reject
+          Mark as Rejected
         </Button>
       </div>
-      <p className="mt-3 text-xs text-muted">Reject wajib menyertakan catatan sesuai rule MVP.</p>
+      <p className="mt-3 text-xs text-muted">
+        Catatan wajib diisi bila keputusan akhir adalah Rejected.
+      </p>
     </Card>
   );
 }

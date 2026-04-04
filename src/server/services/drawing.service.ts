@@ -81,6 +81,7 @@ export async function listDrawings(params: {
   search?: string;
   status?: string;
   area?: string;
+  drawnBy?: string;
   revision?: string;
   dateFrom?: string;
   dateTo?: string;
@@ -110,6 +111,7 @@ export async function listDrawings(params: {
           ? eq(schema.drawings.currentStatus, params.status as typeof schema.drawings.currentStatus._.data)
           : undefined,
         params.area ? like(schema.drawings.area, `%${params.area}%`) : undefined,
+        params.drawnBy ? eq(schema.drawings.createdBy, params.drawnBy) : undefined,
         params.search
           ? or(
               like(schema.drawings.drawingNumber, `%${params.search}%`),
@@ -118,9 +120,21 @@ export async function listDrawings(params: {
               like(schema.drawings.area, `%${params.search}%`)
             )
           : undefined
-      )
+        )
     )
     .orderBy(desc(schema.drawings.updatedAt));
+
+  const creatorIds = [...new Set(rows.map((row) => row.createdBy))];
+  const creators = creatorIds.length
+    ? await db
+        .select({
+          id: schema.user.id,
+          name: schema.user.name,
+          username: schema.user.username
+        })
+        .from(schema.user)
+        .where(inArray(schema.user.id, creatorIds))
+    : [];
 
   const revisions = rows.length
     ? await db
@@ -149,9 +163,13 @@ export async function listDrawings(params: {
     })
     .map((drawing) => {
       const revision = revisions.find((item) => item.id === drawing.currentRevisionId) ?? null;
+      const creator = creators.find((item) => item.id === drawing.createdBy) ?? null;
 
       return {
         ...drawing,
+        drawnByUserId: drawing.createdBy,
+        drawnByName: creator?.name ?? null,
+        drawnByUsername: creator?.username ?? null,
         currentRevision: revision
           ? {
               id: revision.id,
@@ -176,6 +194,10 @@ export async function getDrawingDetail(drawingId: string, role: AppRole, userId:
   }
 
   assertViewerCanSee(role, drawing.currentStatus, drawing.createdBy, userId);
+
+  const creator = await db.query.user.findFirst({
+    where: eq(schema.user.id, drawing.createdBy)
+  });
 
   const revisions = await db
     .select()
@@ -216,7 +238,12 @@ export async function getDrawingDetail(drawingId: string, role: AppRole, userId:
     .orderBy(desc(schema.auditLogs.createdAt));
 
   return {
-    drawing,
+    drawing: {
+      ...drawing,
+      drawnByUserId: drawing.createdBy,
+      drawnByName: creator?.name ?? null,
+      drawnByUsername: creator?.username ?? null
+    },
     currentRevision: revisions.find((revision) => revision.id === drawing.currentRevisionId) ?? null,
     revisions,
     approvalHistory,

@@ -145,7 +145,7 @@ export async function authorizeRevisionDownload(revisionId: string, userId: stri
         entityId: revision.id,
         action: "DRAWING_DOWNLOADED",
         userId,
-        note: "Dokumen final diunduh."
+        note: "Final drawing diunduh."
       },
       tx
     );

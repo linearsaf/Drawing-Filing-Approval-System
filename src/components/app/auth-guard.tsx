@@ -53,7 +53,7 @@ export function AuthGuard({
             <Button variant="secondary">Kembali ke Dashboard</Button>
           </Link>
           <Link href="/drawings">
-            <Button>Lihat Daftar Drawing</Button>
+            <Button>Open Drawing List</Button>
           </Link>
         </div>
       </Card>
