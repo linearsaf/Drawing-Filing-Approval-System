@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AuthGuard } from "@/components/app/auth-guard";
 import { PageHeader } from "@/components/app/page-header";
+import { WorkflowSourceBadge } from "@/components/drawings/workflow-source-badge";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
-import { DashboardSummary, RevisionStatus, UserRole } from "@/lib/types";
+import { DashboardSummary, RevisionStatus, UserRole, WorkflowSource } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils/format";
-import { canCreateDrawing, getRoleLabel } from "@/lib/utils/permissions";
+import { canCreateDrawing, canUploadOldDrawing, getRoleLabel } from "@/lib/utils/permissions";
 
 interface ActivityItem {
   id: string;
@@ -36,6 +37,9 @@ interface DrawingListItem {
   discipline: string;
   drawnByName: string | null;
   drawnByUsername: string | null;
+  uploadedByName: string | null;
+  uploadedByUsername: string | null;
+  workflowSource: WorkflowSource;
   currentStatus: RevisionStatus;
   updatedAt: string;
   currentRevision: {
@@ -116,6 +120,11 @@ function DashboardContent({ role }: { role: UserRole }) {
       {canCreateDrawing(role) ? (
         <Link href="/drawings/new">
           <Button>Create Drawing</Button>
+        </Link>
+      ) : null}
+      {canUploadOldDrawing(role) ? (
+        <Link href="/drawings/legacy/new">
+          <Button variant="secondary">Upload Old Drawing</Button>
         </Link>
       ) : null}
     </>
@@ -308,6 +317,9 @@ function DashboardContent({ role }: { role: UserRole }) {
                           {drawing.drawingName}
                         </h3>
                       </Link>
+                      <div className="mt-2">
+                        <WorkflowSourceBadge source={drawing.workflowSource} />
+                      </div>
                       <p className="mt-1.5 text-sm text-muted">
                         {drawing.area} / {drawing.discipline} / Rev{" "}
                         {drawing.currentRevision?.revisionNo ?? "-"}
@@ -316,6 +328,11 @@ function DashboardContent({ role }: { role: UserRole }) {
                         Drafter: {drawing.drawnByName ?? drawing.drawnByUsername ?? "-"} / Updated At:{" "}
                         {formatDateTime(drawing.updatedAt)}
                       </p>
+                      {drawing.workflowSource === "LEGACY_READY" ? (
+                        <p className="mt-1 text-sm leading-6 text-muted">
+                          Uploaded by: {drawing.uploadedByName ?? drawing.uploadedByUsername ?? "-"}
+                        </p>
+                      ) : null}
                     </div>
 
                     <div className="flex flex-col items-start gap-2.5 lg:w-[172px] lg:items-stretch">
@@ -524,11 +541,11 @@ function getDashboardCopy(role: UserRole) {
     return {
       title: "Ringkasan Approval Level 1",
       description:
-        "Semua blok di dashboard dipilih untuk membantu Anda memproses approval level 1 dengan cepat dan konsisten.",
-      focusTitle: "Approval level 1 yang tertunda perlu segera diputuskan.",
+        "Semua blok di dashboard dipilih untuk membantu Anda memproses approval level 1 yang memang ditugaskan kepada Anda.",
+      focusTitle: "Approval level 1 yang sudah dialokasikan ke Anda perlu segera diputuskan.",
       focusDescription:
-        "Gunakan queue sebagai daftar kerja utama untuk membuka gambar yang sudah lolos check dan siap diapprove.",
-      focusMetricLabel: "drawing menunggu approval level 1",
+        "Gunakan queue sebagai daftar kerja utama untuk membuka gambar yang sudah lolos check dan masuk assignment Anda.",
+      focusMetricLabel: "drawing assignment level 1",
       primaryCardLabel: "Waiting Approval L1",
       queueEyebrow: "Approval Queue",
       queueTitle: "Drawing siap approval level 1",
@@ -545,11 +562,11 @@ function getDashboardCopy(role: UserRole) {
     return {
       title: "Ringkasan Final Approval",
       description:
-        "Dashboard ini dirancang untuk membantu Anda melihat item yang sudah hampir selesai dan butuh keputusan final.",
-      focusTitle: "Final approval adalah bottleneck terakhir sebelum drawing selesai.",
+        "Dashboard ini dirancang untuk membantu Anda melihat item final approval yang memang ditugaskan kepada Anda.",
+      focusTitle: "Final approval pada assignment Anda adalah bottleneck terakhir sebelum drawing selesai.",
       focusDescription:
-        "Pantau item yang sudah lolos approval level 1 lalu selesaikan final approval agar drawing segera siap dipakai.",
-      focusMetricLabel: "drawing menunggu final approval",
+        "Pantau item yang sudah lolos approval level 1 pada routing ini lalu selesaikan final approval agar drawing segera siap dipakai.",
+      focusMetricLabel: "drawing assignment final approval",
       primaryCardLabel: "Waiting Final Approval",
       queueEyebrow: "Final Queue",
       queueTitle: "Drawing siap final approval",
@@ -779,10 +796,11 @@ function humanizeAuditAction(action: string) {
     DRAWING_UPDATED: "Drawing diperbarui",
     DRAWING_UPDATED_AND_SUBMITTED: "Drawing diperbarui dan dikirim",
     DRAWING_DELETED: "Drawing dihapus",
+    LEGACY_DRAWING_IMPORTED: "Old drawing diunggah sebagai completed",
     REVISION_CREATED: "Revisi baru dibuat",
     SUBMITTED_FOR_CHECK: "Revisi dikirim untuk check",
-    WAITING_APPROVAL_1: "Lolos check dan menunggu approval level 1",
-    WAITING_APPROVAL_2: "Lolos approval level 1",
+    WAITING_APPROVAL_1: "Lolos check dan menunggu approver level 1 yang ditugaskan",
+    WAITING_APPROVAL_2: "Lolos approval level 1 dan menunggu final approval yang ditugaskan",
     CHECK_REJECTED: "Check rejected",
     APPROVAL_1_REJECTED: "Approval level 1 rejected",
     APPROVAL_2_REJECTED: "Final approval rejected",

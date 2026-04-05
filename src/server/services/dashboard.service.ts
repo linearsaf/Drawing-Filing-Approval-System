@@ -2,6 +2,12 @@ import { and, desc, eq, inArray, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 import { AppRole } from "@/lib/server/auth";
+import {
+  buildApprovalPlanMap,
+  canUserApproveAssignedStep,
+  listApprovalActionsByRevisionIds,
+  listApprovalStepsByRevisionIds
+} from "@/server/services/approval-plan.service";
 
 export async function getDashboardSummaryForRole(role: AppRole, userId: string) {
   const drawings = await db
@@ -14,6 +20,8 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
       currentStatus: schema.drawings.currentStatus,
       currentRevisionId: schema.drawings.currentRevisionId,
       createdBy: schema.drawings.createdBy,
+      drawnByUserId: schema.drawings.drawnByUserId,
+      workflowSource: schema.drawings.workflowSource,
       updatedAt: schema.drawings.updatedAt
     })
     .from(schema.drawings);
@@ -83,8 +91,8 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
     : [];
 
   const actorIds = [...new Set(recentActivity.map((item) => item.userId).filter(Boolean) as string[])];
-  const creatorIds = [...new Set(visible.map((item) => item.createdBy))];
-  const userIds = [...new Set([...actorIds, ...creatorIds])];
+  const drawingUserIds = [...new Set(visible.flatMap((item) => [item.createdBy, item.drawnByUserId]))];
+  const userIds = [...new Set([...actorIds, ...drawingUserIds])];
   const actors = userIds.length
     ? await db
         .select({
@@ -111,6 +119,9 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
   );
 
   const revisionLookup = new Map(revisionIds.map((revision) => [revision.id, revision]));
+  const approvalSteps = await listApprovalStepsByRevisionIds(revisionIds.map((revision) => revision.id));
+  const approvalActions = await listApprovalActionsByRevisionIds(revisionIds.map((revision) => revision.id));
+  const approvalPlanByRevision = buildApprovalPlanMap(revisionIds, approvalSteps, approvalActions);
 
   const rejectedStatuses: ReadonlySet<string> = new Set([
     "CHECK_REJECTED",
@@ -119,7 +130,17 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
   ] as const);
 
   const queue = visible
-    .filter((drawing) => matchesRoleQueue(role, drawing.currentStatus))
+    .filter((drawing) =>
+      matchesRoleQueue(
+        role,
+        drawing.currentStatus,
+        drawing.currentRevisionId ? revisionLookup.get(drawing.currentRevisionId) ?? null : null,
+        drawing.currentRevisionId
+          ? approvalPlanByRevision.get(drawing.currentRevisionId) ?? []
+          : [],
+        userId
+      )
+    )
     .sort((left, right) => {
       const priorityDelta =
         getQueuePriority(role, left.currentStatus) - getQueuePriority(role, right.currentStatus);
@@ -132,7 +153,8 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
     })
     .slice(0, 6)
     .map((drawing) => {
-      const creator = actorById.get(drawing.createdBy) ?? null;
+      const uploader = actorById.get(drawing.createdBy) ?? null;
+      const drawnBy = actorById.get(drawing.drawnByUserId) ?? null;
       const currentRevision = drawing.currentRevisionId
         ? revisionLookup.get(drawing.currentRevisionId) ?? null
         : null;
@@ -143,8 +165,11 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
         drawingName: drawing.drawingName,
         area: drawing.area,
         discipline: drawing.discipline,
-        drawnByName: creator?.name ?? null,
-        drawnByUsername: creator?.username ?? null,
+        drawnByName: drawnBy?.name ?? null,
+        drawnByUsername: drawnBy?.username ?? null,
+        uploadedByName: uploader?.name ?? null,
+        uploadedByUsername: uploader?.username ?? null,
+        workflowSource: drawing.workflowSource,
         currentStatus: drawing.currentStatus,
         updatedAt: drawing.updatedAt,
         currentRevision: currentRevision
@@ -164,8 +189,42 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
     summary: {
       totalDrawings: visible.length,
       waitingCheck: visible.filter((item) => item.currentStatus === "WAITING_CHECK").length,
-      waitingApproval1: visible.filter((item) => item.currentStatus === "WAITING_APPROVAL_1").length,
-      waitingApproval2: visible.filter((item) => item.currentStatus === "WAITING_APPROVAL_2").length,
+      waitingApproval1: visible.filter((item) => {
+        const revision = item.currentRevisionId ? revisionLookup.get(item.currentRevisionId) ?? null : null;
+
+        if (!revision || revision.status !== "WAITING_APPROVAL_1") {
+          return false;
+        }
+
+        if (role !== "APPROVER_L1") {
+          return true;
+        }
+
+        return canUserApproveAssignedStep({
+          role,
+          userId,
+          revisionStatus: revision.status,
+          approvalPlan: approvalPlanByRevision.get(revision.id) ?? []
+        });
+      }).length,
+      waitingApproval2: visible.filter((item) => {
+        const revision = item.currentRevisionId ? revisionLookup.get(item.currentRevisionId) ?? null : null;
+
+        if (!revision || revision.status !== "WAITING_APPROVAL_2") {
+          return false;
+        }
+
+        if (role !== "HEAD") {
+          return true;
+        }
+
+        return canUserApproveAssignedStep({
+          role,
+          userId,
+          revisionStatus: revision.status,
+          approvalPlan: approvalPlanByRevision.get(revision.id) ?? []
+        });
+      }).length,
       rejected: visible.filter((item) => rejectedStatuses.has(item.currentStatus)).length,
       completed: visible.filter((item) => item.currentStatus === "COMPLETED").length,
       drafts: visible.filter((item) => item.currentStatus === "DRAFT").length
@@ -190,7 +249,16 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
   };
 }
 
-function matchesRoleQueue(role: AppRole, status: string) {
+function matchesRoleQueue(
+  role: AppRole,
+  status: string,
+  revision: {
+    id: string;
+    status: string;
+  } | null,
+  approvalPlan: Array<{ approvalLevel: 1 | 2; assignedUserId: string | null }>,
+  userId: string
+) {
   if (role === "DRAFTER") {
     return ["DRAFT", "CHECK_REJECTED", "APPROVAL_1_REJECTED", "APPROVAL_2_REJECTED"].includes(status);
   }
@@ -200,11 +268,27 @@ function matchesRoleQueue(role: AppRole, status: string) {
   }
 
   if (role === "APPROVER_L1") {
-    return status === "WAITING_APPROVAL_1";
+    return Boolean(
+      revision &&
+        canUserApproveAssignedStep({
+          role,
+          userId,
+          revisionStatus: revision.status,
+          approvalPlan
+        })
+    );
   }
 
   if (role === "HEAD") {
-    return status === "WAITING_APPROVAL_2";
+    return Boolean(
+      revision &&
+        canUserApproveAssignedStep({
+          role,
+          userId,
+          revisionStatus: revision.status,
+          approvalPlan
+        })
+    );
   }
 
   if (role === "CONSUMER") {

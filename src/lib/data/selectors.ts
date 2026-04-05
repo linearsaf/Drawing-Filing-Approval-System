@@ -29,6 +29,12 @@ export function getApprovalHistory(db: MockDatabase, revisionId: string) {
     .sort((left, right) => (left.actedAt > right.actedAt ? -1 : 1));
 }
 
+export function getApprovalPlan(db: MockDatabase, revisionId: string) {
+  return db.revisionApprovalSteps
+    .filter((step) => step.revisionId === revisionId)
+    .sort((left, right) => left.approvalLevel - right.approvalLevel);
+}
+
 export function getAuditTimeline(db: MockDatabase, drawingId: string, revisionIds: string[]) {
   return db.auditLogs
     .filter(
@@ -130,7 +136,7 @@ export function filterDrawings(
     const matchesArea =
       filters.area.trim() === "" ||
       drawing.area.toLowerCase().includes(filters.area.trim().toLowerCase());
-    const matchesDrawnBy = filters.drawnBy.trim() === "" || drawing.createdBy === filters.drawnBy;
+    const matchesDrawnBy = filters.drawnBy.trim() === "" || drawing.drawnByUserId === filters.drawnBy;
     const matchesRevision =
       filters.revision.trim() === "" ||
       currentRevision?.revisionNo.toLowerCase().includes(filters.revision.trim().toLowerCase());

@@ -36,6 +36,8 @@ export const revisionStatusValues = [
 ] as const;
 
 export const approvalDecisionValues = ["APPROVED", "REJECTED"] as const;
+export const approvalStepStateValues = ["UNASSIGNED", "PENDING", "APPROVED", "REJECTED"] as const;
+export const workflowSourceValues = ["STANDARD", "LEGACY_READY"] as const;
 
 export const auditEntityTypeValues = ["DRAWING", "REVISION", "USER", "ACCESS_REQUEST"] as const;
 
@@ -46,6 +48,8 @@ export const accessRequestStatusEnum = mysqlEnum(
 );
 export const revisionStatusEnum = mysqlEnum("revision_status", revisionStatusValues);
 export const approvalDecisionEnum = mysqlEnum("approval_decision", approvalDecisionValues);
+export const approvalStepStateEnum = mysqlEnum("approval_step_state", approvalStepStateValues);
+export const workflowSourceEnum = mysqlEnum("workflow_source", workflowSourceValues);
 export const auditEntityTypeEnum = mysqlEnum("audit_entity_type", auditEntityTypeValues);
 
 export const user = mysqlTable(
@@ -168,6 +172,11 @@ export const drawings = mysqlTable(
     createdBy: varchar("created_by", { length: 36 })
       .notNull()
       .references(() => user.id),
+    drawnByUserId: varchar("drawn_by_user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id),
+    workflowSource: workflowSourceEnum.notNull().default("STANDARD"),
+    legacyReadyNote: text("legacy_ready_note"),
     currentRevisionId: varchar("current_revision_id", { length: 36 }),
     currentStatus: revisionStatusEnum.notNull().default("DRAFT"),
     latestCompletedRevisionId: varchar("latest_completed_revision_id", { length: 36 }),
@@ -177,7 +186,9 @@ export const drawings = mysqlTable(
   (table) => ({
     drawingNumberUniqueIdx: uniqueIndex("drawings_number_unique").on(table.drawingNumber),
     statusIdx: index("drawings_status_idx").on(table.currentStatus),
-    createdByIdx: index("drawings_created_by_idx").on(table.createdBy)
+    createdByIdx: index("drawings_created_by_idx").on(table.createdBy),
+    drawnByIdx: index("drawings_drawn_by_user_idx").on(table.drawnByUserId),
+    workflowSourceIdx: index("drawings_workflow_source_idx").on(table.workflowSource)
   })
 );
 
@@ -234,6 +245,36 @@ export const approvalActions = mysqlTable(
   })
 );
 
+export const revisionApprovalSteps = mysqlTable(
+  "revision_approval_steps",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    revisionId: varchar("revision_id", { length: 36 })
+      .notNull()
+      .references(() => drawingRevisions.id, { onDelete: "cascade" }),
+    approvalLevel: int("approval_level").notNull(),
+    assignedUserId: varchar("assigned_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null"
+    }),
+    assignedByUserId: varchar("assigned_by_user_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null"
+    }),
+    assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().onUpdateNow()
+  },
+  (table) => ({
+    revisionLevelUniqueIdx: uniqueIndex("revision_approval_steps_revision_level_unique").on(
+      table.revisionId,
+      table.approvalLevel
+    ),
+    assignedUserLevelIdx: index("revision_approval_steps_assigned_user_level_idx").on(
+      table.assignedUserId,
+      table.approvalLevel
+    ),
+    revisionIdx: index("revision_approval_steps_revision_idx").on(table.revisionId)
+  })
+);
+
 export const auditLogs = mysqlTable(
   "audit_logs",
   {
@@ -272,7 +313,8 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   accessRequests: many(userAccessRequests),
-  drawings: many(drawings),
+  drawings: many(drawings, { relationName: "drawing_creator" }),
+  assignedDrawings: many(drawings, { relationName: "drawing_drawn_by" }),
   revisions: many(drawingRevisions),
   approvalActions: many(approvalActions)
 }));
@@ -286,7 +328,13 @@ export const accessRequestRelations = relations(userAccessRequests, ({ one }) =>
 
 export const drawingRelations = relations(drawings, ({ one, many }) => ({
   creator: one(user, {
+    relationName: "drawing_creator",
     fields: [drawings.createdBy],
+    references: [user.id]
+  }),
+  drawnBy: one(user, {
+    relationName: "drawing_drawn_by",
+    fields: [drawings.drawnByUserId],
     references: [user.id]
   }),
   revisions: many(drawingRevisions)
@@ -302,6 +350,7 @@ export const revisionRelations = relations(drawingRevisions, ({ one, many }) => 
     references: [user.id]
   }),
   approvals: many(approvalActions),
+  approvalSteps: many(revisionApprovalSteps),
   downloads: many(downloadLogs)
 }));
 
@@ -312,6 +361,21 @@ export const approvalActionRelations = relations(approvalActions, ({ one }) => (
   }),
   actor: one(user, {
     fields: [approvalActions.actorId],
+    references: [user.id]
+  })
+}));
+
+export const revisionApprovalStepRelations = relations(revisionApprovalSteps, ({ one }) => ({
+  revision: one(drawingRevisions, {
+    fields: [revisionApprovalSteps.revisionId],
+    references: [drawingRevisions.id]
+  }),
+  assignedUser: one(user, {
+    fields: [revisionApprovalSteps.assignedUserId],
+    references: [user.id]
+  }),
+  assignedByUser: one(user, {
+    fields: [revisionApprovalSteps.assignedByUserId],
     references: [user.id]
   })
 }));
@@ -343,6 +407,7 @@ export const schema = {
   drawings,
   drawingRevisions,
   approvalActions,
+  revisionApprovalSteps,
   auditLogs,
   downloadLogs
 };

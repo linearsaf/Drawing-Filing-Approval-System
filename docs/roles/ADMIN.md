@@ -9,6 +9,7 @@ Admin adalah role dengan kontrol penuh terhadap user, request access, dan seluru
 - Dashboard
 - Drawing List
 - Create Drawing
+- Upload Old Drawing
 - User Management
 - Account Password
 
@@ -18,6 +19,7 @@ Admin dapat:
 
 - melihat seluruh drawing di semua status
 - create drawing
+- upload old drawing sebagai `COMPLETED`
 - edit revision pada status `DRAFT` dan seluruh status rejected
 - submit revision ke proses check
 - melakukan `Check`
@@ -26,6 +28,7 @@ Admin dapat:
 - create revision baru dari drawing `COMPLETED`
 - preview, print, dan download final drawing
 - delete drawing
+- memilih `Drawn by` yang berbeda dari uploader untuk drawing legacy
 - create user
 - edit user
 - activate/deactivate user
@@ -69,5 +72,7 @@ Saat request diapprove:
 ## Poin Penting
 
 - Admin sebaiknya menjadi fallback operator, bukan pelaku utama semua approval.
+- Admin tidak otomatis bypass routing approval; pada workflow digital Admin tetap harus menjadi assignee untuk bisa approve.
+- `Upload Old Drawing` hanya dipakai untuk dokumen lama yang approval wet sign-nya sudah selesai di luar sistem.
 - Menonaktifkan user tidak menghapus histori akun.
 - Delete drawing hanya digunakan saat memang diperlukan, karena akan menghapus data dari workflow aktif.

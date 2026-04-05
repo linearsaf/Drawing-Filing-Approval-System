@@ -5,6 +5,7 @@ import { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { AuthGuard } from "@/components/app/auth-guard";
 import { PageHeader } from "@/components/app/page-header";
+import { WorkflowSourceBadge } from "@/components/drawings/workflow-source-badge";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, buildQuery, getErrorMessage } from "@/lib/api-client";
-import { DrafterOption, DrawingFilters, RevisionStatus, UserRole } from "@/lib/types";
+import { DrafterOption, DrawingFilters, RevisionStatus, UserRole, WorkflowSource } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils/format";
 import {
   canApproveRevision,
@@ -21,6 +22,7 @@ import {
   canCreateDrawing,
   canDeleteDrawing,
   canEditRevision,
+  canUploadOldDrawing,
   getRoleLabel
 } from "@/lib/utils/permissions";
 
@@ -47,7 +49,13 @@ interface DrawingListItem {
   drawnByUserId: string;
   drawnByName: string | null;
   drawnByUsername: string | null;
+  uploadedByName: string | null;
+  uploadedByUsername: string | null;
+  workflowSource: WorkflowSource;
+  legacyReadyNote: string | null;
   currentStatus: RevisionStatus;
+  activeApprovalLevel: 1 | 2 | null;
+  canCurrentUserApprove: boolean;
   updatedAt: string;
   currentRevision: {
     id: string;
@@ -271,6 +279,11 @@ function DrawingsContent({
             {canCreateDrawing(role) ? (
               <Link href="/drawings/new">
                 <Button>Create Drawing</Button>
+              </Link>
+            ) : null}
+            {canUploadOldDrawing(role) ? (
+              <Link href="/drawings/legacy/new">
+                <Button variant="secondary">Upload Old Drawing</Button>
               </Link>
             ) : null}
           </>
@@ -500,6 +513,7 @@ function DrawingsContent({
                         <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">
                           {drawing.drawingNumber}
                         </p>
+                        <WorkflowSourceBadge source={drawing.workflowSource} />
                         <StatusBadge status={drawing.currentStatus} />
                       </div>
                       <h3 className="mt-3 text-xl font-semibold text-text">{drawing.drawingName}</h3>
@@ -536,6 +550,12 @@ function DrawingsContent({
                       value={formatDateTime(drawing.updatedAt)}
                     />
                   </div>
+                  {drawing.workflowSource === "LEGACY_READY" ? (
+                    <p className="text-sm leading-6 text-muted">
+                      Uploaded by: {drawing.uploadedByName ?? drawing.uploadedByUsername ?? "-"} / Note:{" "}
+                      {drawing.legacyReadyNote ?? "-"}
+                    </p>
+                  ) : null}
                 </div>
               </Card>
             );
@@ -562,6 +582,9 @@ function DrawingsContent({
                     {drawing.drawingNumber}
                   </p>
                   <p className="mt-0.5 truncate text-sm font-semibold text-text">{drawing.drawingName}</p>
+                  <div className="mt-1">
+                    <WorkflowSourceBadge source={drawing.workflowSource} />
+                  </div>
                   <p className="truncate text-sm text-muted">
                     {drawing.sacCode} / {drawing.area} / {drawing.discipline}
                   </p>
@@ -574,6 +597,11 @@ function DrawingsContent({
                   <p className="truncate leading-6">
                     Drafter: {drawing.drawnByName ?? drawing.drawnByUsername ?? "-"}
                   </p>
+                  {drawing.workflowSource === "LEGACY_READY" ? (
+                    <p className="truncate leading-6">
+                      Uploaded by: {drawing.uploadedByName ?? drawing.uploadedByUsername ?? "-"}
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="min-w-0 self-start pt-[2px]">
@@ -670,7 +698,7 @@ function ActionButtons({
     );
   }
 
-  if (currentRevision && canApproveRevision(role, currentRevision.status)) {
+  if (currentRevision && canApproveRevision(role, currentRevision.status, drawing.canCurrentUserApprove)) {
     actions.push(
       <Link
         className={compact ? "block" : undefined}

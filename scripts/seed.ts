@@ -23,6 +23,7 @@ interface SeedDeps {
 
 async function resetDatabase({ db, schema }: SeedDeps) {
   await db.delete(schema.downloadLogs);
+  await db.delete(schema.revisionApprovalSteps);
   await db.delete(schema.approvalActions);
   await db.delete(schema.auditLogs);
   await db.delete(schema.drawingRevisions);
@@ -88,6 +89,9 @@ async function seedBusinessData(
       discipline: item.discipline,
       description: item.description,
       createdBy: userIdMap[item.createdBy],
+      drawnByUserId: userIdMap[item.drawnByUserId],
+      workflowSource: item.workflowSource,
+      legacyReadyNote: item.legacyReadyNote,
       currentRevisionId: item.currentRevisionId,
       currentStatus: item.currentStatus,
       latestCompletedRevisionId: item.latestCompletedRevisionId,
@@ -126,6 +130,18 @@ async function seedBusinessData(
       decisionNote: item.decisionNote,
       actedAt: new Date(item.actedAt),
       createdAt: new Date(item.createdAt)
+    }))
+  );
+
+  await db.insert(schema.revisionApprovalSteps).values(
+    seed.revisionApprovalSteps.map((item) => ({
+      id: item.id ?? crypto.randomUUID(),
+      revisionId: item.revisionId,
+      approvalLevel: item.approvalLevel,
+      assignedUserId: item.assignedUserId ? userIdMap[item.assignedUserId] : null,
+      assignedByUserId: item.assignedByUserId ? userIdMap[item.assignedByUserId] : null,
+      assignedAt: item.assignedAt ? new Date(item.assignedAt) : new Date(),
+      updatedAt: item.updatedAt ? new Date(item.updatedAt) : new Date()
     }))
   );
 

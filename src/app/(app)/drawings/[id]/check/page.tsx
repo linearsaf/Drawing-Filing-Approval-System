@@ -9,14 +9,16 @@ import { PdfPreview } from "@/components/drawings/pdf-preview";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
-import { Drawing, DrawingRevision, UserRole } from "@/lib/types";
+import { ApproverOption, Drawing, DrawingRevision, RevisionApprovalStep, UserRole } from "@/lib/types";
 import { canCheckRevision } from "@/lib/utils/permissions";
 
 interface DrawingDetailResponse {
   drawing: Drawing;
   currentRevision: DrawingRevision | null;
+  approvalPlan: RevisionApprovalStep[];
 }
 
 export default function CheckPage() {
@@ -38,6 +40,10 @@ function CheckContent({
   role: UserRole;
 }) {
   const [data, setData] = useState<DrawingDetailResponse | null>(null);
+  const [level1Approvers, setLevel1Approvers] = useState<ApproverOption[]>([]);
+  const [level2Approvers, setLevel2Approvers] = useState<ApproverOption[]>([]);
+  const [level1ApproverId, setLevel1ApproverId] = useState("");
+  const [level2ApproverId, setLevel2ApproverId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -49,10 +55,22 @@ function CheckContent({
       setError("");
 
       try {
-        const response = await apiFetch<DrawingDetailResponse>(`/api/drawings/${drawingId}`);
+        const [response, level1Options, level2Options] = await Promise.all([
+          apiFetch<DrawingDetailResponse>(`/api/drawings/${drawingId}`),
+          apiFetch<{ items: ApproverOption[] }>("/api/users/approvers?level=1"),
+          apiFetch<{ items: ApproverOption[] }>("/api/users/approvers?level=2")
+        ]);
 
         if (!cancelled) {
           setData(response);
+          setLevel1Approvers(level1Options.items);
+          setLevel2Approvers(level2Options.items);
+          setLevel1ApproverId(
+            response.approvalPlan.find((step) => step.approvalLevel === 1)?.assignedUserId ?? ""
+          );
+          setLevel2ApproverId(
+            response.approvalPlan.find((step) => step.approvalLevel === 2)?.assignedUserId ?? ""
+          );
         }
       } catch (loadError) {
         if (!cancelled) {
@@ -158,10 +176,68 @@ function CheckContent({
           </Card>
           <DecisionPanel
             approveLabel="Mark as Approved"
-            description="Jika status Approved, drawing akan lanjut ke Approval Level 1. Jika Rejected, status kembali ke drafter dengan catatan review."
+            approveDisabled={!level1ApproverId}
+            buildPayload={({ decision }) =>
+              decision === "APPROVED"
+                ? {
+                    approvalPlan: {
+                      level1ApproverId,
+                      level2ApproverId: level2ApproverId || null
+                    }
+                  }
+                : {}
+            }
+            description="Jika status Approved, drawing akan lanjut ke approver level 1 yang dipilih. Level 2 opsional dan hanya dilalui bila assignee-nya disiapkan."
             eyebrow="Check Decision"
             endpoint={`/api/revisions/${revision.id}/check`}
-          />
+          >
+            <div className="space-y-4 rounded-[24px] border border-border bg-panel/28 p-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-brand">
+                  Approval Routing
+                </p>
+                <p className="mt-2 text-sm leading-6 text-muted">
+                  Tentukan approver level 1 untuk setiap drawing yang lolos check. Level 2 bersifat opsional.
+                </p>
+              </div>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-text">Approver Level 1</span>
+                <Select
+                  onChange={(event) => setLevel1ApproverId(event.target.value)}
+                  value={level1ApproverId}
+                >
+                  <option value="">Pilih approver level 1</option>
+                  {level1Approvers.map((approver) => (
+                    <option key={approver.id} value={approver.id}>
+                      {approver.name} / {approver.role === "ADMIN" ? "Admin" : "Approver L1"}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+
+              <label className="block">
+                <span className="mb-2 block text-sm font-semibold text-text">
+                  Approver Level 2 (Opsional)
+                </span>
+                <Select
+                  onChange={(event) => setLevel2ApproverId(event.target.value)}
+                  value={level2ApproverId}
+                >
+                  <option value="">Lewati final approval</option>
+                  {level2Approvers.map((approver) => (
+                    <option key={approver.id} value={approver.id}>
+                      {approver.name} / {approver.role === "ADMIN" ? "Admin" : "Head"}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+
+              <p className="text-xs leading-5 text-muted">
+                Bila Level 2 tidak dipilih, revisi akan langsung `Completed` setelah approval level 1.
+              </p>
+            </div>
+          </DecisionPanel>
         </div>
       </div>
     </div>

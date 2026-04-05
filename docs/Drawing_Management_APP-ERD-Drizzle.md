@@ -25,8 +25,9 @@ Tabel yang saat ini ada pada schema:
 6. `drawings`
 7. `drawing_revisions`
 8. `approval_actions`
-9. `audit_logs`
-10. `download_logs`
+9. `revision_approval_steps`
+10. `audit_logs`
+11. `download_logs`
 
 ---
 
@@ -37,8 +38,11 @@ user
 |-< session
 |-< account
 |-< drawings.created_by
+|-< drawings.drawn_by_user_id
 |-< drawing_revisions.submitted_by
 |-< approval_actions.actor_id
+|-< revision_approval_steps.assigned_user_id
+|-< revision_approval_steps.assigned_by_user_id
 |-< audit_logs.user_id
 |-< download_logs.user_id
 '-< user_access_requests.approved_user_id
@@ -46,6 +50,7 @@ user
 drawings
 '-< drawing_revisions
     |-< approval_actions
+    |-< revision_approval_steps
     '-< download_logs
 
 audit_logs
@@ -267,6 +272,9 @@ Field utama:
 - `discipline`
 - `description`
 - `createdBy`
+- `drawnByUserId`
+- `workflowSource`
+- `legacyReadyNote`
 - `currentRevisionId`
 - `currentStatus`
 - `latestCompletedRevisionId`
@@ -277,12 +285,19 @@ Constraint penting:
 
 - `drawingNumber` unique
 - `createdBy` foreign key ke `user.id`
+- `drawnByUserId` foreign key ke `user.id`
 - index pada `currentStatus`
 - index pada `createdBy`
+- index pada `drawnByUserId`
+- index pada `workflowSource`
 
 Catatan:
 
 - `currentRevisionId` dan `latestCompletedRevisionId` belum dijadikan foreign key fisik
+- `createdBy` menyimpan siapa yang menginput drawing ke sistem
+- `drawnByUserId` menyimpan pemilik drawing secara bisnis dan dipakai untuk label/filter `Drafter`
+- `workflowSource = LEGACY_READY` menandai old drawing yang langsung completed tanpa approval digital
+- `legacyReadyNote` menyimpan penjelasan approval historis di luar sistem
 - status master drawing diselaraskan dengan current revision aktif
 
 ---
@@ -358,9 +373,51 @@ Aturan approval level:
 - `1` untuk approval level 1
 - `2` untuk final approval oleh Head
 
+Catatan:
+
+- `approval_actions` tetap menjadi histori keputusan aktual
+- penentuan siapa approver level 1 dan 2 disimpan di `revision_approval_steps`
+
 ---
 
-## 5.9 `audit_logs`
+## 5.9 `revision_approval_steps`
+
+Tujuan:
+
+- menyimpan approval routing per revision
+- menentukan approver level 1 yang wajib dan approver level 2 yang opsional
+- menjadi sumber queue actionable untuk approver yang ditugaskan
+
+Field utama:
+
+- `id`
+- `revisionId`
+- `approvalLevel`
+- `assignedUserId`
+- `assignedByUserId`
+- `assignedAt`
+- `updatedAt`
+
+Constraint penting:
+
+- `revisionId` foreign key ke `drawing_revisions.id`
+- `assignedUserId` nullable reference ke `user.id`
+- `assignedByUserId` nullable reference ke `user.id`
+- unique pada `revisionId + approvalLevel`
+- index pada `assignedUserId + approvalLevel`
+- index pada `revisionId`
+
+Aturan implementasi:
+
+- level `1` wajib ada saat check disetujui
+- level `2` boleh kosong
+- approver level 1 hanya dapat dipilih dari role `APPROVER_L1` atau `ADMIN`
+- approver level 2 hanya dapat dipilih dari role `HEAD` atau `ADMIN`
+- assignee level aktif menjadi satu-satunya user yang bisa memproses approve/reject pada level tersebut
+
+---
+
+## 5.10 `audit_logs`
 
 Tujuan:
 
@@ -410,7 +467,7 @@ Contoh action yang saat ini dipakai:
 
 ---
 
-## 5.10 `download_logs`
+## 5.11 `download_logs`
 
 Tujuan:
 
@@ -446,13 +503,14 @@ Relasi yang sudah didefinisikan:
 - `drawingRelations`
 - `revisionRelations`
 - `approvalActionRelations`
+- `revisionApprovalStepRelations`
 - `auditLogRelations`
 - `downloadLogRelations`
 
 Catatan penting:
 
 - relasi `user -> accessRequests` saat ini merepresentasikan request yang approve ke user tertentu, bukan request yang diajukan oleh user existing
-- `drawings` hanya punya relasi eksplisit ke `creator` dan `revisions`
+- `drawings` saat ini punya relasi eksplisit ke `creator`, `drawnBy`, dan `revisions`
 - `currentRevisionId` dan `latestCompletedRevisionId` belum diekspose sebagai relation Drizzle
 
 ---
@@ -497,6 +555,7 @@ Catatan penting:
 
 - `GET /api/drawings`
 - `POST /api/drawings`
+- `POST /api/drawings/legacy`
 - `GET /api/drawings/[id]`
 - `PATCH /api/drawings/[id]`
 - `DELETE /api/drawings/[id]`
@@ -526,6 +585,7 @@ Dokumen lama tidak lagi akurat pada beberapa area berikut:
 - `audit_logs.action` tidak lagi enum ketat
 - `drawings.currentRevisionId` dan `latestCompletedRevisionId` belum dijadikan FK fisik
 - schema saat ini memakai `fileName` pada revision
+- legacy import memakai metadata pada `drawings`, bukan tabel approval tambahan
 
 ---
 

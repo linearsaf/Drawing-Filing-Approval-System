@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { AuthGuard } from "@/components/app/auth-guard";
 import { PageHeader } from "@/components/app/page-header";
 import { PdfPreview } from "@/components/drawings/pdf-preview";
+import { WorkflowSourceBadge } from "@/components/drawings/workflow-source-badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
@@ -102,6 +103,26 @@ function RevisionViewerContent({ revisionId }: { revisionId: string }) {
           </Link>
         }
       />
+
+      {data.drawing.workflowSource === "LEGACY_READY" ? (
+        <Card className="bg-white/75">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <div className="mb-3">
+                <WorkflowSourceBadge source={data.drawing.workflowSource} />
+              </div>
+              <h2 className="text-xl font-semibold text-text">Dokumen legacy ready</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Drawing ini diunggah sebagai final document karena approval historisnya sudah selesai sebelum sistem ini digunakan.
+              </p>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Drawn by: {data.drawing.drawnByName ?? data.drawing.drawnByUsername ?? "-"} / Uploaded by:{" "}
+                {data.drawing.uploadedByName ?? data.drawing.uploadedByUsername ?? "-"}
+              </p>
+            </div>
+          </div>
+        </Card>
+      ) : null}
 
       <PdfPreview
         drawingNumber={data.drawing.drawingNumber}

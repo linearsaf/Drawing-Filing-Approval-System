@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -11,12 +11,22 @@ export function DecisionPanel({
   endpoint,
   approveLabel,
   description,
-  eyebrow = "Review Decision"
+  eyebrow = "Review Decision",
+  buildPayload,
+  children,
+  approveDisabled = false
 }: {
   endpoint: string;
   approveLabel: string;
   description: string;
   eyebrow?: string;
+  buildPayload?: (params: {
+    decision: "APPROVED" | "REJECTED";
+    note: string;
+    signPdf: boolean;
+  }) => Record<string, unknown>;
+  children?: ReactNode;
+  approveDisabled?: boolean;
 }) {
   const router = useRouter();
   const [note, setNote] = useState("");
@@ -34,7 +44,8 @@ export function DecisionPanel({
         body: JSON.stringify({
           decision,
           note,
-          signPdf
+          signPdf,
+          ...(buildPayload ? buildPayload({ decision, note, signPdf }) : {})
         })
       });
 
@@ -62,6 +73,8 @@ export function DecisionPanel({
         />
       </div>
 
+      {children ? <div className="mt-5">{children}</div> : null}
+
       <label className="mt-4 flex items-start gap-3 rounded-2xl border border-border bg-panel/35 px-4 py-3">
         <input
           checked={signPdf}
@@ -80,7 +93,10 @@ export function DecisionPanel({
       {error ? <p className="mt-4 text-sm font-medium text-danger">{error}</p> : null}
 
       <div className="mt-6 flex flex-wrap gap-3">
-        <Button disabled={isSubmitting} onClick={() => void handleDecision("APPROVED")}>
+        <Button
+          disabled={isSubmitting || approveDisabled}
+          onClick={() => void handleDecision("APPROVED")}
+        >
           {approveLabel}
         </Button>
         <Button

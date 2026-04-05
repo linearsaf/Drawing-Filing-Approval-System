@@ -21,6 +21,7 @@ Versi aplikasi yang berjalan saat ini sudah mencakup:
 - role-based access control
 - dashboard per role
 - create, edit, submit, check, approval, dan revision flow
+- upload old drawing sebagai legacy ready import
 - drawing list dengan search dan filter
 - drawing detail dengan preview, approval history, revision history, dan audit timeline
 - final drawing preview, print, dan download
@@ -62,22 +63,38 @@ Sistem ini dibangun untuk:
 
 `Create Drawing -> Submit to Check -> Approval -> Final Drawing -> Distribution`
 
+`Upload Old Drawing -> Completed -> Distribution`
+
 ### Alur operasional
 
 1. Drafter membuat drawing baru dan upload PDF.
 2. Drawing disimpan sebagai `DRAFT` atau langsung dikirim ke `WAITING_CHECK`.
-3. Draft Leader melakukan `Check`.
-4. Jika lolos, drawing masuk ke `WAITING_APPROVAL_1`.
-5. Approver Level 1 memproses approval level pertama.
-6. Jika lolos, drawing masuk ke `WAITING_APPROVAL_2`.
-7. Head memproses final approval.
-8. Jika lolos, revision menjadi `COMPLETED`.
-9. Consumer dan role internal yang berhak dapat membuka, print, dan download final drawing.
-10. Jika ada perubahan lanjutan, Drafter/Admin membuat revision baru dari drawing yang sudah completed.
+3. Draft Leader melakukan `Check` sekaligus menentukan approver per revision.
+4. Jika lolos, drawing masuk ke `WAITING_APPROVAL_1` dengan approver level 1 yang ditugaskan.
+5. Approver Level 1 yang ditugaskan memproses approval level pertama.
+6. Jika level 2 disiapkan, drawing masuk ke `WAITING_APPROVAL_2`.
+7. Head yang ditugaskan memproses final approval bila level 2 memang dipakai.
+8. Jika level 2 tidak dipakai, approval level 1 langsung mengubah revision menjadi `COMPLETED`.
+9. Jika level 2 dipakai dan lolos, revision menjadi `COMPLETED`.
+10. Consumer dan role internal yang berhak dapat membuka, print, dan download final drawing.
+11. Jika ada perubahan lanjutan, Drafter/Admin membuat revision baru dari drawing yang sudah completed.
+
+### Alur legacy import
+
+1. Draft Leader atau Admin membuka `Upload Old Drawing`.
+2. User mengisi metadata utama: `Drawing Number`, `Drawing Name`, `SAC / SBI Asset Code`, `Area`, `Discipline`, `Revision Number`, `Drawn by`, `Legacy Ready Note`, dan upload PDF.
+3. Sistem menyimpan `createdBy` sebagai uploader dan `drawnByUserId` sebagai pemilik drawing secara bisnis.
+4. Drawing langsung dibuat sebagai `COMPLETED` dengan `workflowSource = LEGACY_READY`.
+5. Consumer langsung dapat preview, print, dan download.
+6. Jika nanti perlu perubahan, revisi berikutnya kembali masuk workflow normal: draft -> check -> approval.
 
 ### Aturan implementasi saat ini
 
-- workflow approval bersifat fixed 3 level
+- approval plan disusun per revision saat check
+- approval level 1 wajib
+- approval level 2 opsional
+- legacy import tidak membuat `approval_actions` dan tidak membuat `revision_approval_steps`
+- drawing legacy ditandai via `workflowSource = LEGACY_READY`, bukan status baru
 - semua reject mengembalikan proses ke Drafter
 - reject wajib menyertakan note
 - completed revision bersifat read-only
@@ -105,13 +122,16 @@ Hak akses:
 - melihat drawing dengan status `WAITING_CHECK`
 - membuka halaman `Check Drawing`
 - approve atau reject pada approval level `0`
+- menentukan approver level 1 dan optional approver level 2 untuk revision yang lolos check
+- membuka halaman `Upload Old Drawing`
+- upload old drawing sebagai `COMPLETED` tanpa workflow approval digital
 - menuliskan decision note
 
 ### 6.3 Approver Level 1
 
 Hak akses:
 
-- melihat drawing dengan status `WAITING_APPROVAL_1`
+- melihat drawing dengan status `WAITING_APPROVAL_1` yang ditugaskan kepadanya
 - membuka halaman approval
 - approve atau reject pada approval level `1`
 - menuliskan decision note
@@ -120,7 +140,7 @@ Hak akses:
 
 Hak akses:
 
-- melihat drawing dengan status `WAITING_APPROVAL_2`
+- melihat drawing dengan status `WAITING_APPROVAL_2` yang ditugaskan kepadanya
 - membuka halaman final approval
 - approve atau reject pada approval level `2`
 - menghasilkan final drawing saat approve
@@ -135,6 +155,14 @@ Hak akses:
 - read-only access
 
 ### 6.6 Admin
+
+Hak akses:
+
+- seluruh kemampuan Drafter, Draft Leader, Approver L1, dan Head sesuai kebutuhan operasional
+- membuka `Upload Old Drawing`
+- upload old drawing sebagai `COMPLETED` tanpa workflow approval digital
+- mengelola `Drawn by` dan `Uploaded by` context pada drawing legacy
+- mengelola user, request access, dan reset password
 
 Hak akses:
 
@@ -192,6 +220,7 @@ Flow ini sudah aktif di aplikasi saat ini.
 - drawing list dengan search, filter, card view, dan compact list
 - drawing detail
 - create drawing
+- upload old drawing
 - edit drawing
 - submit revision
 - check drawing
@@ -205,10 +234,11 @@ Flow ini sudah aktif di aplikasi saat ini.
 - audit timeline
 - admin user management
 - drafter lookup API
+- legacy drawn-by lookup API
 
 ### Out of Scope saat ini
 
-- approval workflow dinamis
+- approval workflow multi-level bebas di luar skema L1 wajib + L2 opsional
 - multi-role per user
 - annotation langsung di PDF
 - compare visual antar revision
@@ -333,24 +363,26 @@ Status revision yang dipakai sistem:
 2. submit -> `WAITING_CHECK`
 3. check approve -> `WAITING_APPROVAL_1`
 4. check reject -> `CHECK_REJECTED`
-5. approval L1 approve -> `WAITING_APPROVAL_2`
-6. approval L1 reject -> `APPROVAL_1_REJECTED`
-7. final approval approve -> `COMPLETED`
-8. final approval reject -> `APPROVAL_2_REJECTED`
-9. create revision baru dari completed drawing -> revision baru `DRAFT`, revision completed lama dapat ditandai `OBSOLETE`
+5. approval L1 approve + ada assignee L2 -> `WAITING_APPROVAL_2`
+6. approval L1 approve + tanpa assignee L2 -> `COMPLETED`
+7. approval L1 reject -> `APPROVAL_1_REJECTED`
+8. final approval approve -> `COMPLETED`
+9. final approval reject -> `APPROVAL_2_REJECTED`
+10. upload old drawing -> `COMPLETED`
+11. create revision baru dari completed drawing -> revision baru `DRAFT`, revision completed lama dapat ditandai `OBSOLETE`
 
 ---
 
 ## 11. Permission Matrix Ringkas
 
-| Role | Create | Edit Draft | Submit | Check | Approve L1 | Final Approve | Download Completed |
-|---|---|---|---|---|---|---|---|
-| DRAFTER | Yes | Yes | Yes | No | No | No | Yes |
-| DRAFT_LEADER | No | No | No | Yes | No | No | Yes |
-| APPROVER_L1 | No | No | No | No | Yes | No | Yes |
-| HEAD | No | No | No | No | No | Yes | Yes |
-| CONSUMER | No | No | No | No | No | No | Yes |
-| ADMIN | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
+| Role | Create | Upload Old Drawing | Edit Draft | Submit | Check | Approve L1 | Final Approve | Download Completed |
+|---|---|---|---|---|---|---|---|---|
+| DRAFTER | Yes | No | Yes | Yes | No | No | No | Yes |
+| DRAFT_LEADER | No | Yes | No | No | Yes | No | No | Yes |
+| APPROVER_L1 | No | No | No | No | No | Yes | No | Yes |
+| HEAD | No | No | No | No | No | No | Yes | Yes |
+| CONSUMER | No | No | No | No | No | No | No | Yes |
+| ADMIN | Yes | Yes | Yes | Yes | Yes | Yes | Yes | Yes |
 
 Tambahan:
 
@@ -473,11 +505,13 @@ Dokumen ERD teknis terbaru ada di `docs/Drawing_Management_APP-ERD-Drizzle.md`.
 - `PATCH /api/admin/users/[id]`
 - `PATCH /api/admin/users/[id]/password`
 - `GET /api/users/drafters`
+- `GET /api/users/approvers?level=1|2`
 
 ### Drawings
 
 - `GET /api/drawings`
 - `POST /api/drawings`
+- `POST /api/drawings/legacy`
 - `GET /api/drawings/[id]`
 - `PATCH /api/drawings/[id]`
 - `DELETE /api/drawings/[id]`
@@ -489,6 +523,7 @@ Dokumen ERD teknis terbaru ada di `docs/Drawing_Management_APP-ERD-Drizzle.md`.
 - `PATCH /api/revisions/[revisionId]`
 - `POST /api/revisions/[revisionId]/submit`
 - `POST /api/revisions/[revisionId]/check`
+- `PATCH /api/revisions/[revisionId]/approval-plan`
 - `POST /api/revisions/[revisionId]/approve-level-1`
 - `POST /api/revisions/[revisionId]/approve-level-2`
 - `GET /api/revisions/[revisionId]/preview`
@@ -510,7 +545,7 @@ Dokumen ERD teknis terbaru ada di `docs/Drawing_Management_APP-ERD-Drizzle.md`.
 
 1. `drawingNumber` unik secara global
 2. `drawingId + revisionNo` unik
-3. approval flow fixed 3 level
+3. approval plan disusun per revision dengan level 1 wajib dan level 2 opsional
 4. satu user satu role
 5. reject selalu kembali ke Drafter
 6. consumer hanya melihat completed drawing
@@ -518,6 +553,8 @@ Dokumen ERD teknis terbaru ada di `docs/Drawing_Management_APP-ERD-Drizzle.md`.
 8. completed drawing tidak diedit langsung
 9. revision baru dibuat sebagai row baru, bukan overwrite revision lama
 10. public access request harus direview admin sebelum akun dibuat
+11. legacy import langsung completed dan tidak melewati approval digital
+12. `createdBy` adalah uploader, sedangkan `drawnByUserId` adalah pemilik drawing secara bisnis
 
 ---
 
@@ -525,7 +562,6 @@ Dokumen ERD teknis terbaru ada di `docs/Drawing_Management_APP-ERD-Drizzle.md`.
 
 Fitur yang masih masuk fase lanjutan:
 
-- approval workflow dinamis
 - notification email untuk antrian workflow lain selain request access dan reset password
 - compare antar revision
 - annotation di PDF

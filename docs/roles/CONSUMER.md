@@ -18,6 +18,7 @@ Consumer dapat:
 - search dan filter final drawing
 - membuka `Drawing Detail`
 - melihat metadata, revision history, approval history, dan audit timeline
+- melihat badge `Legacy Ready` pada drawing lama yang diimport sebagai completed
 - preview PDF
 - print final drawing
 - download final drawing
@@ -46,3 +47,4 @@ Consumer tidak dapat:
 - seluruh akses consumer bersifat read-only
 - drawing yang belum completed tidak akan visible untuk consumer
 - approval history dan audit timeline dapat dipakai sebagai referensi jejak keputusan
+- untuk drawing legacy, approval history digital dapat kosong karena approval historis terjadi sebelum sistem ini digunakan

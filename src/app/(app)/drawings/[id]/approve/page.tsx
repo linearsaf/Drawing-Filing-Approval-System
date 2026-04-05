@@ -11,12 +11,15 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
-import { Drawing, DrawingRevision, UserRole } from "@/lib/types";
+import { Drawing, DrawingRevision, RevisionApprovalStep, UserRole } from "@/lib/types";
 import { canApproveRevision } from "@/lib/utils/permissions";
 
 interface DrawingDetailResponse {
   drawing: Drawing;
   currentRevision: DrawingRevision | null;
+  approvalPlan: RevisionApprovalStep[];
+  activeApprovalLevel: 1 | 2 | null;
+  canCurrentUserApprove: boolean;
 }
 
 export default function ApprovePage() {
@@ -110,18 +113,19 @@ function ApproveContent({
 
   const { drawing, currentRevision: revision } = data;
 
-  if (!revision || !canApproveRevision(role, revision.status)) {
+  if (!revision || !canApproveRevision(role, revision.status, data.canCurrentUserApprove)) {
     return (
       <EmptyState
         actionHref={`/drawings/${drawing.id}`}
         actionLabel="Kembali ke Detail Drawing"
-        description="Halaman approval hanya aktif untuk revision yang menunggu level approval sesuai role."
+        description="Halaman approval hanya aktif untuk approver yang memang ditugaskan pada level approval aktif."
         title="Tidak ada item yang bisa di-approve"
       />
     );
   }
 
-  const isHeadStep = revision.status === "WAITING_APPROVAL_2";
+  const activeStep = data.approvalPlan.find((step) => step.approvalLevel === data.activeApprovalLevel);
+  const isHeadStep = data.activeApprovalLevel === 2;
 
   return (
     <div className="space-y-8">
@@ -156,6 +160,10 @@ function ApproveContent({
               <QuickRow label="Area" value={drawing.area} />
               <QuickRow label="Discipline" value={drawing.discipline} />
               <QuickRow label="Current Revision" value={revision.revisionNo} />
+              <QuickRow
+                label={isHeadStep ? "Assigned Final Approver" : "Assigned L1 Approver"}
+                value={activeStep?.assignedUserName ?? activeStep?.assignedUserUsername ?? "-"}
+              />
             </div>
           </Card>
           <DecisionPanel
@@ -163,7 +171,9 @@ function ApproveContent({
             description={
               isHeadStep
                 ? "Jika status Approved, Drawing akan menjadi completed dan masuk mode read-only untuk consumer."
-                : "Jika status Approved, drawing akan lanjut ke Final Approval."
+                : data.approvalPlan.some((step) => step.approvalLevel === 2 && step.assignedUserId)
+                  ? "Jika status Approved, drawing akan lanjut ke Final Approval yang sudah ditentukan."
+                  : "Jika status Approved, drawing akan langsung completed karena final approval tidak disiapkan."
             }
             eyebrow={isHeadStep ? "Final Approval Decision" : "Approval Decision"}
             endpoint={

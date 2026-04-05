@@ -3,7 +3,8 @@ import {
   accessRequestStatusValues,
   approvalDecisionValues,
   revisionStatusValues,
-  userRoleValues
+  userRoleValues,
+  workflowSourceValues
 } from "@/lib/db/schema";
 
 export const drawingInputSchema = z.object({
@@ -21,6 +22,19 @@ export const drawingInputSchema = z.object({
 
 export const drawingUpdateSchema = drawingInputSchema.partial().extend({
   submit: z.boolean().optional()
+});
+
+export const legacyDrawingInputSchema = z.object({
+  drawingNumber: z.string().min(1),
+  drawingName: z.string().min(1),
+  sacCode: z.string().min(1),
+  area: z.string().min(1),
+  discipline: z.string().min(1),
+  description: z.string().optional().default(""),
+  revisionNo: z.string().min(1),
+  drawnByUserId: z.string().min(1),
+  legacyReadyNote: z.string().min(1),
+  fileName: z.string().min(1)
 });
 
 export const drawingListQuerySchema = z.object({
@@ -45,6 +59,28 @@ export const decisionSchema = z.object({
   decision: z.enum(approvalDecisionValues),
   note: z.string().optional().default(""),
   signPdf: z.boolean().optional().default(true)
+});
+
+export const approvalPlanInputSchema = z.object({
+  level1ApproverId: z.string().min(1),
+  level2ApproverId: z.string().nullable().optional()
+});
+
+export const checkDecisionSchema = decisionSchema.extend({
+  approvalPlan: approvalPlanInputSchema.optional()
+});
+
+export const approvalPlanUpdateSchema = z.object({
+  level1ApproverId: z.string().min(1).optional(),
+  level2ApproverId: z.string().nullable().optional()
+});
+
+export const approverListQuerySchema = z.object({
+  level: z.enum(["1", "2"])
+});
+
+export const drawingWorkflowSourceSchema = z.object({
+  workflowSource: z.enum(workflowSourceValues).optional()
 });
 
 export const adminCreateUserSchema = z.object({

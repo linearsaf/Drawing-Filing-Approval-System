@@ -1,6 +1,6 @@
 import { apiError, apiSuccess, parseJson } from "@/lib/server/api";
 import { requireRole } from "@/lib/server/auth";
-import { decisionSchema } from "@/lib/validations/api";
+import { checkDecisionSchema } from "@/lib/validations/api";
 import { decideApproval } from "@/server/services/approval.service";
 
 export async function POST(
@@ -10,7 +10,7 @@ export async function POST(
   try {
     const session = await requireRole(request, ["DRAFT_LEADER", "ADMIN"]);
     const { revisionId } = await params;
-    const body = await parseJson(request, decisionSchema);
+    const body = await parseJson(request, checkDecisionSchema);
     const role = (session.user.role ?? "CONSUMER") as Parameters<typeof decideApproval>[0]["role"];
 
     const data = await decideApproval({
@@ -21,6 +21,7 @@ export async function POST(
       decision: body.decision,
       note: body.note,
       signPdf: body.signPdf,
+      approvalPlan: body.approvalPlan,
       expectedStatus: "WAITING_CHECK"
     });
 

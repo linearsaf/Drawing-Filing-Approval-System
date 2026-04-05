@@ -20,6 +20,8 @@ export type RevisionStatus =
   | "OBSOLETE";
 
 export type ApprovalDecision = "APPROVED" | "REJECTED";
+export type ApprovalStepState = "UNASSIGNED" | "PENDING" | "APPROVED" | "REJECTED";
+export type WorkflowSource = "STANDARD" | "LEGACY_READY";
 
 export interface User {
   id: string;
@@ -55,9 +57,13 @@ export interface Drawing {
   discipline: string;
   description: string | null;
   createdBy: string;
-  drawnByUserId?: string;
+  drawnByUserId: string;
   drawnByName?: string | null;
   drawnByUsername?: string | null;
+  uploadedByName?: string | null;
+  uploadedByUsername?: string | null;
+  workflowSource: WorkflowSource;
+  legacyReadyNote: string | null;
   currentRevisionId: string | null;
   currentStatus: RevisionStatus;
   latestCompletedRevisionId: string | null;
@@ -80,6 +86,22 @@ export interface DrawingRevision {
   isCompleted: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface RevisionApprovalStep {
+  id: string | null;
+  revisionId: string;
+  approvalLevel: 1 | 2;
+  assignedUserId: string | null;
+  assignedByUserId: string | null;
+  assignedAt: string | null;
+  updatedAt: string | null;
+  assignedUserName: string | null;
+  assignedUserUsername: string | null;
+  assignedUserRole: UserRole | null;
+  assignedByUserName: string | null;
+  assignedByUserUsername: string | null;
+  state: ApprovalStepState;
 }
 
 export interface ApprovalAction {
@@ -131,6 +153,20 @@ export interface DrafterOption {
   username: string;
 }
 
+export interface DrawnByOption {
+  id: string;
+  name: string;
+  username: string;
+  role: UserRole;
+}
+
+export interface ApproverOption {
+  id: string;
+  name: string;
+  username: string;
+  role: UserRole;
+}
+
 export interface DemoSession {
   userId: string;
   role: UserRole;
@@ -140,6 +176,7 @@ export interface MockDatabase {
   users: User[];
   drawings: Drawing[];
   revisions: DrawingRevision[];
+  revisionApprovalSteps: RevisionApprovalStep[];
   approvalActions: ApprovalAction[];
   auditLogs: AuditLog[];
 }
@@ -154,4 +191,17 @@ export interface DrawingFormInput {
   revisionNo: string;
   fileName: string;
   changeNote: string;
+}
+
+export interface LegacyDrawingFormInput {
+  drawingNumber: string;
+  drawingName: string;
+  sacCode: string;
+  area: string;
+  discipline: string;
+  description: string;
+  revisionNo: string;
+  drawnByUserId: string;
+  legacyReadyNote: string;
+  fileName: string;
 }

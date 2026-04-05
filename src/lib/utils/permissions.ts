@@ -36,6 +36,10 @@ export function canCreateDrawing(role: UserRole) {
   return role === "DRAFTER" || role === "ADMIN";
 }
 
+export function canUploadOldDrawing(role: UserRole) {
+  return role === "DRAFT_LEADER" || role === "ADMIN";
+}
+
 export function canDeleteDrawing(role: UserRole) {
   return role === "ADMIN";
 }
@@ -55,11 +59,12 @@ export function canCheckRevision(role: UserRole, status: RevisionStatus) {
   return (role === "DRAFT_LEADER" || role === "ADMIN") && status === "WAITING_CHECK";
 }
 
-export function canApproveRevision(role: UserRole, status: RevisionStatus) {
-  return (
+export function canApproveRevision(role: UserRole, status: RevisionStatus, isAssigned = true) {
+  const matchesLevel =
     ((role === "APPROVER_L1" || role === "ADMIN") && status === "WAITING_APPROVAL_1") ||
-    ((role === "HEAD" || role === "ADMIN") && status === "WAITING_APPROVAL_2")
-  );
+    ((role === "HEAD" || role === "ADMIN") && status === "WAITING_APPROVAL_2");
+
+  return matchesLevel && isAssigned;
 }
 
 export function canCreateRevision(role: UserRole, status: RevisionStatus) {

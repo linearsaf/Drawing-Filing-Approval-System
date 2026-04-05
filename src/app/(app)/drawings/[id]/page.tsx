@@ -6,13 +6,23 @@ import { useParams, useRouter } from "next/navigation";
 import { AuthGuard } from "@/components/app/auth-guard";
 import { PageHeader } from "@/components/app/page-header";
 import { PdfPreview } from "@/components/drawings/pdf-preview";
+import { WorkflowSourceBadge } from "@/components/drawings/workflow-source-badge";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
-import { ApprovalAction, AuditLog, Drawing, DrawingRevision, UserRole } from "@/lib/types";
+import {
+  ApprovalAction,
+  ApproverOption,
+  AuditLog,
+  Drawing,
+  DrawingRevision,
+  RevisionApprovalStep,
+  UserRole
+} from "@/lib/types";
 import { formatDate, formatDateTime } from "@/lib/utils/format";
 import {
   canApproveRevision,
@@ -31,6 +41,9 @@ interface DrawingDetailResponse {
   currentRevision: DrawingRevision | null;
   revisions: DrawingRevision[];
   approvalHistory: ApprovalAction[];
+  approvalPlan: RevisionApprovalStep[];
+  activeApprovalLevel: 1 | 2 | null;
+  canCurrentUserApprove: boolean;
   auditLogs: AuditLog[];
 }
 
@@ -58,11 +71,16 @@ function DetailContent({
   routerPush: (href: string) => void;
 }) {
   const [data, setData] = useState<DrawingDetailResponse | null>(null);
+  const [level1Approvers, setLevel1Approvers] = useState<ApproverOption[]>([]);
+  const [level2Approvers, setLevel2Approvers] = useState<ApproverOption[]>([]);
+  const [level1ApproverId, setLevel1ApproverId] = useState("");
+  const [level2ApproverId, setLevel2ApproverId] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [actionSuccess, setActionSuccess] = useState("");
   const [isActing, setIsActing] = useState(false);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -94,6 +112,44 @@ function DetailContent({
       cancelled = true;
     };
   }, [drawingId]);
+
+  useEffect(() => {
+    setLevel1ApproverId(data?.approvalPlan.find((step) => step.approvalLevel === 1)?.assignedUserId ?? "");
+    setLevel2ApproverId(data?.approvalPlan.find((step) => step.approvalLevel === 2)?.assignedUserId ?? "");
+  }, [data]);
+
+  useEffect(() => {
+    if (!["DRAFT_LEADER", "ADMIN"].includes(role)) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadApprovers = async () => {
+      try {
+        const [level1Response, level2Response] = await Promise.all([
+          apiFetch<{ items: ApproverOption[] }>("/api/users/approvers?level=1"),
+          apiFetch<{ items: ApproverOption[] }>("/api/users/approvers?level=2")
+        ]);
+
+        if (!cancelled) {
+          setLevel1Approvers(level1Response.items);
+          setLevel2Approvers(level2Response.items);
+        }
+      } catch {
+        if (!cancelled) {
+          setLevel1Approvers([]);
+          setLevel2Approvers([]);
+        }
+      }
+    };
+
+    void loadApprovers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
 
   const refreshDetail = async () => {
     setError("");
@@ -145,7 +201,16 @@ function DetailContent({
     );
   }
 
-  const { drawing, currentRevision, revisions, approvalHistory, auditLogs } = data;
+  const {
+    drawing,
+    currentRevision,
+    revisions,
+    approvalHistory,
+    approvalPlan,
+    activeApprovalLevel,
+    canCurrentUserApprove,
+    auditLogs
+  } = data;
 
   if (!canViewDrawing(role, drawing.currentStatus)) {
     return (
@@ -172,6 +237,11 @@ function DetailContent({
   const approvalForCurrentRevision = approvalHistory.filter(
     (action) => action.revisionId === currentRevision.id
   );
+  const level1Step = approvalPlan.find((step) => step.approvalLevel === 1) ?? null;
+  const level2Step = approvalPlan.find((step) => step.approvalLevel === 2) ?? null;
+  const canManageApprovalPlan =
+    ["DRAFT_LEADER", "ADMIN"].includes(role) &&
+    ["WAITING_APPROVAL_1", "WAITING_APPROVAL_2"].includes(currentRevision.status);
 
   const handleSubmitRevision = async () => {
     setIsActing(true);
@@ -225,6 +295,34 @@ function DetailContent({
     }
   };
 
+  const handleSaveApprovalPlan = async () => {
+    setIsSavingPlan(true);
+    setActionError("");
+    setActionSuccess("");
+
+    try {
+      await apiFetch<{ revisionId: string }>(`/api/revisions/${currentRevision.id}/approval-plan`, {
+        method: "PATCH",
+        body: JSON.stringify(
+          currentRevision.status === "WAITING_APPROVAL_2"
+            ? {
+                level2ApproverId: level2ApproverId || null
+              }
+            : {
+                level1ApproverId,
+                level2ApproverId: level2ApproverId || null
+              }
+        )
+      });
+      await refreshDetail();
+      setActionSuccess("Approval plan berhasil diperbarui.");
+    } catch (planError) {
+      setActionError(getErrorMessage(planError, "Approval plan gagal diperbarui."));
+    } finally {
+      setIsSavingPlan(false);
+    }
+  };
+
   const headerActions = (
     <>
       <Link href="/drawings">
@@ -245,7 +343,7 @@ function DetailContent({
           <Button>Check</Button>
         </Link>
       ) : null}
-      {canApproveRevision(role, currentRevision.status) ? (
+      {canApproveRevision(role, currentRevision.status, canCurrentUserApprove) ? (
         <Link href={`/drawings/${drawing.id}/approve`}>
           <Button>Approve</Button>
         </Link>
@@ -288,6 +386,9 @@ function DetailContent({
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight">
                   {getStatusLabel(drawing.currentStatus)}
                 </h2>
+                <div className="mt-3">
+                  <WorkflowSourceBadge source={drawing.workflowSource} />
+                </div>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
                   Current revision saat ini adalah rev {currentRevision.revisionNo} dengan status{" "}
                   {getStatusLabel(currentRevision.status).toLowerCase()}. Area kerja dan tindakan yang tersedia akan menyesuaikan dengan role aktif Anda.
@@ -310,11 +411,25 @@ function DetailContent({
           <h2 className="mt-2 text-2xl font-semibold text-text">Kondisi dokumen aktif</h2>
 
           <div className="mt-6 space-y-3">
+            <MiniStatRow
+              label="Workflow Source"
+              value={drawing.workflowSource === "LEGACY_READY" ? "Legacy Ready" : "Standard"}
+            />
             <MiniStatRow label="Status" value={getStatusLabel(currentRevision.status)} />
             <MiniStatRow label="File" value={currentRevision.fileName} />
             <MiniStatRow label="Submitted At" value={formatDateTime(currentRevision.submittedAt)} />
             <MiniStatRow label="Updated At" value={formatDateTime(currentRevision.updatedAt)} />
             <MiniStatRow label="Current Role" value={getRoleLabel(role)} />
+            <MiniStatRow
+              label="Active Approval"
+              value={
+                activeApprovalLevel
+                  ? `Level ${activeApprovalLevel}`
+                  : currentRevision.status === "COMPLETED"
+                    ? "Selesai"
+                    : "Belum aktif"
+              }
+            />
           </div>
         </Card>
       </div>
@@ -358,6 +473,10 @@ function DetailContent({
               <MetadataRow label="Area" value={drawing.area} />
               <MetadataRow label="Discipline" value={drawing.discipline} />
               <MetadataRow label="Drafter" value={drawing.drawnByName ?? drawing.drawnByUsername ?? "-"} />
+              <MetadataRow label="Uploaded by" value={drawing.uploadedByName ?? drawing.uploadedByUsername ?? "-"} />
+              {drawing.workflowSource === "LEGACY_READY" ? (
+                <MetadataRow label="Legacy Ready Note" value={drawing.legacyReadyNote ?? "-"} />
+              ) : null}
               <MetadataRow label="Created At" value={formatDate(drawing.createdAt)} />
             </div>
           </Card>
@@ -366,8 +485,87 @@ function DetailContent({
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Next Step</p>
             <h2 className="mt-2 text-2xl font-semibold text-text">Langkah berikutnya</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              {getNextStepMessage(role, currentRevision.status)}
+              {getNextStepMessage(role, currentRevision.status, canCurrentUserApprove)}
             </p>
+          </Card>
+
+          <Card>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Approval Plan</p>
+            <h2 className="mt-2 text-2xl font-semibold text-text">Routing approver revisi aktif</h2>
+
+            <div className="mt-5 space-y-3">
+              <ApprovalStepRow
+                isActive={activeApprovalLevel === 1}
+                note={level1Step?.state === "UNASSIGNED" ? "Belum ditentukan. Approval tidak bisa diproses." : null}
+                step={level1Step}
+                title="Level 1"
+              />
+              <ApprovalStepRow
+                isActive={activeApprovalLevel === 2}
+                note={!level2Step ? "Tidak digunakan. Revisi akan selesai setelah approval level 1." : null}
+                step={level2Step}
+                title="Level 2"
+              />
+            </div>
+
+            {canManageApprovalPlan ? (
+              <div className="mt-5 space-y-4 rounded-[24px] border border-border bg-panel/28 p-4">
+                <div>
+                  <p className="text-sm font-semibold text-text">Reassign approver</p>
+                  <p className="mt-1 text-sm leading-6 text-muted">
+                    Draft Leader dan Admin dapat mengganti approver yang belum bertindak untuk menjaga workflow tetap bergerak.
+                  </p>
+                </div>
+
+                {currentRevision.status === "WAITING_APPROVAL_1" ? (
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-text">Approver Level 1</span>
+                    <Select
+                      onChange={(event) => setLevel1ApproverId(event.target.value)}
+                      value={level1ApproverId}
+                    >
+                      <option value="">Pilih approver level 1</option>
+                      {level1Approvers.map((approver) => (
+                        <option key={approver.id} value={approver.id}>
+                          {approver.name} / {approver.role === "ADMIN" ? "Admin" : "Approver L1"}
+                        </option>
+                      ))}
+                    </Select>
+                  </label>
+                ) : null}
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-text">
+                    Approver Level 2{currentRevision.status === "WAITING_APPROVAL_1" ? " (Opsional)" : ""}
+                  </span>
+                  <Select
+                    onChange={(event) => setLevel2ApproverId(event.target.value)}
+                    value={level2ApproverId}
+                  >
+                    {currentRevision.status === "WAITING_APPROVAL_1" ? (
+                      <option value="">Lewati final approval</option>
+                    ) : null}
+                    {level2Approvers.map((approver) => (
+                      <option key={approver.id} value={approver.id}>
+                        {approver.name} / {approver.role === "ADMIN" ? "Admin" : "Head"}
+                      </option>
+                    ))}
+                  </Select>
+                </label>
+
+                <Button
+                  disabled={
+                    isSavingPlan ||
+                    (currentRevision.status === "WAITING_APPROVAL_1" && !level1ApproverId) ||
+                    (currentRevision.status === "WAITING_APPROVAL_2" && !level2ApproverId)
+                  }
+                  onClick={() => void handleSaveApprovalPlan()}
+                  variant="secondary"
+                >
+                  {isSavingPlan ? "Menyimpan..." : "Update Approval Plan"}
+                </Button>
+              </div>
+            ) : null}
           </Card>
         </div>
       </div>
@@ -400,8 +598,16 @@ function DetailContent({
           <div className="mt-5 space-y-4">
             {approvalForCurrentRevision.length === 0 ? (
               <EmptyState
-                description="Belum ada keputusan approval untuk revisi aktif ini."
-                title="Approval masih kosong"
+                description={
+                  drawing.workflowSource === "LEGACY_READY"
+                    ? "Approval historis terjadi sebelum sistem ini digunakan, sehingga revisi legacy ini tidak memiliki keputusan digital di dalam aplikasi."
+                    : "Belum ada keputusan approval untuk revisi aktif ini."
+                }
+                title={
+                  drawing.workflowSource === "LEGACY_READY"
+                    ? "Approval historis berada di luar sistem"
+                    : "Approval masih kosong"
+                }
               />
             ) : (
               approvalForCurrentRevision.map((action) => (
@@ -511,8 +717,52 @@ function HeroStat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function ApprovalStepRow({
+  title,
+  step,
+  isActive,
+  note
+}: {
+  title: string;
+  step: RevisionApprovalStep | null;
+  isActive?: boolean;
+  note?: string | null;
+}) {
+  const assignee = step?.assignedUserName ?? step?.assignedUserUsername ?? "Belum ditentukan";
+
+  return (
+    <div
+      className={`rounded-[24px] border px-4 py-3 ${
+        isActive ? "border-brand/30 bg-brand/6" : "border-border bg-white"
+      }`}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-text">{title}</p>
+          <p className="mt-1 text-sm text-muted">{assignee}</p>
+        </div>
+        <span className="rounded-full border border-border bg-panel/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-text">
+          {step ? humanizeApprovalStepState(step.state) : "Not Used"}
+        </span>
+      </div>
+      {note ? <p className="mt-3 text-sm leading-6 text-muted">{note}</p> : null}
+    </div>
+  );
+}
+
 function humanizeDecision(value: ApprovalAction["decision"]) {
   return value === "APPROVED" ? "Approved" : "Rejected";
+}
+
+function humanizeApprovalStepState(value: RevisionApprovalStep["state"]) {
+  const labels: Record<RevisionApprovalStep["state"], string> = {
+    UNASSIGNED: "Unassigned",
+    PENDING: "Pending",
+    APPROVED: "Approved",
+    REJECTED: "Rejected"
+  };
+
+  return labels[value];
 }
 
 function humanizeAuditAction(action: string) {
@@ -522,10 +772,11 @@ function humanizeAuditAction(action: string) {
     DRAWING_UPDATED: "Drawing diperbarui",
     DRAWING_UPDATED_AND_SUBMITTED: "Drawing diperbarui dan dikirim",
     DRAWING_DELETED: "Drawing dihapus",
+    LEGACY_DRAWING_IMPORTED: "Old drawing diunggah sebagai completed",
     REVISION_CREATED: "Revisi baru dibuat",
     SUBMITTED_FOR_CHECK: "Revisi dikirim untuk check",
-    WAITING_APPROVAL_1: "Lolos check dan menunggu approval level 1",
-    WAITING_APPROVAL_2: "Lolos approval level 1",
+    WAITING_APPROVAL_1: "Lolos check dan menunggu approver level 1 yang ditugaskan",
+    WAITING_APPROVAL_2: "Lolos approval level 1 dan menunggu final approval yang ditugaskan",
     CHECK_REJECTED: "Check ditolak",
     APPROVAL_1_REJECTED: "Approval level 1 rejected",
     APPROVAL_2_REJECTED: "Final approval rejected",
@@ -536,7 +787,11 @@ function humanizeAuditAction(action: string) {
   return labels[action] ?? action.replace(/_/g, " ").toLowerCase();
 }
 
-function getNextStepMessage(role: UserRole, status: DrawingRevision["status"]) {
+function getNextStepMessage(
+  role: UserRole,
+  status: DrawingRevision["status"],
+  canCurrentUserApprove = true
+) {
   if (canEditRevision(role, status)) {
     return "Dokumen ini masih berada pada tahap yang bisa Anda edit. Lengkapi perubahan lalu kirim ke tahap check saat sudah siap.";
   }
@@ -549,8 +804,16 @@ function getNextStepMessage(role: UserRole, status: DrawingRevision["status"]) {
     return "Periksa dokumen ini dari sisi teknis, lalu teruskan ke tahap approval berikutnya atau kembalikan dengan catatan yang jelas.";
   }
 
-  if (canApproveRevision(role, status)) {
+  if (canApproveRevision(role, status, canCurrentUserApprove)) {
     return "Dokumen ini sudah siap Anda review sebagai approver. Pastikan catatan dan stempel keputusan sesuai sebelum melanjutkan.";
+  }
+
+  if (
+    (role === "APPROVER_L1" && status === "WAITING_APPROVAL_1") ||
+    (role === "HEAD" && status === "WAITING_APPROVAL_2") ||
+    (role === "ADMIN" && ["WAITING_APPROVAL_1", "WAITING_APPROVAL_2"].includes(status))
+  ) {
+    return "Tahap approval aktif sedang menunggu assignee yang benar. Jika Anda bukan approver yang ditugaskan, gunakan detail ini untuk melihat routing atau minta reassignment.";
   }
 
   if (canCreateRevision(role, status)) {

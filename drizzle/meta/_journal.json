@@ -15,6 +15,20 @@
       "when": 1775283925603,
       "tag": "0001_heavy_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1775376351696,
+      "tag": "0002_loose_mantis",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1775384840368,
+      "tag": "0003_far_king_cobra",
+      "breakpoints": true
     }
   ]
 }

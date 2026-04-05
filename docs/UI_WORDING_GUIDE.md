@@ -20,6 +20,7 @@ Istilah yang dipertahankan dalam English:
 - `Drawing`
 - `Drawing List`
 - `Create Drawing`
+- `Upload Old Drawing`
 - `Edit Drawing`
 - `Current Revision`
 - `Final Drawing`
@@ -34,6 +35,8 @@ Istilah yang dipertahankan dalam English:
 - `Visible`
 - `Completion Rate`
 - `Workflow Health`
+- `Legacy Ready`
+- `Uploaded by`
 
 Istilah yang tetap dalam bahasa Indonesia:
 
@@ -66,6 +69,7 @@ Gunakan label berikut secara konsisten:
 Gunakan label berikut untuk tombol dan CTA:
 
 - `Create Drawing`
+- `Upload Old Drawing`
 - `Open Drawing List`
 - `Open Drawing`
 - `Open Drawing Detail`
@@ -99,6 +103,8 @@ Gunakan label berikut untuk tombol dan CTA:
 - Pakai `Current Revision`, bukan campur dengan `Revisi Aktif`
 - Pakai `Final Drawing`, bukan campur dengan `Dokumen Final`
 - Pakai `Drawing Detail`, `Check Drawing`, dan `Approval`
+- Pakai `Legacy Ready` untuk badge source drawing lama yang langsung completed
+- Pakai `Uploaded by` dan `Drawn by` sebagai dua label yang berbeda bila konteksnya legacy import
 
 ### Admin
 

@@ -1,16 +1,15 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 import { HttpError } from "@/lib/server/api";
 import { AppRole } from "@/lib/server/auth";
+import {
+  buildApprovalPlanMap,
+  canUserApproveAssignedStep,
+  getActiveApprovalLevel,
+  listApprovalStepsByRevisionIds
+} from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
-
-const editableStatuses: ReadonlySet<string> = new Set([
-  "DRAFT",
-  "CHECK_REJECTED",
-  "APPROVAL_1_REJECTED",
-  "APPROVAL_2_REJECTED"
-] as const);
 
 export async function getRevisionDetail(revisionId: string, role: AppRole, userId: string) {
   const revision = await db.query.drawingRevisions.findFirst({
@@ -37,13 +36,46 @@ export async function getRevisionDetail(revisionId: string, role: AppRole, userI
     throw new HttpError(403, "Revisi belum tersedia untuk role ini.");
   }
 
+  const users = await db
+    .select({
+      id: schema.user.id,
+      name: schema.user.name,
+      username: schema.user.username
+    })
+    .from(schema.user)
+    .where(inArray(schema.user.id, [drawing.createdBy, drawing.drawnByUserId]));
+  const userById = new Map(users.map((user) => [user.id, user]));
+
   const approvals = await db
     .select()
     .from(schema.approvalActions)
     .where(eq(schema.approvalActions.revisionId, revision.id))
     .orderBy(desc(schema.approvalActions.actedAt));
 
-  return { drawing, revision, approvals };
+  const approvalSteps = await listApprovalStepsByRevisionIds([revision.id]);
+  const approvalPlan = buildApprovalPlanMap([revision], approvalSteps, approvals).get(revision.id) ?? [];
+  const activeApprovalLevel = getActiveApprovalLevel(revision.status);
+  const canCurrentUserApprove = canUserApproveAssignedStep({
+    role,
+    userId,
+    revisionStatus: revision.status,
+    approvalPlan
+  });
+
+  return {
+    drawing: {
+      ...drawing,
+      drawnByName: userById.get(drawing.drawnByUserId)?.name ?? null,
+      drawnByUsername: userById.get(drawing.drawnByUserId)?.username ?? null,
+      uploadedByName: userById.get(drawing.createdBy)?.name ?? null,
+      uploadedByUsername: userById.get(drawing.createdBy)?.username ?? null
+    },
+    revision,
+    approvals,
+    approvalPlan,
+    activeApprovalLevel,
+    canCurrentUserApprove
+  };
 }
 
 export async function submitRevision(revisionId: string, userId: string, role: AppRole) {
@@ -68,7 +100,7 @@ export async function submitRevision(revisionId: string, userId: string, role: A
       throw new HttpError(403, "Anda tidak memiliki akses untuk submit revisi ini.");
     }
 
-    if (!editableStatuses.has(revision.status)) {
+    if (!["DRAFT", "CHECK_REJECTED", "APPROVAL_1_REJECTED", "APPROVAL_2_REJECTED"].includes(revision.status)) {
       throw new HttpError(409, "Status revisi saat ini tidak dapat disubmit.");
     }
 

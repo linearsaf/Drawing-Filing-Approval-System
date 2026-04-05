@@ -3,6 +3,12 @@ import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 import { HttpError } from "@/lib/server/api";
 import { AppRole } from "@/lib/server/auth";
+import {
+  buildApprovalPlanMap,
+  canUserApproveAssignedStep,
+  getActiveApprovalLevel,
+  listApprovalStepsByRevisionIds
+} from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
 import { removeDrawingFiles } from "@/server/storage/drawing-files";
 
@@ -22,6 +28,26 @@ interface DrawingMutationInput {
   changeNote?: string;
   submit?: boolean;
 }
+
+interface LegacyDrawingInput {
+  drawingId?: string;
+  revisionId?: string;
+  drawingNumber: string;
+  drawingName: string;
+  sacCode: string;
+  area: string;
+  discipline: string;
+  description?: string;
+  revisionNo: string;
+  drawnByUserId: string;
+  legacyReadyNote: string;
+  fileName: string;
+  fileOriginalPath?: string;
+}
+
+type DrawingRecord = typeof schema.drawings.$inferSelect;
+type RevisionRecord = typeof schema.drawingRevisions.$inferSelect;
+type UserRecord = Pick<typeof schema.user.$inferSelect, "id" | "name" | "username" | "role" | "isActive">;
 
 function buildFilePaths(drawingId: string, revisionNo: string, fileName: string) {
   const normalizedRevision = revisionNo.toLowerCase().replace(/\s+/g, "-");
@@ -75,6 +101,68 @@ async function ensureDrawingNumberAvailable(
   }
 }
 
+async function listUsersByIds(userIds: string[]) {
+  if (userIds.length === 0) {
+    return [];
+  }
+
+  return db
+    .select({
+      id: schema.user.id,
+      name: schema.user.name,
+      username: schema.user.username,
+      role: schema.user.role,
+      isActive: schema.user.isActive
+    })
+    .from(schema.user)
+    .where(inArray(schema.user.id, userIds));
+}
+
+function enrichDrawing(
+  drawing: DrawingRecord,
+  userById: Map<string, UserRecord>
+) {
+  const creator = userById.get(drawing.createdBy) ?? null;
+  const drawnBy = userById.get(drawing.drawnByUserId) ?? null;
+
+  return {
+    ...drawing,
+    drawnByUserId: drawing.drawnByUserId,
+    drawnByName: drawnBy?.name ?? null,
+    drawnByUsername: drawnBy?.username ?? null,
+    uploadedByName: creator?.name ?? null,
+    uploadedByUsername: creator?.username ?? null
+  };
+}
+
+async function assertValidLegacyDrawnByUser(params: {
+  drawnByUserId: string;
+  actorUserId: string;
+  actorRole: AppRole;
+}) {
+  const user = await db.query.user.findFirst({
+    where: eq(schema.user.id, params.drawnByUserId)
+  });
+
+  if (!user || !user.isActive) {
+    throw new HttpError(422, "Drawn by harus user aktif.");
+  }
+
+  if (user.role === "DRAFTER") {
+    return user;
+  }
+
+  const actorCanUseSelf =
+    (params.actorRole === "DRAFT_LEADER" || params.actorRole === "ADMIN") &&
+    user.id === params.actorUserId;
+
+  if (!actorCanUseSelf) {
+    throw new HttpError(422, "Drawn by harus user aktif role Drafter atau uploader sendiri.");
+  }
+
+  return user;
+}
+
 export async function listDrawings(params: {
   role: AppRole;
   userId: string;
@@ -98,6 +186,9 @@ export async function listDrawings(params: {
       discipline: schema.drawings.discipline,
       description: schema.drawings.description,
       createdBy: schema.drawings.createdBy,
+      drawnByUserId: schema.drawings.drawnByUserId,
+      workflowSource: schema.drawings.workflowSource,
+      legacyReadyNote: schema.drawings.legacyReadyNote,
       currentRevisionId: schema.drawings.currentRevisionId,
       currentStatus: schema.drawings.currentStatus,
       latestCompletedRevisionId: schema.drawings.latestCompletedRevisionId,
@@ -113,7 +204,7 @@ export async function listDrawings(params: {
           ? eq(schema.drawings.currentStatus, params.status as typeof schema.drawings.currentStatus._.data)
           : undefined,
         params.area ? like(schema.drawings.area, `%${params.area}%`) : undefined,
-        params.drawnBy ? eq(schema.drawings.createdBy, params.drawnBy) : undefined,
+        params.drawnBy ? eq(schema.drawings.drawnByUserId, params.drawnBy) : undefined,
         params.search
           ? or(
               like(schema.drawings.drawingNumber, `%${params.search}%`),
@@ -122,22 +213,15 @@ export async function listDrawings(params: {
               like(schema.drawings.area, `%${params.search}%`)
             )
           : undefined
-        )
+      )
     )
     .orderBy(desc(schema.drawings.updatedAt));
 
-  const creatorIds = [...new Set(rows.map((row) => row.createdBy))];
-  const creators = creatorIds.length
-    ? await db
-        .select({
-          id: schema.user.id,
-          name: schema.user.name,
-          username: schema.user.username
-        })
-        .from(schema.user)
-        .where(inArray(schema.user.id, creatorIds))
-    : [];
-  const creatorById = new Map(creators.map((creator) => [creator.id, creator]));
+  const userIds = [
+    ...new Set(rows.flatMap((row) => [row.createdBy, row.drawnByUserId]))
+  ];
+  const users = await listUsersByIds(userIds);
+  const userById = new Map(users.map((user) => [user.id, user]));
 
   const revisions = rows.length
     ? await db
@@ -151,6 +235,15 @@ export async function listDrawings(params: {
         )
     : [];
   const revisionById = new Map(revisions.map((revision) => [revision.id, revision]));
+  const approvalSteps = await listApprovalStepsByRevisionIds(revisions.map((revision) => revision.id));
+  const approvalActions = revisions.length
+    ? await db
+        .select()
+        .from(schema.approvalActions)
+        .where(inArray(schema.approvalActions.revisionId, revisions.map((revision) => revision.id)))
+        .orderBy(desc(schema.approvalActions.actedAt))
+    : [];
+  const approvalPlanByRevision = buildApprovalPlanMap(revisions, approvalSteps, approvalActions);
 
   const filteredItems = rows
     .filter((drawing) => {
@@ -171,13 +264,18 @@ export async function listDrawings(params: {
       const revision = drawing.currentRevisionId
         ? revisionById.get(drawing.currentRevisionId) ?? null
         : null;
-      const creator = creatorById.get(drawing.createdBy) ?? null;
 
       return {
-        ...drawing,
-        drawnByUserId: drawing.createdBy,
-        drawnByName: creator?.name ?? null,
-        drawnByUsername: creator?.username ?? null,
+        ...enrichDrawing(drawing, userById),
+        activeApprovalLevel: revision ? getActiveApprovalLevel(revision.status) : null,
+        canCurrentUserApprove: revision
+          ? canUserApproveAssignedStep({
+              role: params.role,
+              userId: params.userId,
+              revisionStatus: revision.status,
+              approvalPlan: approvalPlanByRevision.get(revision.id) ?? []
+            })
+          : false,
         currentRevision: revision
           ? {
               id: revision.id,
@@ -226,9 +324,8 @@ export async function getDrawingDetail(drawingId: string, role: AppRole, userId:
 
   assertViewerCanSee(role, drawing.currentStatus, drawing.createdBy, userId);
 
-  const creator = await db.query.user.findFirst({
-    where: eq(schema.user.id, drawing.createdBy)
-  });
+  const users = await listUsersByIds([drawing.createdBy, drawing.drawnByUserId]);
+  const userById = new Map(users.map((user) => [user.id, user]));
 
   const revisions = await db
     .select()
@@ -248,6 +345,19 @@ export async function getDrawingDetail(drawingId: string, role: AppRole, userId:
         )
         .orderBy(desc(schema.approvalActions.actedAt))
     : [];
+  const approvalSteps = await listApprovalStepsByRevisionIds(revisions.map((revision) => revision.id));
+  const approvalPlanByRevision = buildApprovalPlanMap(revisions, approvalSteps, approvalHistory);
+  const currentRevision = revisions.find((revision) => revision.id === drawing.currentRevisionId) ?? null;
+  const approvalPlan = currentRevision ? approvalPlanByRevision.get(currentRevision.id) ?? [] : [];
+  const activeApprovalLevel = currentRevision ? getActiveApprovalLevel(currentRevision.status) : null;
+  const canCurrentUserApprove = currentRevision
+    ? canUserApproveAssignedStep({
+        role,
+        userId,
+        revisionStatus: currentRevision.status,
+        approvalPlan
+      })
+    : false;
 
   const auditLogs = await db
     .select()
@@ -269,15 +379,13 @@ export async function getDrawingDetail(drawingId: string, role: AppRole, userId:
     .orderBy(desc(schema.auditLogs.createdAt));
 
   return {
-    drawing: {
-      ...drawing,
-      drawnByUserId: drawing.createdBy,
-      drawnByName: creator?.name ?? null,
-      drawnByUsername: creator?.username ?? null
-    },
-    currentRevision: revisions.find((revision) => revision.id === drawing.currentRevisionId) ?? null,
+    drawing: enrichDrawing(drawing, userById),
+    currentRevision,
     revisions,
     approvalHistory,
+    approvalPlan,
+    activeApprovalLevel,
+    canCurrentUserApprove,
     auditLogs
   };
 }
@@ -300,6 +408,9 @@ export async function createDrawing(input: DrawingMutationInput, userId: string)
       discipline: input.discipline,
       description: input.description ?? "",
       createdBy: userId,
+      drawnByUserId: userId,
+      workflowSource: "STANDARD",
+      legacyReadyNote: null,
       currentRevisionId: revisionId,
       currentStatus: status
     });
@@ -329,6 +440,80 @@ export async function createDrawing(input: DrawingMutationInput, userId: string)
         note: input.submit
           ? "Drawing baru dibuat dan langsung dikirim untuk check."
           : "Drawing baru dibuat."
+      },
+      tx
+    );
+
+    return { drawingId, revisionId };
+  });
+}
+
+export async function createLegacyDrawing(
+  input: LegacyDrawingInput,
+  userId: string,
+  role: AppRole
+) {
+  if (!["DRAFT_LEADER", "ADMIN"].includes(role)) {
+    throw new HttpError(403, "Akses upload old drawing tidak diizinkan.");
+  }
+
+  await assertValidLegacyDrawnByUser({
+    drawnByUserId: input.drawnByUserId,
+    actorUserId: userId,
+    actorRole: role
+  });
+
+  return db.transaction(async (tx) => {
+    const drawingId = input.drawingId ?? crypto.randomUUID();
+    const revisionId = input.revisionId ?? crypto.randomUUID();
+    const paths = buildFilePaths(drawingId, input.revisionNo, input.fileName);
+
+    await ensureDrawingNumberAvailable(input.drawingNumber, tx);
+
+    await tx.insert(schema.drawings).values({
+      id: drawingId,
+      drawingNumber: input.drawingNumber,
+      drawingName: input.drawingName,
+      sacCode: input.sacCode,
+      area: input.area,
+      discipline: input.discipline,
+      description: input.description ?? "",
+      createdBy: userId,
+      drawnByUserId: input.drawnByUserId,
+      workflowSource: "LEGACY_READY",
+      legacyReadyNote: input.legacyReadyNote,
+      currentRevisionId: revisionId,
+      currentStatus: "COMPLETED",
+      latestCompletedRevisionId: revisionId
+    });
+
+    await tx.insert(schema.drawingRevisions).values({
+      id: revisionId,
+      drawingId,
+      revisionNo: input.revisionNo,
+      fileName: input.fileName,
+      fileOriginalPath: input.fileOriginalPath ?? paths.original,
+      fileWatermarkedPath: null,
+      status: "COMPLETED",
+      changeNote: "Imported legacy ready drawing.",
+      submittedBy: null,
+      submittedAt: null,
+      isLatest: true,
+      isCompleted: true
+    });
+
+    await createAuditLog(
+      {
+        entityType: "DRAWING",
+        entityId: drawingId,
+        action: "LEGACY_DRAWING_IMPORTED",
+        userId,
+        note: "Old drawing diunggah sebagai completed karena approval historis dilakukan di luar sistem.",
+        metadata: {
+          revisionId,
+          revisionNo: input.revisionNo,
+          workflowSource: "LEGACY_READY"
+        }
       },
       tx
     );

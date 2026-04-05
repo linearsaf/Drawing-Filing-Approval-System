@@ -22,6 +22,14 @@ export function getNavigation(role: UserRole): NavItem[] {
     });
   }
 
+  if (role === "DRAFT_LEADER" || role === "ADMIN") {
+    items.push({
+      href: "/drawings/legacy/new",
+      label: "Upload Old Drawing",
+      description: "Import drawing lama yang sudah ready"
+    });
+  }
+
   if (role === "ADMIN") {
     items.push({
       href: "/admin/users",
