@@ -29,6 +29,13 @@
       "when": 1775384840368,
       "tag": "0003_far_king_cobra",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1775391000000,
+      "tag": "0004_flat_clearance",
+      "breakpoints": true
     }
   ]
 }

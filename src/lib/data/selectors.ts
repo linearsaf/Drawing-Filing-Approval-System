@@ -140,7 +140,7 @@ export function filterDrawings(
     const matchesRevision =
       filters.revision.trim() === "" ||
       currentRevision?.revisionNo.toLowerCase().includes(filters.revision.trim().toLowerCase());
-    const submittedDate = currentRevision?.submittedAt ?? drawing.updatedAt;
+    const submittedDate = currentRevision?.submittedAt ?? currentRevision?.updatedAt ?? drawing.updatedAt;
     const comparableDate = submittedDate.slice(0, 10);
     const fromDate = filters.dateFrom.trim();
     const toDate = filters.dateTo.trim();

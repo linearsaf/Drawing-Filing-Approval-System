@@ -135,6 +135,13 @@ function enrichDrawing(
   };
 }
 
+function resolveBusinessUpdatedAt(
+  drawing: Pick<DrawingRecord, "updatedAt">,
+  revision?: Pick<RevisionRecord, "updatedAt"> | null
+) {
+  return revision?.updatedAt ?? drawing.updatedAt;
+}
+
 async function assertValidLegacyDrawnByUser(params: {
   drawnByUserId: string;
   actorUserId: string;
@@ -254,7 +261,12 @@ export async function listDrawings(params: {
         !params.revision ||
         (revision?.revisionNo ?? "").toLowerCase().includes(params.revision.toLowerCase());
 
-      const comparableDate = (revision?.submittedAt ?? drawing.updatedAt).toISOString().slice(0, 10);
+      const comparableDate = (
+        revision?.submittedAt ??
+        resolveBusinessUpdatedAt(drawing, revision)
+      )
+        .toISOString()
+        .slice(0, 10);
       const fromMatches = !params.dateFrom || comparableDate >= params.dateFrom;
       const toMatches = !params.dateTo || comparableDate <= params.dateTo;
 
@@ -264,9 +276,11 @@ export async function listDrawings(params: {
       const revision = drawing.currentRevisionId
         ? revisionById.get(drawing.currentRevisionId) ?? null
         : null;
+      const businessUpdatedAt = resolveBusinessUpdatedAt(drawing, revision);
 
       return {
         ...enrichDrawing(drawing, userById),
+        updatedAt: businessUpdatedAt,
         activeApprovalLevel: revision ? getActiveApprovalLevel(revision.status) : null,
         canCurrentUserApprove: revision
           ? canUserApproveAssignedStep({
@@ -287,7 +301,8 @@ export async function listDrawings(params: {
             }
           : null
       };
-    });
+    })
+    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
 
   const total = filteredItems.length;
   const pageSize = Math.max(1, params.pageSize ?? 12);

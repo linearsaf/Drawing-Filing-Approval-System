@@ -149,7 +149,12 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
         return priorityDelta;
       }
 
-      return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+      const leftRevision = left.currentRevisionId ? revisionLookup.get(left.currentRevisionId) ?? null : null;
+      const rightRevision = right.currentRevisionId ? revisionLookup.get(right.currentRevisionId) ?? null : null;
+      const leftUpdatedAt = leftRevision?.updatedAt ?? left.updatedAt;
+      const rightUpdatedAt = rightRevision?.updatedAt ?? right.updatedAt;
+
+      return new Date(rightUpdatedAt).getTime() - new Date(leftUpdatedAt).getTime();
     })
     .slice(0, 6)
     .map((drawing) => {
@@ -158,6 +163,7 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
       const currentRevision = drawing.currentRevisionId
         ? revisionLookup.get(drawing.currentRevisionId) ?? null
         : null;
+      const businessUpdatedAt = currentRevision?.updatedAt ?? drawing.updatedAt;
 
       return {
         id: drawing.id,
@@ -171,7 +177,7 @@ export async function getDashboardSummaryForRole(role: AppRole, userId: string) 
         uploadedByUsername: uploader?.username ?? null,
         workflowSource: drawing.workflowSource,
         currentStatus: drawing.currentStatus,
-        updatedAt: drawing.updatedAt,
+        updatedAt: businessUpdatedAt,
         currentRevision: currentRevision
           ? {
               id: currentRevision.id,
