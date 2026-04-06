@@ -5,6 +5,12 @@ import { HttpError } from "@/lib/server/api";
 import { AppRole } from "@/lib/server/auth";
 import { upsertApprovalPlan } from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
+import {
+  markRevisionNotificationsReadForUser,
+  notifyAssignedApprover,
+  notifyDrafterCompletedDrawing,
+  notifyDrafterRejectedRevision
+} from "@/server/services/notification.service";
 import { stampApprovalPdf } from "@/server/storage/pdf-signature";
 
 type ApprovalDecision = (typeof approvalDecisionValues)[number];
@@ -66,6 +72,7 @@ export async function decideApproval(params: {
   expectedStatus: "WAITING_CHECK" | "WAITING_APPROVAL_1" | "WAITING_APPROVAL_2";
 }) {
   return db.transaction(async (tx) => {
+    const actedAt = new Date();
     const revision = await tx.query.drawingRevisions.findFirst({
       where: eq(schema.drawingRevisions.id, params.revisionId)
     });
@@ -155,7 +162,7 @@ export async function decideApproval(params: {
                   ? "APPROVAL LEVEL 1"
                   : "FINAL APPROVAL",
             note: params.note,
-            actedAt: new Date(),
+            actedAt,
             level: transition.level
           })
         : revision.fileWatermarkedPath ?? revision.fileOriginalPath;
@@ -166,7 +173,7 @@ export async function decideApproval(params: {
         status: nextStatus,
         isCompleted: nextStatus === "COMPLETED",
         fileWatermarkedPath: nextWatermarkedPath,
-        updatedAt: new Date()
+        updatedAt: actedAt
       })
       .where(eq(schema.drawingRevisions.id, revision.id));
 
@@ -175,7 +182,7 @@ export async function decideApproval(params: {
       .set({
         currentStatus: nextStatus,
         latestCompletedRevisionId: nextStatus === "COMPLETED" ? revision.id : drawing.latestCompletedRevisionId,
-        updatedAt: new Date()
+        updatedAt: actedAt
       })
       .where(eq(schema.drawings.id, drawing.id));
 
@@ -185,7 +192,7 @@ export async function decideApproval(params: {
         .set({
           status: "OBSOLETE",
           isCompleted: false,
-          updatedAt: new Date()
+          updatedAt: actedAt
         })
         .where(eq(schema.drawingRevisions.id, drawing.latestCompletedRevisionId ?? "__none__"));
     }
@@ -198,7 +205,7 @@ export async function decideApproval(params: {
       actorRole: params.role,
       decision: params.decision,
       decisionNote: params.note ?? "",
-      actedAt: new Date()
+      actedAt
     });
 
     await createAuditLog(
@@ -214,6 +221,110 @@ export async function decideApproval(params: {
       },
       tx
     );
+
+    if (transition.level === 0) {
+      await markRevisionNotificationsReadForUser(
+        {
+          recipientUserId: params.userId,
+          revisionId: revision.id,
+          types: ["WAITING_CHECK"],
+          readAt: actedAt
+        },
+        tx
+      );
+    }
+
+    if (transition.level === 1) {
+      await markRevisionNotificationsReadForUser(
+        {
+          recipientUserId: params.userId,
+          revisionId: revision.id,
+          types: ["WAITING_APPROVAL_1"],
+          readAt: actedAt
+        },
+        tx
+      );
+    }
+
+    if (transition.level === 2) {
+      await markRevisionNotificationsReadForUser(
+        {
+          recipientUserId: params.userId,
+          revisionId: revision.id,
+          types: ["WAITING_APPROVAL_2"],
+          readAt: actedAt
+        },
+        tx
+      );
+    }
+
+    if (params.decision === "APPROVED" && nextStatus === "WAITING_APPROVAL_1") {
+      await notifyAssignedApprover(
+        {
+          drawingId: drawing.id,
+          drawingNumber: drawing.drawingNumber,
+          drawingName: drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo: revision.revisionNo,
+          approvalLevel: 1,
+          assignedUserId: params.approvalPlan?.level1ApproverId ?? level1Assignment?.assignedUserId ?? null,
+          assignedAt: actedAt
+        },
+        tx
+      );
+    }
+
+    if (params.decision === "APPROVED" && nextStatus === "WAITING_APPROVAL_2") {
+      await notifyAssignedApprover(
+        {
+          drawingId: drawing.id,
+          drawingNumber: drawing.drawingNumber,
+          drawingName: drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo: revision.revisionNo,
+          approvalLevel: 2,
+          assignedUserId: level2Assignment?.assignedUserId ?? null,
+          assignedAt: actedAt
+        },
+        tx
+      );
+    }
+
+    if (
+      nextStatus === "CHECK_REJECTED" ||
+      nextStatus === "APPROVAL_1_REJECTED" ||
+      nextStatus === "APPROVAL_2_REJECTED"
+    ) {
+      await notifyDrafterRejectedRevision(
+        {
+          drawingId: drawing.id,
+          drawingNumber: drawing.drawingNumber,
+          drawingName: drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo: revision.revisionNo,
+          drawnByUserId: drawing.drawnByUserId,
+          status: nextStatus,
+          createdAt: actedAt
+        },
+        tx
+      );
+    }
+
+    if (nextStatus === "COMPLETED") {
+      await notifyDrafterCompletedDrawing(
+        {
+          drawingId: drawing.id,
+          drawingNumber: drawing.drawingNumber,
+          drawingName: drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo: revision.revisionNo,
+          drawnByUserId: drawing.drawnByUserId,
+          workflowSource: drawing.workflowSource,
+          createdAt: actedAt
+        },
+        tx
+      );
+    }
 
     return { drawingId: drawing.id, revisionId: revision.id, status: nextStatus };
   });

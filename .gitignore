@@ -15,3 +15,14 @@ tsconfig.tsbuildinfo
 
 # Runtime-generated uploads
 public/uploads/
+
+# Internal document-generation scripts
+scripts/generate-drawing-management-docx.js
+scripts/generate-drawing-management-proposal-pptx.js
+
+# Internal presentation and document artifacts
+docs/**/*.docx
+docs/**/*.pptx
+
+# Temporary local previews and scratch files
+tmp/

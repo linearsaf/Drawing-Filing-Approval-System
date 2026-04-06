@@ -5,6 +5,10 @@ import { HttpError } from "@/lib/server/api";
 import { createAuditLog } from "@/server/services/audit.service";
 import { createUserAccount } from "@/server/services/admin.service";
 import { sendAccountApprovedEmail } from "@/server/auth/account-approved-email";
+import {
+  markAccessRequestNotificationsReadForUser,
+  notifyAdminsAccessRequestPending
+} from "@/server/services/notification.service";
 
 function makeDefaultPassword(name: string) {
   return `${name.trim().replace(/\s+/g, "")}123!`;
@@ -59,21 +63,39 @@ export async function createAccessRequest(input: {
   const requestId = crypto.randomUUID();
   const normalizedEmail = input.email.trim().toLowerCase();
   const normalizedUsername = input.username.trim().toLowerCase();
+  const createdAt = new Date();
 
-  await db.insert(schema.userAccessRequests).values({
-    id: requestId,
-    name: input.name.trim(),
-    email: normalizedEmail,
-    username: normalizedUsername,
-    requestedRole: input.requestedRole,
-    status: "PENDING"
-  });
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.userAccessRequests).values({
+      id: requestId,
+      name: input.name.trim(),
+      email: normalizedEmail,
+      username: normalizedUsername,
+      requestedRole: input.requestedRole,
+      status: "PENDING",
+      createdAt,
+      updatedAt: createdAt
+    });
 
-  await createAuditLog({
-    entityType: "ACCESS_REQUEST",
-    entityId: requestId,
-    action: "REQUEST_CREATED",
-    note: "Permintaan akses baru dikirim oleh calon user."
+    await createAuditLog(
+      {
+        entityType: "ACCESS_REQUEST",
+        entityId: requestId,
+        action: "REQUEST_CREATED",
+        note: "Permintaan akses baru dikirim oleh calon user."
+      },
+      tx
+    );
+
+    await notifyAdminsAccessRequestPending(
+      {
+        requestId,
+        name: input.name.trim(),
+        email: normalizedEmail,
+        createdAt
+      },
+      tx
+    );
   });
 
   return { requestId };
@@ -254,6 +276,11 @@ export async function approveAccessRequest(
     note: "Permintaan akses disetujui dan akun user dibuat."
   });
 
+  await markAccessRequestNotificationsReadForUser({
+    recipientUserId: actorUserId,
+    requestId
+  });
+
   await sendAccountApprovedEmail({
     email: nextEmail,
     name: nextName,
@@ -314,6 +341,11 @@ export async function rejectAccessRequest(
     action: "REQUEST_REJECTED",
     userId: actorUserId,
     note: "Permintaan akses ditolak oleh admin."
+  });
+
+  await markAccessRequestNotificationsReadForUser({
+    recipientUserId: actorUserId,
+    requestId
   });
 
   return db.query.userAccessRequests.findFirst({

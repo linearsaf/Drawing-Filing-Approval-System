@@ -7,6 +7,7 @@ import { getNavigation } from "@/lib/config/navigation";
 import { cn } from "@/lib/utils/cn";
 import { getRoleLabel } from "@/lib/utils/permissions";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
+import { NotificationBell } from "@/components/app/notification-bell";
 import { RoleSwitcher } from "@/components/app/role-switcher";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -94,7 +95,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                   Akses menu dan informasi disesuaikan dengan peran aktif.
                 </p>
               </div>
-              <RoleSwitcher />
+              <div className="flex items-center gap-3">
+                <NotificationBell />
+                <RoleSwitcher />
+              </div>
             </div>
             <main className="flex-1">{children}</main>
             <footer className="mt-8 border-t border-border/50 pt-3 text-right">

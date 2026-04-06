@@ -10,6 +10,10 @@ import {
   listApprovalStepsByRevisionIds
 } from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
+import {
+  markRevisionNotificationsReadForUser,
+  notifyDraftLeadersWaitingCheck
+} from "@/server/services/notification.service";
 import { removeDrawingFiles } from "@/server/storage/drawing-files";
 
 interface DrawingMutationInput {
@@ -411,6 +415,7 @@ export async function createDrawing(input: DrawingMutationInput, userId: string)
     const revisionId = input.revisionId ?? crypto.randomUUID();
     const status = nextRevisionStatus(input.submit);
     const paths = buildFilePaths(drawingId, input.revisionNo, input.fileName);
+    const createdAt = new Date();
 
     await ensureDrawingNumberAvailable(input.drawingNumber, tx);
 
@@ -427,7 +432,9 @@ export async function createDrawing(input: DrawingMutationInput, userId: string)
       workflowSource: "STANDARD",
       legacyReadyNote: null,
       currentRevisionId: revisionId,
-      currentStatus: status
+      currentStatus: status,
+      createdAt,
+      updatedAt: createdAt
     });
 
     await tx.insert(schema.drawingRevisions).values({
@@ -441,9 +448,11 @@ export async function createDrawing(input: DrawingMutationInput, userId: string)
       status,
       changeNote: input.changeNote ?? "",
       submittedBy: input.submit ? userId : null,
-      submittedAt: input.submit ? new Date() : null,
+      submittedAt: input.submit ? createdAt : null,
       isLatest: true,
-      isCompleted: false
+      isCompleted: false,
+      createdAt,
+      updatedAt: createdAt
     });
 
     await createAuditLog(
@@ -458,6 +467,20 @@ export async function createDrawing(input: DrawingMutationInput, userId: string)
       },
       tx
     );
+
+    if (input.submit) {
+      await notifyDraftLeadersWaitingCheck(
+        {
+          drawingId,
+          drawingNumber: input.drawingNumber,
+          drawingName: input.drawingName,
+          revisionId,
+          revisionNo: input.revisionNo,
+          createdAt
+        },
+        tx
+      );
+    }
 
     return { drawingId, revisionId };
   });
@@ -575,6 +598,7 @@ export async function updateDrawing(
     const revisionNo = input.revisionNo ?? revision.revisionNo;
     const fileName = input.fileName ?? revision.fileName;
     const nextStatus = input.submit ? "WAITING_CHECK" : revision.status;
+    const updatedAt = new Date();
 
     await ensureDrawingNumberAvailable(
       input.drawingNumber ?? drawing.drawingNumber,
@@ -592,7 +616,7 @@ export async function updateDrawing(
         discipline: input.discipline ?? drawing.discipline,
         description: input.description ?? drawing.description,
         currentStatus: nextStatus,
-        updatedAt: new Date()
+        updatedAt
       })
       .where(eq(schema.drawings.id, drawing.id));
 
@@ -610,8 +634,8 @@ export async function updateDrawing(
         changeNote: input.changeNote ?? revision.changeNote,
         status: nextStatus,
         submittedBy: input.submit ? userId : revision.submittedBy,
-        submittedAt: input.submit ? new Date() : revision.submittedAt,
-        updatedAt: new Date()
+        submittedAt: input.submit ? updatedAt : revision.submittedAt,
+        updatedAt
       })
       .where(eq(schema.drawingRevisions.id, revision.id));
 
@@ -627,6 +651,39 @@ export async function updateDrawing(
       },
       tx
     );
+
+    if (input.submit) {
+      await notifyDraftLeadersWaitingCheck(
+        {
+          drawingId: drawing.id,
+          drawingNumber: input.drawingNumber ?? drawing.drawingNumber,
+          drawingName: input.drawingName ?? drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo,
+          createdAt: updatedAt
+        },
+        tx
+      );
+
+      const rejectType =
+        revision.status === "CHECK_REJECTED" ||
+        revision.status === "APPROVAL_1_REJECTED" ||
+        revision.status === "APPROVAL_2_REJECTED"
+          ? revision.status
+          : null;
+
+      if (rejectType) {
+        await markRevisionNotificationsReadForUser(
+          {
+            recipientUserId: userId,
+            revisionId: revision.id,
+            types: [rejectType],
+            readAt: updatedAt
+          },
+          tx
+        );
+      }
+    }
 
     return { drawingId: drawing.id, revisionId: revision.id };
   });

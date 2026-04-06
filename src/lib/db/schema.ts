@@ -38,6 +38,16 @@ export const revisionStatusValues = [
 export const approvalDecisionValues = ["APPROVED", "REJECTED"] as const;
 export const approvalStepStateValues = ["UNASSIGNED", "PENDING", "APPROVED", "REJECTED"] as const;
 export const workflowSourceValues = ["STANDARD", "LEGACY_READY"] as const;
+export const notificationTypeValues = [
+  "WAITING_CHECK",
+  "WAITING_APPROVAL_1",
+  "WAITING_APPROVAL_2",
+  "CHECK_REJECTED",
+  "APPROVAL_1_REJECTED",
+  "APPROVAL_2_REJECTED",
+  "DRAWING_COMPLETED",
+  "ACCESS_REQUEST_PENDING"
+] as const;
 
 export const auditEntityTypeValues = ["DRAWING", "REVISION", "USER", "ACCESS_REQUEST"] as const;
 
@@ -50,6 +60,7 @@ export const revisionStatusEnum = mysqlEnum("revision_status", revisionStatusVal
 export const approvalDecisionEnum = mysqlEnum("approval_decision", approvalDecisionValues);
 export const approvalStepStateEnum = mysqlEnum("approval_step_state", approvalStepStateValues);
 export const workflowSourceEnum = mysqlEnum("workflow_source", workflowSourceValues);
+export const notificationTypeEnum = mysqlEnum("notification_type", notificationTypeValues);
 export const auditEntityTypeEnum = mysqlEnum("audit_entity_type", auditEntityTypeValues);
 
 export const user = mysqlTable(
@@ -293,6 +304,39 @@ export const auditLogs = mysqlTable(
   })
 );
 
+export const notifications = mysqlTable(
+  "notifications",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    recipientUserId: varchar("recipient_user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: notificationTypeEnum.notNull(),
+    title: varchar("title", { length: 255 }).notNull(),
+    body: text("body").notNull(),
+    entityType: auditEntityTypeEnum.notNull(),
+    entityId: varchar("entity_id", { length: 36 }).notNull(),
+    actionUrl: varchar("action_url", { length: 500 }).notNull(),
+    sourceKey: varchar("source_key", { length: 255 }).notNull(),
+    isRead: boolean("is_read").notNull().default(false),
+    readAt: timestamp("read_at"),
+    createdAt: timestamp("created_at").defaultNow().notNull()
+  },
+  (table) => ({
+    sourceKeyUniqueIdx: uniqueIndex("notifications_source_key_unique").on(table.sourceKey),
+    recipientCreatedIdx: index("notifications_recipient_created_idx").on(
+      table.recipientUserId,
+      table.createdAt
+    ),
+    recipientReadCreatedIdx: index("notifications_recipient_read_created_idx").on(
+      table.recipientUserId,
+      table.isRead,
+      table.createdAt
+    ),
+    entityIdx: index("notifications_entity_idx").on(table.entityType, table.entityId)
+  })
+);
+
 export const downloadLogs = mysqlTable(
   "download_logs",
   {
@@ -316,7 +360,8 @@ export const userRelations = relations(user, ({ many }) => ({
   drawings: many(drawings, { relationName: "drawing_creator" }),
   assignedDrawings: many(drawings, { relationName: "drawing_drawn_by" }),
   revisions: many(drawingRevisions),
-  approvalActions: many(approvalActions)
+  approvalActions: many(approvalActions),
+  notifications: many(notifications)
 }));
 
 export const accessRequestRelations = relations(userAccessRequests, ({ one }) => ({
@@ -398,6 +443,13 @@ export const downloadLogRelations = relations(downloadLogs, ({ one }) => ({
   })
 }));
 
+export const notificationRelations = relations(notifications, ({ one }) => ({
+  recipient: one(user, {
+    fields: [notifications.recipientUserId],
+    references: [user.id]
+  })
+}));
+
 export const schema = {
   user,
   session,
@@ -409,5 +461,6 @@ export const schema = {
   approvalActions,
   revisionApprovalSteps,
   auditLogs,
-  downloadLogs
+  downloadLogs,
+  notifications
 };

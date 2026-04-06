@@ -46,24 +46,24 @@ export async function sendAccountApprovedEmail(input: AccountApprovedEmailInput)
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Akun Disetujui — Drawing Filing & Approval System",
+    subject: "Akun Anda Sudah Aktif - Drawing Filing & Approval System",
     html: renderEmailLayout({
-      preheader: "Akun Anda telah disetujui dan siap digunakan untuk mengakses workspace drawing.",
-      title: "Akun Anda telah disetujui",
-      summary: `Halo ${input.name}, permintaan akses Anda telah disetujui oleh admin.`,
+      preheader: "Akses Anda sudah aktif dan siap digunakan.",
+      title: "Selamat datang di Drawing Filing & Approval System",
+      summary: `Halo ${input.name}, akses untuk akun Anda sudah tersedia.`,
       intro:
-        "Anda sekarang dapat masuk ke Drawing Filing & Approval System untuk mengelola filing, review, approval, dan distribusi drawing secara lebih tertib.",
+        "Anda sekarang sudah dapat masuk ke Drawing Filing & Approval System untuk mulai mengelola proses filing, review, approval, dan distribusi drawing dengan lebih rapi, mudah dilacak, dan nyaman digunakan.",
       details: [
         { label: "Email", value: input.email },
         { label: "Username", value: input.username },
-        { label: "Password awal", value: input.password }
+        { label: "Password Sementara", value: input.password }
       ],
-      actionLabel: "Masuk ke Workspace",
+      actionLabel: "Masuk ke Sistem",
       actionUrl: loginUrl,
       note:
-        "Demi keamanan, segera ganti password Anda setelah login pertama kali jika masih menggunakan password awal yang diberikan admin.",
+        "Agar akun Anda tetap aman, kami sarankan untuk segera mengganti password setelah login pertama, terutama jika Anda masih menggunakan password sementara yang diberikan.",
       footer:
-        "Email ini dikirim otomatis setelah approval akun oleh admin internal. Jika Anda merasa tidak pernah mengajukan akses, abaikan email ini dan hubungi admin terkait."
+        "Email ini dikirim otomatis saat akses akun Anda telah tersedia. Jika Anda merasa tidak pernah mengajukan akses, silakan abaikan email ini atau hubungi pihak terkait."
     })
   });
 }

@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 import { HttpError } from "@/lib/server/api";
 import { AppRole } from "@/lib/server/auth";
+import { notifyAssignedApprover } from "@/server/services/notification.service";
 
 type StepState = "UNASSIGNED" | "PENDING" | "APPROVED" | "REJECTED";
 
@@ -333,12 +334,21 @@ export async function reassignApprovalPlan(params: {
   }
 
   return db.transaction(async (tx) => {
+    const reassignedAt = new Date();
     const revision = await tx.query.drawingRevisions.findFirst({
       where: eq(schema.drawingRevisions.id, params.revisionId)
     });
 
     if (!revision) {
       throw new HttpError(404, "Revisi tidak ditemukan.");
+    }
+
+    const drawing = await tx.query.drawings.findFirst({
+      where: eq(schema.drawings.id, revision.drawingId)
+    });
+
+    if (!drawing) {
+      throw new HttpError(404, "Drawing tidak ditemukan.");
     }
 
     if (!["WAITING_APPROVAL_1", "WAITING_APPROVAL_2"].includes(revision.status)) {
@@ -372,8 +382,8 @@ export async function reassignApprovalPlan(params: {
           .set({
             assignedUserId: params.level1ApproverId,
             assignedByUserId: params.actorUserId,
-            assignedAt: new Date(),
-            updatedAt: new Date()
+            assignedAt: reassignedAt,
+            updatedAt: reassignedAt
           })
           .where(eq(schema.revisionApprovalSteps.id, currentLevel1.id));
       } else {
@@ -383,7 +393,7 @@ export async function reassignApprovalPlan(params: {
           approvalLevel: 1,
           assignedUserId: params.level1ApproverId,
           assignedByUserId: params.actorUserId,
-          assignedAt: new Date()
+          assignedAt: reassignedAt
         });
       }
     }
@@ -402,8 +412,8 @@ export async function reassignApprovalPlan(params: {
             .set({
               assignedUserId: params.level2ApproverId,
               assignedByUserId: params.actorUserId,
-              assignedAt: new Date(),
-              updatedAt: new Date()
+              assignedAt: reassignedAt,
+              updatedAt: reassignedAt
             })
             .where(eq(schema.revisionApprovalSteps.id, level2Step.id));
         } else {
@@ -413,7 +423,7 @@ export async function reassignApprovalPlan(params: {
             approvalLevel: 2,
             assignedUserId: params.level2ApproverId,
             assignedByUserId: params.actorUserId,
-            assignedAt: new Date()
+            assignedAt: reassignedAt
           });
         }
       } else {
@@ -425,6 +435,38 @@ export async function reassignApprovalPlan(params: {
           await tx.delete(schema.revisionApprovalSteps).where(eq(schema.revisionApprovalSteps.id, level2Step.id));
         }
       }
+    }
+
+    if (params.level1ApproverId && revision.status === "WAITING_APPROVAL_1") {
+      await notifyAssignedApprover(
+        {
+          drawingId: drawing.id,
+          drawingNumber: drawing.drawingNumber,
+          drawingName: drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo: revision.revisionNo,
+          approvalLevel: 1,
+          assignedUserId: params.level1ApproverId,
+          assignedAt: reassignedAt
+        },
+        tx
+      );
+    }
+
+    if (params.level2ApproverId && revision.status === "WAITING_APPROVAL_2") {
+      await notifyAssignedApprover(
+        {
+          drawingId: drawing.id,
+          drawingNumber: drawing.drawingNumber,
+          drawingName: drawing.drawingName,
+          revisionId: revision.id,
+          revisionNo: revision.revisionNo,
+          approvalLevel: 2,
+          assignedUserId: params.level2ApproverId,
+          assignedAt: reassignedAt
+        },
+        tx
+      );
     }
 
     return { revisionId: revision.id };

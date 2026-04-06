@@ -10,6 +10,10 @@ import {
   listApprovalStepsByRevisionIds
 } from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
+import {
+  markRevisionNotificationsReadForUser,
+  notifyDraftLeadersWaitingCheck
+} from "@/server/services/notification.service";
 
 export async function getRevisionDetail(revisionId: string, role: AppRole, userId: string) {
   const revision = await db.query.drawingRevisions.findFirst({
@@ -104,13 +108,15 @@ export async function submitRevision(revisionId: string, userId: string, role: A
       throw new HttpError(409, "Status revisi saat ini tidak dapat disubmit.");
     }
 
+    const submittedAt = new Date();
+
     await tx
       .update(schema.drawingRevisions)
       .set({
         status: "WAITING_CHECK",
         submittedBy: userId,
-        submittedAt: new Date(),
-        updatedAt: new Date(),
+        submittedAt,
+        updatedAt: submittedAt,
         fileWatermarkedPath: revision.fileWatermarkedPath ?? revision.fileOriginalPath
       })
       .where(eq(schema.drawingRevisions.id, revision.id));
@@ -119,7 +125,7 @@ export async function submitRevision(revisionId: string, userId: string, role: A
       .update(schema.drawings)
       .set({
         currentStatus: "WAITING_CHECK",
-        updatedAt: new Date()
+        updatedAt: submittedAt
       })
       .where(eq(schema.drawings.id, drawing.id));
 
@@ -133,6 +139,37 @@ export async function submitRevision(revisionId: string, userId: string, role: A
       },
       tx
     );
+
+    await notifyDraftLeadersWaitingCheck(
+      {
+        drawingId: drawing.id,
+        drawingNumber: drawing.drawingNumber,
+        drawingName: drawing.drawingName,
+        revisionId: revision.id,
+        revisionNo: revision.revisionNo,
+        createdAt: submittedAt
+      },
+      tx
+    );
+
+    const rejectType =
+      revision.status === "CHECK_REJECTED" ||
+      revision.status === "APPROVAL_1_REJECTED" ||
+      revision.status === "APPROVAL_2_REJECTED"
+        ? revision.status
+        : null;
+
+    if (rejectType) {
+      await markRevisionNotificationsReadForUser(
+        {
+          recipientUserId: userId,
+          revisionId: revision.id,
+          types: [rejectType],
+          readAt: submittedAt
+        },
+        tx
+      );
+    }
 
     return { drawingId: drawing.id, revisionId: revision.id };
   });

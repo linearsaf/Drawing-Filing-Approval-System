@@ -22,6 +22,17 @@ export type RevisionStatus =
 export type ApprovalDecision = "APPROVED" | "REJECTED";
 export type ApprovalStepState = "UNASSIGNED" | "PENDING" | "APPROVED" | "REJECTED";
 export type WorkflowSource = "STANDARD" | "LEGACY_READY";
+export type NotificationType =
+  | "WAITING_CHECK"
+  | "WAITING_APPROVAL_1"
+  | "WAITING_APPROVAL_2"
+  | "CHECK_REJECTED"
+  | "APPROVAL_1_REJECTED"
+  | "APPROVAL_2_REJECTED"
+  | "DRAWING_COMPLETED"
+  | "ACCESS_REQUEST_PENDING";
+export type NotificationLifecycleStatus = "ACTIVE" | "RESOLVED" | "SUPERSEDED";
+export type NotificationFilter = "ALL" | "UNREAD" | "ACTIONABLE";
 
 export interface User {
   id: string;
@@ -170,6 +181,47 @@ export interface ApproverOption {
 export interface DemoSession {
   userId: string;
   role: UserRole;
+}
+
+export interface NotificationContext {
+  drawingId: string | null;
+  drawingNumber: string | null;
+  drawingName: string | null;
+  revisionId: string | null;
+  revisionNo: string | null;
+  accessRequestId: string | null;
+  accessRequestName: string | null;
+  accessRequestEmail: string | null;
+  accessRequestStatus: AccessRequestStatus | null;
+}
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST";
+  entityId: string;
+  actionUrl: string;
+  isRead: boolean;
+  readAt: string | null;
+  createdAt: string;
+  isActionable: boolean;
+  lifecycleStatus: NotificationLifecycleStatus;
+  context: NotificationContext;
+}
+
+export interface NotificationListResponse {
+  items: NotificationItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  unreadCount: number;
+}
+
+export interface NotificationUnreadSummary {
+  unreadCount: number;
 }
 
 export interface MockDatabase {

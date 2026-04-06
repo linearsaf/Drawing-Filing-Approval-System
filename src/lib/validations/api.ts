@@ -174,3 +174,9 @@ export const passwordResetSubmitSchema = z
     message: "Konfirmasi password baru tidak cocok.",
     path: ["confirmPassword"]
   });
+
+export const notificationsListQuerySchema = z.object({
+  filter: z.enum(["ALL", "UNREAD", "ACTIONABLE"]).optional().default("ALL"),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(12)
+});

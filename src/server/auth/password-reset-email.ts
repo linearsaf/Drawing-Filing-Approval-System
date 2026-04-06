@@ -43,19 +43,19 @@ export async function sendPasswordResetEmail(input: PasswordResetInput) {
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Reset Password — Drawing Filing & Approval System",
+    subject: "Permintaan Reset Password Akun Anda - Drawing Filing & Approval System",
     html: renderEmailLayout({
-      preheader: "Gunakan tautan ini untuk membuat password baru akun Anda.",
-      title: "Reset password akun",
+      preheader: "Gunakan tautan ini untuk mengatur password baru akun Anda.",
+      title: "Bantuan untuk reset password",
       summary: "Kami menerima permintaan untuk mengatur ulang password akun Anda.",
       intro:
-        "Jika Anda memang meminta reset password, lanjutkan proses melalui tombol di bawah ini. Tautan ini bersifat sementara dan hanya berlaku untuk satu proses penggantian password.",
-      actionLabel: "Buat Password Baru",
+        "Jika Anda memang mengajukan permintaan ini, silakan lanjutkan melalui tombol di bawah. Tautan ini hanya berlaku sementara dan dapat digunakan satu kali untuk membantu Anda membuat password baru dengan aman.",
+      actionLabel: "Atur Password Baru",
       actionUrl: input.url,
       note:
-        "Jika Anda tidak merasa melakukan permintaan reset password, Anda dapat mengabaikan email ini. Password akun Anda tidak akan berubah sebelum tautan digunakan.",
+        "Jika Anda merasa tidak melakukan permintaan ini, Anda tidak perlu khawatir. Abaikan saja email ini, dan password akun Anda tidak akan berubah sampai tautan tersebut digunakan.",
       footer:
-        "Email ini dikirim otomatis oleh sistem sebagai bagian dari proses pemulihan akses akun. Simpan kredensial baru Anda secara aman setelah reset selesai."
+        "Email ini dikirim otomatis untuk membantu proses pemulihan akses akun Anda. Setelah selesai, mohon simpan password baru Anda dengan baik demi keamanan akun."
     })
   });
 }
