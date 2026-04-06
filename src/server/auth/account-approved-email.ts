@@ -1,5 +1,6 @@
 import { env } from "@/lib/env";
 import { saveAccountApprovedPreview } from "@/server/auth/account-approved-preview";
+import { renderEmailLayout } from "@/server/auth/email-template";
 
 interface AccountApprovedEmailInput {
   email: string;
@@ -40,20 +41,29 @@ export async function sendAccountApprovedEmail(input: AccountApprovedEmailInput)
     }
   });
 
+  const loginUrl = `${env.BETTER_AUTH_URL.replace(/\/$/, "")}/login`;
+
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Akun Drawing Management Disetujui",
-    html: `
-      <p>Halo ${input.name},</p>
-      <p>Permintaan akun Anda telah disetujui oleh admin.</p>
-      <p>Anda sekarang dapat login ke Drawing Management System dengan kredensial berikut:</p>
-      <ul>
-        <li>Email: ${input.email}</li>
-        <li>Username: ${input.username}</li>
-        <li>Password default: ${input.password}</li>
-      </ul>
-      <p>Segera ubah password Anda setelah login pertama kali jika password masih menggunakan nilai default.</p>
-    `
+    subject: "Akun Disetujui — Drawing Filing & Approval System",
+    html: renderEmailLayout({
+      preheader: "Akun Anda telah disetujui dan siap digunakan untuk mengakses workspace drawing.",
+      title: "Akun Anda telah disetujui",
+      summary: `Halo ${input.name}, permintaan akses Anda telah disetujui oleh admin.`,
+      intro:
+        "Anda sekarang dapat masuk ke Drawing Filing & Approval System untuk mengelola filing, review, approval, dan distribusi drawing secara lebih tertib.",
+      details: [
+        { label: "Email", value: input.email },
+        { label: "Username", value: input.username },
+        { label: "Password awal", value: input.password }
+      ],
+      actionLabel: "Masuk ke Workspace",
+      actionUrl: loginUrl,
+      note:
+        "Demi keamanan, segera ganti password Anda setelah login pertama kali jika masih menggunakan password awal yang diberikan admin.",
+      footer:
+        "Email ini dikirim otomatis setelah approval akun oleh admin internal. Jika Anda merasa tidak pernah mengajukan akses, abaikan email ini dan hubungi admin terkait."
+    })
   });
 }

@@ -13,7 +13,14 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "prod:deploy": "bash scripts/deploy-production.sh",
+    "prod:check": "bash scripts/check-production.sh",
+    "prod:restart": "pm2 restart ecosystem.config.cjs --only drawing-approval-app --update-env",
+    "prod:deploy:safe": "bash scripts/deploy-production-safe.sh",
+    "prod:deploy:app-only": "bash scripts/deploy-production-app-only.sh",
+    "prod:deploy:preview": "bash scripts/deploy-production-preview.sh",
+    "prod:backup-db": "bash scripts/backup-database.sh"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.5.6",

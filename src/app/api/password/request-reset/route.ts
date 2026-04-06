@@ -19,10 +19,11 @@ export async function POST(request: Request) {
     });
 
     const preview = getPasswordResetPreview(body.email);
+    const exposePreview = process.env.NODE_ENV !== "production";
 
     return apiSuccess({
       ...result,
-      previewUrl: preview?.url ?? null
+      previewUrl: exposePreview ? preview?.url ?? null : null
     });
   } catch (error) {
     return apiError(error);
