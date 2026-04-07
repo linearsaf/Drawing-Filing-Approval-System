@@ -457,7 +457,7 @@ function DetailContent({
           title={drawing.drawingName}
         />
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className="space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -669,14 +669,14 @@ function DetailContent({
 
 function DetailLoadingState() {
   return (
-    <div className="space-y-6 animate-pulse">
+    <div className="space-y-4 animate-pulse">
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="h-56 bg-graphite/95" />
         <Card className="h-56 bg-white/70" />
       </div>
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="h-[620px] bg-white/70" />
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className="h-80 bg-white/70" />
           <Card className="h-40 bg-white/70" />
         </div>

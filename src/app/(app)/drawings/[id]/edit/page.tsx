@@ -78,11 +78,11 @@ function EditContent({
           title="Memuat data drawing"
           description="Menyiapkan metadata dan current revision sebelum form ditampilkan."
         />
-        <div className="space-y-6 animate-pulse">
+        <div className="space-y-4 animate-pulse">
           <Card className="h-56 bg-graphite/95" />
           <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
             <Card className="h-[540px] bg-white/70" />
-            <div className="space-y-6">
+            <div className="space-y-4">
               <Card className="h-72 bg-white/70" />
               <Card className="h-72 bg-white/70" />
             </div>

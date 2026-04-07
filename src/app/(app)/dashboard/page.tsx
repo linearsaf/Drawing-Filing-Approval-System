@@ -190,7 +190,7 @@ function DashboardContent({ role }: { role: UserRole }) {
           <div className="absolute -right-20 top-0 h-56 w-56 rounded-full bg-white/5 blur-3xl" />
           <div className="absolute -bottom-24 left-10 h-56 w-56 rounded-full bg-brand/20 blur-3xl" />
 
-          <div className="relative space-y-6">
+          <div className="relative space-y-4">
             <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/55">
@@ -278,7 +278,7 @@ function DashboardContent({ role }: { role: UserRole }) {
         <MetricCard label="Completed" value={summary.completed} tone="bg-surface text-text" />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Card>
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
@@ -449,7 +449,7 @@ function DashboardLoadingState() {
           <Card className="h-32 bg-white/70" key={index} />
         ))}
       </div>
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Card className="h-[420px] bg-white/70" />
         <Card className="h-[420px] bg-white/70" />
       </div>

@@ -102,6 +102,12 @@ export function PdfPreview({
                 </Button>
               ) : null
             ) : null}
+            {showFullscreenAction && isFullscreen && isMounted
+            ? (
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => setIsFullscreen(false)}>Tutup</Button>
+              </div>)
+            : null}
           </div>
         </div>
 
@@ -142,7 +148,7 @@ export function PdfPreview({
         ? createPortal(
             <div className="fixed inset-0 z-[9999] h-screen w-screen bg-graphite/92 backdrop-blur-sm">
               <div className="flex h-screen w-screen flex-col bg-[#f8f9fb] p-2 md:p-3">
-                <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border px-2 pb-3 md:px-3">
+                {/* <div className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-border px-2 pb-3 md:px-3">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Full Document View</p>
                     <h3 className="mt-2 text-2xl font-semibold text-text">{title}</h3>
@@ -153,7 +159,7 @@ export function PdfPreview({
                   <div className="flex flex-wrap gap-2">
                     <Button onClick={() => setIsFullscreen(false)}>Tutup</Button>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="min-h-0 flex-1 px-2 pb-2 md:px-3 md:pb-3">{renderViewer("fullscreen")}</div>
               </div>

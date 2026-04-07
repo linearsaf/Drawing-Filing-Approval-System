@@ -250,7 +250,7 @@ export function NotificationCenter() {
                 </p>
               </div>
               {data ? (
-                <div className="rounded-full border border-border bg-panel/30 px-4 py-2 text-sm font-semibold text-text">
+                <div className="bg-panel/30 text-sm font-semibold text-text">
                   {data.total} item visible
                 </div>
               ) : null}

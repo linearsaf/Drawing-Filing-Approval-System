@@ -98,9 +98,9 @@ function CheckContent({
           title="Memuat data Drawing"
           description="Menyiapkan dokumen dan metadata sebelum halaman check ditampilkan."
         />
-        <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+        <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
           <Card className="h-[620px] animate-pulse bg-white/70" />
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className="h-72 animate-pulse bg-white/70" />
             <Card className="h-80 animate-pulse bg-white/70" />
           </div>
@@ -146,7 +146,7 @@ function CheckContent({
         title="Check Drawing"
         description="Tinjau metadata dan dokumen sebelum menetapkan status Approved atau Rejected."
       />
-      <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <PdfPreview
           drawingNumber={drawing.drawingNumber}
           fileName={revision.fileName}
@@ -156,7 +156,7 @@ function CheckContent({
           status={revision.status}
           title={drawing.drawingName}
         />
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
             <div className="flex items-center justify-between gap-3">
               <div>

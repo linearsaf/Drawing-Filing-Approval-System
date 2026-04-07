@@ -101,7 +101,7 @@ export function DrawingForm({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <Card className="relative overflow-hidden border-transparent bg-graphite text-white">
           <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
@@ -147,7 +147,7 @@ export function DrawingForm({
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Drawing Metadata</p>
@@ -230,7 +230,7 @@ export function DrawingForm({
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Revision & File</p>

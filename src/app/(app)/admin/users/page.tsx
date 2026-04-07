@@ -482,8 +482,8 @@ export default function AdminUsersPage() {
           </Card>
         ) : null}
 
-        <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
-          <div className="space-y-6">
+        <div className="grid gap-4 xl:grid-cols-[1.12fr_0.88fr]">
+          <div className="space-y-4">
             <Card>
               <div className="flex flex-col gap-4 border-b border-border/70 pb-5 lg:flex-row lg:items-end lg:justify-between">
                 <div>
@@ -683,7 +683,7 @@ export default function AdminUsersPage() {
             </Card>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Card className={selectedRequest ? "border-border/90" : "bg-white/75"}>
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Request Review</p>
               <h2 className="mt-2 text-2xl font-semibold text-text">
