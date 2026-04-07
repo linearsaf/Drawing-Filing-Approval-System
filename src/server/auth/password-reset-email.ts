@@ -43,7 +43,7 @@ export async function sendPasswordResetEmail(input: PasswordResetInput) {
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Permintaan Reset Password Akun Anda - Drawing Filing & Approval System",
+    subject: "Permintaan Reset Password Akun Anda - Datum Signet",
     html: renderEmailLayout({
       preheader: "Gunakan tautan ini untuk mengatur password baru akun Anda.",
       title: "Bantuan untuk reset password",

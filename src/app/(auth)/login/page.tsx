@@ -86,7 +86,7 @@ function LoginContent() {
           <div className="relative flex h-full flex-col justify-between">
             <div>
               <div className="inline-flex rounded-full border border-white/12 bg-white/7 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-white/72">
-                Drawing Filing & Approval
+                Datum Signet
               </div>
               <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-tight lg:text-[2.85rem]">
                 Workspace drawing yang lebih tertib, mudah dilacak, dan siap diaudit.

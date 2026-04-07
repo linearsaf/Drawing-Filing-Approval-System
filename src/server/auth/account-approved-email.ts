@@ -46,13 +46,13 @@ export async function sendAccountApprovedEmail(input: AccountApprovedEmailInput)
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Akun Anda Sudah Aktif - Drawing Filing & Approval System",
+    subject: "Akun Anda Sudah Aktif - Datum Signet",
     html: renderEmailLayout({
       preheader: "Akses Anda sudah aktif dan siap digunakan.",
-      title: "Selamat datang di Drawing Filing & Approval System",
+      title: "Selamat datang di Datum Signet",
       summary: `Halo ${input.name}, akses untuk akun Anda sudah tersedia.`,
       intro:
-        "Anda sekarang sudah dapat masuk ke Drawing Filing & Approval System untuk mulai mengelola proses filing, review, approval, dan distribusi drawing dengan lebih rapi, mudah dilacak, dan nyaman digunakan.",
+        "Anda sekarang sudah dapat masuk ke Datum Signet untuk mulai mengelola proses filing, review, approval, dan distribusi drawing dengan lebih rapi, mudah dilacak, dan nyaman digunakan.",
       details: [
         { label: "Email", value: input.email },
         { label: "Username", value: input.username },

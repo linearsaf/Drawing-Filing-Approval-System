@@ -1,9 +1,9 @@
-# Drawing Management App PRD
+# Datum Signet PRD
 
 ## 1. Informasi Dokumen
 
 - Nama Dokumen: Product Requirements Document
-- Nama Produk: Drawing Filing & Approval System
+- Nama Produk: Datum Signet
 - Status Dokumen: Updated to current implementation
 - Format: Web Application Full Stack
 - Target Stack: Next.js App Router, MySQL, Drizzle ORM, Better Auth
@@ -13,7 +13,7 @@
 
 ## 2. Ringkasan Produk
 
-Drawing Filing & Approval System adalah workspace internal untuk mengelola siklus hidup drawing dari pembuatan draft, proses check, approval bertingkat, distribusi final drawing, sampai audit trail aktivitas.
+Datum Signet adalah workspace internal untuk mengelola siklus hidup drawing dari pembuatan draft, proses check, approval bertingkat, distribusi final drawing, sampai audit trail aktivitas.
 
 Versi aplikasi yang berjalan saat ini sudah mencakup:
 
@@ -240,6 +240,7 @@ Flow ini sudah aktif di aplikasi saat ini.
 
 - approval workflow multi-level bebas di luar skema L1 wajib + L2 opsional
 - multi-role per user
+- user request drawing baru ke Draft Leader untuk didistribusikan ke Drafter sesuai antrean kerja
 - annotation langsung di PDF
 - compare visual antar revision
 - notification center in-app
@@ -573,6 +574,6 @@ Fitur yang masih masuk fase lanjutan:
 
 ## 19. Kesimpulan
 
-Saat ini Drawing Filing & Approval System sudah berkembang dari draft MVP menjadi implementasi kerja yang mencakup auth, drawing workflow, revision management, admin management, dan request access flow.
+Saat ini Datum Signet sudah berkembang dari draft MVP menjadi implementasi kerja yang mencakup auth, drawing workflow, revision management, admin management, dan request access flow.
 
 PRD ini sekarang harus dibaca sebagai dokumen snapshot implementasi aktual, bukan lagi asumsi awal proyek.

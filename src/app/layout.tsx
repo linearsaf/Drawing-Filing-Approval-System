@@ -4,8 +4,8 @@ import { DemoAppProvider } from "@/components/providers/demo-app-provider";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Drawing Management System",
-  description: "Sistem pengelolaan filing, approval, dan distribusi drawing.",
+  title: "Datum Signet",
+  description: "Workspace pengelolaan drawing, approval, dan distribusi dokumen final.",
   icons: {
     icon: "/logo.png"
   }

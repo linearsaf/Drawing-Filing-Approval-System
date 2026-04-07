@@ -9,7 +9,7 @@ import { env } from "@/lib/env";
 import { sendPasswordResetEmail } from "@/server/auth/password-reset-email";
 
 export const auth = betterAuth({
-  appName: "Drawing Management System",
+  appName: "Datum Signet",
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {

@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <span className="text-sm font-semibold text-text">Filing &amp; Approval</span>
+            <span className="text-sm font-semibold text-text">Datum Signet</span>
           </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
@@ -91,10 +91,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             <div className="mb-8 mt-2 xl:mt-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-white/60">
-                Drawing Management
+                Datum Signet
               </p>
               <h1 className="mt-3 text-[1.75rem] font-semibold tracking-[-0.02em]">
-                Filing & Approval Console
+                Drawing Control Console
               </h1>
               <p className="mt-3 text-sm leading-7 text-white/72">
                 Kelola drawing, approval, revisi, dan distribusi dokumen dalam satu alur kerja.

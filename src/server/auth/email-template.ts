@@ -52,7 +52,7 @@ export function renderEmailLayout(input: {
   note?: string;
   footer?: string;
 }) {
-  const badge = escapeHtml(input.badge ?? "Drawing Filing & Approval");
+  const badge = escapeHtml(input.badge ?? "Datum Signet");
   const title = escapeHtml(input.title);
   const preheader = escapeHtml(input.preheader);
   const summary = escapeHtml(input.summary);
@@ -138,7 +138,7 @@ export function renderEmailLayout(input: {
                         ${footer}
                       </p>
                       <p style="margin: 0; font-size: 12px; line-height: 1.7; color: ${BRAND.sage}; font-weight: 600;">
-                        Drawing Filing & Approval System
+                        Datum Signet
                       </p>
                     </div>
                   </td>
