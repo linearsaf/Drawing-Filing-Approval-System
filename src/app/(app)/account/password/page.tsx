@@ -73,7 +73,7 @@ export default function AccountPasswordPage() {
         <PageHeader
           eyebrow="Akun"
           title="Update Password"
-          description="Update password akun untuk menjaga keamanan akses sistem."
+          description="Perbarui password akun untuk menjaga keamanan akses."
         />
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

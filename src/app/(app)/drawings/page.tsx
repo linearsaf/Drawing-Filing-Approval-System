@@ -889,7 +889,7 @@ function getDrawingsCopy(role: UserRole) {
     return {
       title: "Drawing Workspace",
       description:
-        "Kelola draft Anda, cari revisi yang perlu diteruskan, dan buka item yang dikembalikan tanpa membuang waktu di daftar panjang.",
+        "Kelola draft, lanjutkan revisi, dan buka item yang dikembalikan dari satu daftar.",
       heroTitle: "Browse drawing dengan konteks yang lebih cepat dipahami.",
       heroDescription:
         "Gunakan daftar ini sebagai meja kerja utama untuk melihat status, pemilik, revisi aktif, dan aksi yang tersedia dalam satu pandangan."

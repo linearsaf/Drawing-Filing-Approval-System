@@ -9,12 +9,11 @@ import { getRoleLabel } from "@/lib/utils/permissions";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { RoleSwitcher } from "@/components/app/role-switcher";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { currentUser, logout } = useDemoApp();
+  const { currentUser } = useDemoApp();
 
   if (!currentUser) {
     return <>{children}</>;
@@ -69,32 +68,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               })}
             </nav>
 
-            <div className="mt-8 grid gap-3">
-              <Button className="w-full bg-white/10 hover:bg-white/15" onClick={() => void logout()}>
-                Keluar
-              </Button>
-              <Link
-                className={cn(
-                  "text-center text-xs text-white/58 transition hover:text-white/82",
-                  pathname === "/account/password" ? "text-white/88" : undefined
-                )}
-                href="/account/password"
-              >
-                Ubah password
-              </Link>
-            </div>
           </Card>
         </aside>
 
         <div className="flex-1">
           <div className="flex min-h-[calc(100vh-2rem)] flex-col rounded-[28px] border border-border/70 bg-white/72 p-5 shadow-panel backdrop-blur-sm">
             <div className="mb-7 flex flex-col gap-4 border-b border-border/75 pb-5 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Workspace</p>
-                <p className="mt-2 text-sm leading-6 text-muted">
-                  Akses menu dan informasi disesuaikan dengan peran aktif.
-                </p>
-              </div>
+              <div><p className="text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Workspace</p></div>
               <div className="flex items-center gap-3">
                 <NotificationBell />
                 <RoleSwitcher />

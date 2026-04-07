@@ -411,7 +411,7 @@ export default function AdminUsersPage() {
         <PageHeader
           eyebrow="Admin"
           title="User Management"
-          description="Kelola user aktif dan review Request Access user baru dari satu workspace admin."
+          description="Kelola user aktif dan review request akses dari satu halaman admin."
           actions={
             <div className="flex flex-wrap gap-3">
               <Button onClick={clearRequestSelection} variant="secondary">

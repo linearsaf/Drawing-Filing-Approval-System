@@ -109,6 +109,7 @@ export function NotificationCenter() {
 
       setData(response);
       setError("");
+      window.dispatchEvent(new Event("notifications:changed"));
     } catch (openError) {
       setError(getErrorMessage(openError, "Detail notifikasi belum dapat dibuka."));
     } finally {
@@ -136,6 +137,7 @@ export function NotificationCenter() {
         ...response,
         unreadCount: unreadSummary.unreadCount
       });
+      window.dispatchEvent(new Event("notifications:changed"));
       setActiveNotification((current) =>
         current
           ? {
@@ -159,7 +161,7 @@ export function NotificationCenter() {
         <PageHeader
           eyebrow="Notifications"
           title="Notification Center"
-          description="Pantau assignment baru, drawing yang dikembalikan, completion workflow, dan request akses user baru dari satu inbox terpusat."
+          description="Pantau assignment, update workflow, dan request akses dari satu inbox."
           actions={
             <div className="flex flex-wrap gap-3">
               <Link href="/dashboard">

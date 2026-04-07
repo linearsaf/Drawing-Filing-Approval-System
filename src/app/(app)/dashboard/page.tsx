@@ -520,7 +520,7 @@ function getDashboardCopy(role: UserRole) {
     return {
       title: "Ringkasan Check Drawing",
       description:
-        "Dashboard ini menonjolkan drawing yang menunggu check agar proses review teknis tidak tertahan.",
+        "Pantau drawing yang menunggu check agar review teknis tetap lancar.",
       focusTitle: "Antrian check adalah fokus utama Anda hari ini.",
       focusDescription:
         "Semakin cepat drawing diverifikasi, semakin lancar perpindahannya ke approver level berikutnya.",
@@ -541,7 +541,7 @@ function getDashboardCopy(role: UserRole) {
     return {
       title: "Ringkasan Approval Level 1",
       description:
-        "Semua blok di dashboard dipilih untuk membantu Anda memproses approval level 1 yang memang ditugaskan kepada Anda.",
+        "Fokus pada approval level 1 yang memang menjadi assignment Anda.",
       focusTitle: "Approval level 1 yang sudah dialokasikan ke Anda perlu segera diputuskan.",
       focusDescription:
         "Gunakan queue sebagai daftar kerja utama untuk membuka gambar yang sudah lolos check dan masuk assignment Anda.",
@@ -562,7 +562,7 @@ function getDashboardCopy(role: UserRole) {
     return {
       title: "Ringkasan Final Approval",
       description:
-        "Dashboard ini dirancang untuk membantu Anda melihat item final approval yang memang ditugaskan kepada Anda.",
+        "Pantau item final approval yang menjadi assignment Anda.",
       focusTitle: "Final approval pada assignment Anda adalah bottleneck terakhir sebelum drawing selesai.",
       focusDescription:
         "Pantau item yang sudah lolos approval level 1 pada routing ini lalu selesaikan final approval agar drawing segera siap dipakai.",
@@ -583,7 +583,7 @@ function getDashboardCopy(role: UserRole) {
     return {
       title: "Ringkasan Dokumen Final",
       description:
-        "Dashboard consumer disederhanakan untuk membantu Anda menemukan drawing final yang paling relevan dan terbaru.",
+        "Temukan drawing final terbaru dengan lebih cepat.",
       focusTitle: "Dokumen completed adalah sumber utama yang siap digunakan.",
       focusDescription:
         "Gunakan dashboard ini untuk melihat jumlah dokumen final yang tersedia dan membuka drawing terbaru dengan cepat.",
@@ -602,8 +602,7 @@ function getDashboardCopy(role: UserRole) {
 
   return {
     title: "Ringkasan Operasional Admin",
-    description:
-      "Dashboard admin memberi gambaran cepat terhadap kesehatan alur drawing, item yang menumpuk, dan aktivitas terbaru lintas peran.",
+    description: "Pantau antrian utama dan hambatan proses dari satu ringkasan singkat.",
     focusTitle: "Lihat hambatan proses sebelum mereka menjadi bottleneck.",
     focusDescription:
       "Sebagai admin, Anda bisa memantau antrian lintas tahap, membantu unblock proses, dan menjaga disiplin operasional seluruh workflow.",

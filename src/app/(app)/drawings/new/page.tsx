@@ -14,7 +14,7 @@ export default function NewDrawingPage() {
         <PageHeader
           eyebrow="Create Drawing"
           title="Create Drawing"
-          description="Siapkan metadata, revision awal, dan PDF dokumen dengan layout kerja yang lebih rapi agar proses input terasa cepat dan minim salah."
+          description="Siapkan metadata, revisi awal, dan PDF dokumen dari satu form."
         />
         <DrawingForm drawnByName={currentUser?.name ?? "-"} mode="create" />
       </div>

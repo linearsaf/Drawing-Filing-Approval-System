@@ -32,19 +32,31 @@ export function NotificationBell() {
 
     const intervalId = window.setInterval(() => {
       void loadUnreadCount();
-    }, 60_000);
+    }, 30_000);
     const handleFocus = () => {
+      void loadUnreadCount();
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void loadUnreadCount();
+      }
+    };
+    const handleNotificationsChanged = () => {
       void loadUnreadCount();
     };
 
     window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("notifications:changed", handleNotificationsChanged);
 
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
       window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("notifications:changed", handleNotificationsChanged);
     };
-  }, []);
+  }, [pathname]);
 
   return (
     <Link
@@ -58,7 +70,7 @@ export function NotificationBell() {
     >
       <BellIcon />
       {unreadCount > 0 ? (
-        <span className="absolute -right-1.5 -top-1.5 inline-flex min-w-[1.5rem] items-center justify-center rounded-full bg-danger px-1.5 py-1 text-[10px] font-bold text-white">
+        <span className="pointer-events-none absolute right-0 top-0 z-10 inline-flex min-w-[1.5rem] translate-x-1/3 -translate-y-1/3 items-center justify-center rounded-full bg-danger px-1.5 py-1 text-[10px] font-bold text-white shadow-md">
           {unreadCount > 99 ? "99+" : unreadCount}
         </span>
       ) : null}
