@@ -113,21 +113,21 @@ function DashboardContent({ role }: { role: UserRole }) {
   }, [role]);
 
   const headerActions = (
-    <>
-      <Link href="/drawings">
-        <Button variant="secondary">{dashboardCopy.headerLinkLabel}</Button>
+    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+      <Link className="w-full sm:w-auto" href="/drawings">
+        <Button className="w-full" variant="secondary">{dashboardCopy.headerLinkLabel}</Button>
       </Link>
       {canCreateDrawing(role) ? (
-        <Link href="/drawings/new">
-          <Button>Create Drawing</Button>
+        <Link className="w-full sm:w-auto" href="/drawings/new">
+          <Button className="w-full">Create Drawing</Button>
         </Link>
       ) : null}
       {canUploadOldDrawing(role) ? (
-        <Link href="/drawings/legacy/new">
-          <Button variant="secondary">Upload Old Drawing</Button>
+        <Link className="w-full sm:w-auto" href="/drawings/legacy/new">
+          <Button className="w-full" variant="secondary">Upload Old Drawing</Button>
         </Link>
       ) : null}
-    </>
+    </div>
   );
 
   if (isLoading) {
@@ -191,40 +191,38 @@ function DashboardContent({ role }: { role: UserRole }) {
           <div className="absolute -bottom-24 left-10 h-56 w-56 rounded-full bg-brand/20 blur-3xl" />
 
           <div className="relative space-y-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/55">
                   Fokus {getRoleLabel(role)}
                 </p>
-                <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight">
+                <h2 className="mt-2 max-w-2xl text-lg sm:text-2xl xl:text-3xl font-semibold tracking-tight leading-snug">
                   {dashboardCopy.focusTitle}
                 </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72 line-clamp-3">
                   {dashboardCopy.focusDescription}
                 </p>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4 text-right">
-                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/55">
-                  Prioritas Aktif
-                </p>
-                <p className="mt-2 text-5xl font-semibold">{actionableCount}</p>
-                <p className="mt-1 text-sm text-white/65">{dashboardCopy.focusMetricLabel}</p>
+              <div className="flex-shrink-0 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 sm:flex-col sm:items-end sm:text-right sm:rounded-3xl sm:px-5 sm:py-4">
+                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-white/55">Prioritas Aktif</p>
+                <p className="text-3xl sm:text-5xl font-semibold sm:mt-2">{actionableCount}</p>
+                <p className="text-xs sm:text-sm text-white/65 sm:mt-1">{dashboardCopy.focusMetricLabel}</p>
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid grid-cols-3 gap-2">
               <HighlightStat
-                label="Total Visible"
+                label="Total"
                 value={summary.totalDrawings}
                 tone="bg-white/8 text-white"
               />
               <HighlightStat
-                label="Need Attention"
+                label="Attention"
                 value={summary.waitingCheck + summary.waitingApproval1 + summary.waitingApproval2 + summary.rejected + summary.drafts}
                 tone="bg-brand/25 text-white"
               />
               <HighlightStat
-                label="Completed"
+                label="Done"
                 value={summary.completed}
                 tone="bg-white/8 text-white"
               />
@@ -233,8 +231,12 @@ function DashboardContent({ role }: { role: UserRole }) {
         </Card>
 
         <Card className="bg-white/75">
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Workflow Health</p>
-          <h2 className="mt-2 text-2xl font-semibold text-text">Kondisi workflow</h2>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Workflow Health</p>
+              <h2 className="mt-1 text-lg md:text-2xl font-semibold text-text">Kondisi workflow</h2>
+            </div>
+          </div>
 
           <div className="mt-6 rounded-[24px] border border-border/80 bg-panel/30 p-4">
             <div className="flex items-end justify-between gap-3">
@@ -267,7 +269,7 @@ function DashboardContent({ role }: { role: UserRole }) {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         <MetricCard
           label={dashboardCopy.primaryCardLabel}
           value={actionableCount}
@@ -285,8 +287,8 @@ function DashboardContent({ role }: { role: UserRole }) {
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">
                 {dashboardCopy.queueEyebrow}
               </p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">{dashboardCopy.queueTitle}</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+              <h2 className="mt-1 text-lg md:text-2xl font-semibold text-text">{dashboardCopy.queueTitle}</h2>
+              <p className="mt-1 text-sm leading-6 text-muted line-clamp-2">
                 {dashboardCopy.queueDescription}
               </p>
             </div>
@@ -304,47 +306,46 @@ function DashboardContent({ role }: { role: UserRole }) {
             ) : (
               queue.map((drawing) => (
                 <div
-                  className="rounded-[24px] border border-border/80 bg-white px-4 py-3.5 transition hover:border-brand/25 hover:bg-brand/5"
+                  className="rounded-[18px] border border-border/80 bg-white px-3 py-3 transition hover:border-brand/25 hover:bg-brand/5"
                   key={drawing.id}
                 >
-                  <div className="flex flex-col gap-3.5 lg:grid lg:grid-cols-[minmax(0,1fr)_172px] lg:gap-4">
+                  <div className="flex flex-col gap-3">
                     <div className="min-w-0">
-                      <p className="line-clamp-2 text-xs font-bold uppercase tracking-[0.18em] leading-5 text-brand">
+                      <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] leading-none text-brand">
                         {drawing.drawingNumber}
                       </p>
                       <Link href={`/drawings/${drawing.id}`}>
-                        <h3 className="mt-1.5 text-[1.05rem] font-semibold leading-7 text-text transition hover:text-brand">
+                        <h3 className="mt-1.5 text-sm font-semibold leading-5 text-text transition hover:text-brand line-clamp-2">
                           {drawing.drawingName}
                         </h3>
                       </Link>
-                      <div className="mt-2">
+                      <div className="mt-1.5">
                         <WorkflowSourceBadge source={drawing.workflowSource} />
                       </div>
-                      <p className="mt-1.5 text-sm text-muted">
-                        {drawing.area} / {drawing.discipline} / Rev{" "}
-                        {drawing.currentRevision?.revisionNo ?? "-"}
+                      <p className="mt-1 text-xs text-muted truncate">
+                        {drawing.area} / {drawing.discipline} / Rev {drawing.currentRevision?.revisionNo ?? "-"}
                       </p>
-                      <p className="mt-1 text-sm leading-6 text-muted">
-                        Drafter: {drawing.drawnByName ?? drawing.drawnByUsername ?? "-"} / Updated At:{" "}
-                        {formatDateTime(drawing.updatedAt)}
+                      <p className="mt-0.5 text-xs text-muted">
+                        Drafter: {drawing.drawnByName ?? drawing.drawnByUsername ?? "-"}
+                      </p>
+                      <p className="text-xs text-muted">
+                        Updated: {formatDateTime(drawing.updatedAt)}
                       </p>
                       {drawing.workflowSource === "LEGACY_READY" ? (
-                        <p className="mt-1 text-sm leading-6 text-muted">
+                        <p className="mt-0.5 text-xs text-muted">
                           Uploaded by: {drawing.uploadedByName ?? drawing.uploadedByUsername ?? "-"}
                         </p>
                       ) : null}
                     </div>
 
-                    <div className="flex flex-col items-start gap-2.5 lg:w-[172px] lg:items-stretch">
-                      <div className="lg:flex lg:justify-end">
-                        <StatusBadge
-                          compact
-                          label={getCompactDashboardStatusLabel(drawing.currentStatus)}
-                          status={drawing.currentStatus}
-                        />
-                      </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <StatusBadge
+                        compact
+                        label={getCompactDashboardStatusLabel(drawing.currentStatus)}
+                        status={drawing.currentStatus}
+                      />
                       <Link href={getQueueHref(role, drawing.id, drawing.currentStatus)}>
-                        <Button className="w-full" variant="secondary">
+                        <Button variant="secondary">
                           {getQueueCtaLabel(role, drawing.currentStatus)}
                         </Button>
                       </Link>
@@ -360,8 +361,8 @@ function DashboardContent({ role }: { role: UserRole }) {
           <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Activity Feed</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Aktivitas terbaru</h2>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+              <h2 className="mt-1 text-lg md:text-2xl font-semibold text-text">Aktivitas terbaru</h2>
+              <p className="mt-1 text-sm leading-6 text-muted line-clamp-2">
                 Aktivitas terbaru yang masih relevan dengan drawing yang visible pada role aktif.
               </p>
             </div>
@@ -375,15 +376,14 @@ function DashboardContent({ role }: { role: UserRole }) {
               />
             ) : (
               activity.map((item) => (
-                <div className="rounded-[20px] border border-border/80 bg-white px-3.5 py-3" key={item.id}>
-                  <div className="flex flex-col gap-2.5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-[15px] font-semibold leading-6 text-text">
-                          {humanizeAuditAction(item.action)}
-                        </p>
-                      </div>
-                      <div className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/80 bg-panel/24 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+                <div className="rounded-[16px] border border-border/80 bg-white px-3 py-3" key={item.id}>
+                  <div className="flex flex-col gap-2">
+                    {/* Title + date badge stacked on mobile */}
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[14px] font-semibold leading-5 text-text min-w-0">
+                        {humanizeAuditAction(item.action)}
+                      </p>
+                      <div className="flex-shrink-0 flex items-center gap-1 rounded-full border border-border/80 bg-panel/24 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-muted whitespace-nowrap">
                         <span>{formatActivityDate(item.createdAt)}</span>
                         <span className="h-1 w-1 rounded-full bg-border" />
                         <span>{formatActivityTime(item.createdAt)}</span>
@@ -391,39 +391,36 @@ function DashboardContent({ role }: { role: UserRole }) {
                     </div>
 
                     <div className="min-w-0">
-                      <p className="truncate text-[11px] font-bold uppercase tracking-[0.16em] text-brand">
+                      <p className="truncate text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
                         {item.drawingNumber ?? "Drawing"}
                       </p>
-                      <p className="mt-0.5 text-base font-semibold leading-6 text-text">
+                      <p className="mt-0.5 text-sm font-semibold leading-5 text-text line-clamp-2">
                         {item.drawingName ?? "Tanpa judul"}
                       </p>
-                      <p className="text-sm text-muted">
+                      <p className="text-xs text-muted">
                         {item.revisionNo ? `Rev ${item.revisionNo}` : "Revision -"}
                       </p>
                     </div>
 
                     {item.note ? (
-                      <p className="text-sm leading-6 text-muted">{item.note}</p>
+                      <p className="text-xs leading-5 text-muted line-clamp-2">{item.note}</p>
                     ) : null}
 
-                    <div className="flex items-end justify-between gap-3">
-                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                    <div className="flex items-center justify-between gap-2 min-w-0">
+                      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                         {item.currentStatus ? <StatusBadge compact status={item.currentStatus} /> : null}
                         {item.actorName ? (
-                          <span className="max-w-full rounded-full border border-border bg-panel/28 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-text/90">
-                            <span className="truncate">
-                              {item.actorName}
-                              {item.actorRole ? ` / ${getRoleLabel(item.actorRole)}` : ""}
-                            </span>
+                          <span className="min-w-0 rounded-full border border-border bg-panel/28 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-text/90 truncate max-w-[140px]">
+                            {item.actorName}
+                            {item.actorRole ? ` / ${getRoleLabel(item.actorRole)}` : ""}
                           </span>
                         ) : null}
                       </div>
-
                       <Link
-                        className="shrink-0 text-sm font-semibold text-brand transition hover:text-brand/80"
+                        className="shrink-0 text-xs font-semibold text-brand transition hover:text-brand/80"
                         href={`/drawings/${item.drawingId}`}
                       >
-                        Open
+                        Open →
                       </Link>
                     </div>
                   </div>
@@ -460,8 +457,8 @@ function DashboardLoadingState() {
 function MetricCard({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
     <Card className={tone}>
-      <p className="text-xs font-bold uppercase tracking-[0.26em] text-muted">{label}</p>
-      <p className="mt-4 text-4xl font-semibold text-text">{value}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-muted leading-none">{label}</p>
+      <p className="mt-3 text-3xl font-semibold text-text">{value}</p>
     </Card>
   );
 }
@@ -476,9 +473,9 @@ function HighlightStat({
   tone: string;
 }) {
   return (
-    <div className={`rounded-[22px] border border-white/10 px-4 py-4 ${tone}`}>
-      <p className="text-[11px] font-bold uppercase tracking-[0.2em] opacity-70">{label}</p>
-      <p className="mt-2 text-3xl font-semibold">{value}</p>
+    <div className={`rounded-xl sm:rounded-[22px] border border-white/10 px-3 py-3 sm:px-4 sm:py-4 ${tone}`}>
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] opacity-60 leading-none">{label}</p>
+      <p className="mt-2 text-2xl sm:text-3xl font-semibold">{value}</p>
     </div>
   );
 }

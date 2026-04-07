@@ -5,7 +5,10 @@ import "@/app/globals.css";
 
 export const metadata: Metadata = {
   title: "Drawing Management System",
-  description: "Sistem pengelolaan filing, approval, dan distribusi drawing."
+  description: "Sistem pengelolaan filing, approval, dan distribusi drawing.",
+  icons: {
+    icon: "/logo.png"
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

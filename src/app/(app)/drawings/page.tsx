@@ -272,21 +272,21 @@ function DrawingsContent({
         title={pageCopy.title}
         description={pageCopy.description}
         actions={
-          <>
-            <Button onClick={resetFilters} variant="secondary">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+            <Button className="w-full sm:w-auto" onClick={resetFilters} variant="secondary">
               Reset Filter
             </Button>
             {canCreateDrawing(role) ? (
-              <Link href="/drawings/new">
-                <Button>Create Drawing</Button>
+              <Link className="w-full sm:w-auto" href="/drawings/new">
+                <Button className="w-full">Create Drawing</Button>
               </Link>
             ) : null}
             {canUploadOldDrawing(role) ? (
-              <Link href="/drawings/legacy/new">
-                <Button variant="secondary">Upload Old Drawing</Button>
+              <Link className="w-full sm:w-auto" href="/drawings/legacy/new">
+                <Button className="w-full" variant="secondary">Upload Old Drawing</Button>
               </Link>
             ) : null}
-          </>
+          </div>
         }
       />
 
@@ -295,30 +295,30 @@ function DrawingsContent({
           <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
           <div className="absolute -right-16 top-0 h-48 w-48 rounded-full bg-white/5 blur-3xl" />
           <div className="relative space-y-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-              <div>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/55">
                   Workspace {getRoleLabel(role)}
                 </p>
-                <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight">
+                <h2 className="mt-2 max-w-2xl text-lg md:text-2xl xl:text-3xl font-semibold tracking-tight leading-snug">
                   {pageCopy.heroTitle}
                 </h2>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72 line-clamp-3">
                   {pageCopy.heroDescription}
                 </p>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-white/5 px-5 py-4 text-right">
+              <div className="flex-shrink-0 flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 sm:flex-col sm:items-end sm:text-right sm:rounded-3xl sm:px-5 sm:py-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/55">
                   Active Filter
                 </p>
-                <p className="mt-2 text-5xl font-semibold">{activeFilterCount}</p>
-                <p className="mt-1 text-sm text-white/65">
-                  {activeFilterCount === 0 ? "Tidak ada filter tambahan" : "filter sedang digunakan"}
+                <p className="text-3xl sm:text-5xl font-semibold sm:mt-2">{activeFilterCount}</p>
+                <p className="text-xs sm:text-sm text-white/65 sm:mt-1">
+                  {activeFilterCount === 0 ? "Tidak ada filter" : "filter aktif"}
                 </p>
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <OverviewStat label="Visible" value={summary.total} />
               <OverviewStat label="Draft" value={summary.drafts} />
               <OverviewStat label="Need Review" value={summary.waiting} />
@@ -328,20 +328,26 @@ function DrawingsContent({
         </Card>
 
         <Card className="bg-white/75">
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">View & Summary</p>
-          <h2 className="mt-2 text-2xl font-semibold text-text">Browse lebih cepat</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Gunakan card view untuk membaca konteks lebih lengkap, atau compact list untuk menyapu banyak item sekaligus.
-          </p>
+          <div className="flex items-start gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">View & Summary</p>
+              <h2 className="mt-1 text-lg md:text-2xl font-semibold text-text">Browse lebih cepat</h2>
+              <p className="mt-1 hidden sm:block text-sm leading-6 text-muted">
+                Gunakan card view atau compact list untuk menyapu banyak item sekaligus.
+              </p>
+            </div>
+          </div>
 
-          <div className="mt-6 flex flex-wrap gap-2">
+          <div className="mt-4 flex gap-2">
             <Button
+              className="whitespace-nowrap flex-1 sm:flex-none"
               onClick={() => onViewModeChange("card")}
               variant={viewMode === "card" ? "primary" : "secondary"}
             >
               Card View
             </Button>
             <Button
+              className="whitespace-nowrap flex-1 sm:flex-none"
               onClick={() => onViewModeChange("list")}
               variant={viewMode === "list" ? "primary" : "secondary"}
             >
@@ -349,7 +355,7 @@ function DrawingsContent({
             </Button>
           </div>
 
-          <div className="mt-5 space-y-3">
+          <div className="mt-4 space-y-2">
             <MiniSummaryRow
               label="Status filter"
               value={filters.status === "ALL" ? "Semua status" : filters.status}
@@ -522,7 +528,7 @@ function DrawingsContent({
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap gap-2 lg:justify-end">
+                    <div className="mt-4 flex flex-wrap gap-2 justify-end lg:mt-0">
                       <ActionButtons
                         drawing={drawing}
                         isDeleting={deletingId === drawing.id}
@@ -536,17 +542,17 @@ function DrawingsContent({
                     {drawing.description || "Belum ada deskripsi tambahan untuk drawing ini."}
                   </p>
 
-                  <div className="grid gap-3 md:grid-cols-3">
+                  <div className="grid grid-cols-3 gap-2">
                     <CompactInfoCard
                       label="Drafter"
                       value={drawing.drawnByName ?? drawing.drawnByUsername ?? "-"}
                     />
                     <CompactInfoCard
-                      label="Current Revision"
+                      label="Revision"
                       value={currentRevision?.revisionNo ?? "-"}
                     />
                     <CompactInfoCard
-                      label="Updated At"
+                      label="Updated"
                       value={formatDateTime(drawing.updatedAt)}
                     />
                   </div>
@@ -666,7 +672,7 @@ function ActionButtons({
 
   actions.push(
     <Link className={compact ? "block" : undefined} href={`/drawings/${drawing.id}`} key="detail">
-      <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined} variant="secondary">
+      <Button className={compact ? "w-full px-3 py-2 text-xs" : "min-h-[44px] md:min-h-0"} variant="secondary">
         Detail
       </Button>
     </Link>
@@ -679,7 +685,7 @@ function ActionButtons({
         href={`/drawings/${drawing.id}/edit`}
         key="edit"
       >
-        <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined} variant="secondary">
+        <Button className={compact ? "w-full px-3 py-2 text-xs" : "min-h-[44px] md:min-h-0"} variant="secondary">
           Edit
         </Button>
       </Link>
@@ -693,7 +699,7 @@ function ActionButtons({
         href={`/drawings/${drawing.id}/check`}
         key="check"
       >
-        <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined}>Check</Button>
+        <Button className={compact ? "w-full px-3 py-2 text-xs" : "min-h-[44px] md:min-h-0"}>Check</Button>
       </Link>
     );
   }
@@ -705,7 +711,7 @@ function ActionButtons({
         href={`/drawings/${drawing.id}/approve`}
         key="approve"
       >
-        <Button className={compact ? "w-full px-3 py-2 text-xs" : undefined}>Approve</Button>
+        <Button className={compact ? "w-full px-3 py-2 text-xs" : "min-h-[44px] md:min-h-0"}>Approve</Button>
       </Link>
     );
   }
@@ -713,7 +719,7 @@ function ActionButtons({
   if (canDeleteDrawing(role)) {
     actions.push(
       <Button
-        className={compact ? "w-full px-3 py-2 text-xs" : undefined}
+        className={compact ? "w-full px-3 py-2 text-xs" : "min-h-[44px] md:min-h-0"}
         disabled={isDeleting}
         key="delete"
         onClick={() => void onDelete(drawing)}
@@ -856,18 +862,18 @@ function OverviewStat({ label, value }: { label: string; value: number }) {
 
 function MiniSummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between rounded-2xl border border-border/75 bg-white px-4 py-3">
-      <p className="text-sm font-semibold text-text">{label}</p>
-      <p className="text-sm text-muted">{value}</p>
+    <div className="flex items-center justify-between rounded-xl border border-border/75 bg-white px-3 py-2">
+      <p className="text-xs font-semibold text-text">{label}</p>
+      <p className="text-xs text-muted truncate ml-2 max-w-[55%] text-right">{value}</p>
     </div>
   );
 }
 
 function CompactInfoCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-panel/22 px-4 py-3">
-      <p className="text-xs font-bold uppercase tracking-[0.18em] text-muted">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-text">{value}</p>
+    <div className="rounded-xl border border-border bg-panel/22 px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted leading-none">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-text truncate">{value}</p>
     </div>
   );
 }

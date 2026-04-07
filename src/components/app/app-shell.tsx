@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { getNavigation } from "@/lib/config/navigation";
 import { cn } from "@/lib/utils/cn";
 import { getRoleLabel } from "@/lib/utils/permissions";
@@ -14,6 +14,29 @@ import { Card } from "@/components/ui/card";
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { currentUser } = useDemoApp();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSidebarOpen(false);
+      }
+    };
+    if (isSidebarOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "";
+    };
+  }, [isSidebarOpen]);
+
+  useEffect(() => {
+    setIsSidebarOpen(false);
+  }, [pathname]);
 
   if (!currentUser) {
     return <>{children}</>;
@@ -23,11 +46,50 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen app-grid">
-      <div className="mx-auto flex min-h-screen max-w-[1540px] flex-col gap-5 px-4 py-4 xl:flex-row xl:px-6">
-        <aside className="xl:w-[19rem]">
-          <Card className="sticky top-4 overflow-hidden border-transparent bg-graphite text-white shadow-[0_8px_20px_rgba(17,24,39,0.08)]">
+      <div className="mx-auto flex min-h-screen max-w-[1540px] flex-col xl:flex-row xl:gap-5 xl:px-6 xl:py-4">
+
+        {/* Mobile Header */}
+        <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/40 bg-white/95 px-3 shadow-sm backdrop-blur-md xl:hidden">
+          <div className="flex items-center gap-2">
+            <button
+              aria-label="Open navigation menu"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-text hover:bg-panel/60 transition-colors"
+              onClick={() => setIsSidebarOpen(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </button>
+            <span className="text-sm font-semibold text-text">Filing &amp; Approval</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <RoleSwitcher />
+          </div>
+        </div>
+
+        {/* Mobile Sidebar Overlay */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm xl:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+
+        <aside className={cn(
+          "fixed inset-y-0 left-0 z-50 w-[80%] max-w-[300px] transform transition-transform duration-300 ease-in-out xl:static xl:block xl:w-[19rem] xl:max-w-none xl:translate-x-0",
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <Card className="sticky top-4 flex h-full xl:h-auto flex-col overflow-y-auto overflow-x-hidden border-transparent bg-graphite rounded-none shadow-none xl:rounded-xl p-6 text-white shadow-[0_8px_20px_rgba(17,24,39,0.08)]">
             <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
-            <div className="mb-8">
+
+            {/* Close button inside sidebar for mobile */}
+            <button
+              className="absolute right-4 top-4 rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white xl:hidden"
+              onClick={() => setIsSidebarOpen(false)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+
+            <div className="mb-8 mt-2 xl:mt-0">
               <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-white/60">
                 Drawing Management
               </p>
@@ -71,16 +133,16 @@ export function AppShell({ children }: { children: ReactNode }) {
           </Card>
         </aside>
 
-        <div className="flex-1">
-          <div className="flex min-h-[calc(100vh-2rem)] flex-col rounded-[28px] border border-border/70 bg-white/72 p-5 shadow-panel backdrop-blur-sm">
-            <div className="mb-7 flex flex-col gap-4 border-b border-border/75 pb-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex-1 min-w-0">
+          <div className="flex min-h-[calc(100vh-2rem)] flex-col xl:rounded-[28px] xl:border xl:border-border/70 xl:bg-white/72 xl:shadow-panel xl:backdrop-blur-sm">
+            <div className="hidden mb-7 xl:flex flex-col gap-4 border-b border-border/75 pb-5 p-5 xl:flex-row xl:items-center xl:justify-between">
               <div><p className="text-[11px] font-bold uppercase tracking-[0.24em] text-brand">Workspace</p></div>
               <div className="flex items-center gap-3">
                 <NotificationBell />
                 <RoleSwitcher />
               </div>
             </div>
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 px-3 py-3 sm:px-4 xl:px-5 xl:pb-5">{children}</main>
             <footer className="mt-8 border-t border-border/50 pt-3 text-right">
               <p className="text-[11px] text-muted/80">
                 Pengembang app{" "}
