@@ -1,4 +1,6 @@
-# Datum Signet
+# DrafTerra
+
+*Foundation of Drawing Excellence*
 
 Sistem pengelolaan drawing berbasis web untuk filing, submit, check, approval bertingkat, distribusi Final Drawing, dan kontrol revisi dalam satu aplikasi terpusat.
 
@@ -34,7 +36,7 @@ Project ini dibangun dengan **Next.js 15**, **React 19**, **Tailwind CSS**, **Dr
 
 ## Executive Summary
 
-Datum Signet dirancang sebagai workspace digital internal untuk mengatasi masalah drawing yang tersebar, status revisi yang sulit dipastikan, dan approval yang tidak mudah ditelusuri. Fokus utamanya bukan hanya digitalisasi file, tetapi memastikan bahwa proses `Create Drawing`, `Check`, `Approval`, `Final Approval`, dan distribusi `Final Drawing` berjalan lebih tertib, terkontrol, dan siap diaudit.
+DrafTerra dirancang sebagai workspace digital internal untuk mengatasi masalah drawing yang tersebar, status revisi yang sulit dipastikan, dan approval yang tidak mudah ditelusuri. Fokus utamanya bukan hanya digitalisasi file, tetapi memastikan bahwa proses `Create Drawing`, `Check`, `Approval`, `Final Approval`, dan distribusi `Final Drawing` berjalan lebih tertib, terkontrol, dan siap diaudit.
 
 Dalam implementasi saat ini, aplikasi sudah mencakup autentikasi, role-based access, dashboard per role, `Drawing List`, `Drawing Detail`, approval berjenjang, legacy import melalui `Upload Old Drawing`, final PDF access, audit trail, dan `User Management`. Dengan pendekatan ini, tim maintenance dan tim internal lain memiliki satu sumber acuan yang lebih konsisten untuk dokumen final yang valid.
 

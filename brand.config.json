@@ -1,0 +1,12 @@
+{
+  "name": "DrafTerra",
+  "tagline": "Foundation of Drawing Excellence",
+  "owner": "LinearSAF",
+  "description": "Workspace pengelolaan drawing, approval, dan distribusi dokumen final yang terstruktur, terkontrol, dan mudah ditelusuri.",
+  "assets": {
+    "favicon": "/brand/icon%20-%20favicon.svg",
+    "logoLight": "/brand/logo-header-on_light_bg.svg",
+    "logoDark": "/brand/main-logo-on_dark_bg.svg",
+    "preview": "/brand/DrafTerra-logo-preview.jpg"
+  }
+}

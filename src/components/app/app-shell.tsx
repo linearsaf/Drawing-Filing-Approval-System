@@ -4,9 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode, useState, useEffect } from "react";
 import { getNavigation } from "@/lib/config/navigation";
+import { appBrand } from "@/lib/config/brand";
 import { cn } from "@/lib/utils/cn";
 import { getRoleLabel } from "@/lib/utils/permissions";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
+import { BrandLogo } from "@/components/app/brand-logo";
 import { NotificationBell } from "@/components/app/notification-bell";
 import { RoleSwitcher } from "@/components/app/role-switcher";
 import { Card } from "@/components/ui/card";
@@ -58,7 +60,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <span className="text-sm font-semibold text-text">Datum Signet</span>
+            <BrandLogo className="h-auto w-[110px] sm:w-[122px]" height={26} width={122} />
           </div>
           <div className="flex items-center gap-1">
             <NotificationBell />
@@ -90,14 +92,21 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
 
             <div className="mb-8 mt-2 xl:mt-0">
-              <p className="text-[11px] font-bold uppercase tracking-[0.26em] text-white/60">
-                Datum Signet
-              </p>
-              <h1 className="mt-3 text-[1.75rem] font-semibold tracking-[-0.02em]">
+              <BrandLogo
+                className="h-auto w-[188px] sm:w-[206px] xl:w-[220px]"
+                height={48}
+                priority
+                variant="dark"
+                width={220}
+              />
+              <h1 className="mt-4 text-[1.75rem] font-semibold tracking-[-0.02em]">
                 Drawing Control Console
               </h1>
               <p className="mt-3 text-sm leading-7 text-white/72">
                 Kelola drawing, approval, revisi, dan distribusi dokumen dalam satu alur kerja.
+              </p>
+              <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.24em] text-white/52">
+                {appBrand.tagline}
               </p>
             </div>
 
@@ -152,7 +161,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                   rel="noreferrer"
                   target="_blank"
                 >
-                  LinearSAF
+                  {appBrand.owner}
                 </a>
               </p>
             </footer>

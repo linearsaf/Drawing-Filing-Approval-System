@@ -1,20 +1,47 @@
-### Latar Belakang Penamaan Sistem: Datum Signet
+### Latar Belakang Penamaan Sistem: DrafTerra
 
-Sistem yang mengelola siklus hidup *drawing*—dari draf, persetujuan, hingga distribusi—membutuhkan identitas yang merepresentasikan presisi mutlak dan otoritas yang tidak bisa diganggu gugat. Atas dasar inilah nama **Datum Signet** dipilih.
+Nama **DrafTerra** dipilih sebagai representasi identitas aplikasi yang berfungsi sebagai pusat pengelolaan drawing secara terstruktur, terkontrol, dan berkelanjutan.
 
-Nama ini merupakan fusi dari dua filosofi utama dalam *engineering* dan *governance*:
+Secara etimologis, **DrafTerra** merupakan kombinasi dari dua kata utama:
 
-* **Datum (Presisi dan Referensi Absolut)**
-    Dalam *Geometric Dimensioning and Tolerancing* (GD&T), "Datum" adalah titik, sumbu, atau bidang referensi mutlak di mana semua pengukuran dan toleransi dihitung. Dalam konteks perangkat lunak ini, *Datum* melambangkan peran sistem sebagai **Single Source of Truth** (Satu Sumber Kebenaran). Setiap draf, revisi, dan dokumen yang berada di dalam sistem ini adalah referensi utama yang presisi dan mutakhir bagi seluruh tim operasional.
-* **Signet (Otoritas dan Akuntabilitas)**
-    Secara historis, *Signet* (cincin stempel) digunakan oleh para petinggi untuk menyegel dokumen penting, memastikan keaslian, dan memberikan persetujuan akhir yang permanen. Dalam sistem ini, *Signet* merepresentasikan fitur **Approval Bertingkat** dan **Audit Trail**. Setiap *drawing* yang didistribusikan telah melalui proses verifikasi yang ketat dan memiliki jejak digital (segel) yang mengikat secara profesional.
+- **Draft**
+  Menggambarkan proses inti dalam siklus hidup drawing, mulai dari pembuatan, revisi, pemeriksaan, hingga persetujuan.
+- **Terra**
+  Berarti tanah atau fondasi, melambangkan dasar yang kuat, stabil, dan menjadi pusat dari seluruh aktivitas pengelolaan dokumen.
 
-**Sinergi Identitas (Datum + Signet)**
-Secara keseluruhan, **Datum Signet** berarti *"Referensi mutlak yang telah disahkan"*. 
+Dengan kombinasi tersebut, **DrafTerra** merepresentasikan sebuah fondasi digital yang menjadi landasan utama dalam mengelola seluruh lifecycle drawing secara terpusat.
 
-Pemilihan nama ini secara psikologis dirancang untuk membangun kepercayaan diri di seluruh lapisan tim: 
-1.  Bagi **Drafter/Engineer**, ini adalah ruang kerja terstruktur yang menghargai presisi desain mereka.
-2.  Bagi **Checker/Approver**, ini adalah jaminan bahwa tanda tangan mereka terekam dengan aman.
-3.  Bagi **Manajemen**, ini adalah wujud kontrol kualitas dan tata kelola dokumen yang tanpa celah.
+### Makna Filosofis
 
-Dengan antarmuka yang terpusat pada *Datum Signet*, kita memastikan bahwa setiap spesifikasi teknis yang didistribusikan ke lapangan adalah dokumen final yang presisi, sah, dan dapat dipertanggungjawabkan sepenuhnya.
+- **Stabilitas dan Keandalan**
+  Sebagai fondasi, aplikasi menjadi sumber utama yang dapat dipercaya untuk seluruh dokumen drawing.
+- **Keterpusatan Data**
+  Seluruh proses, mulai dari create drawing, check, approval, hingga final approval, terintegrasi dalam satu sistem yang konsisten.
+- **Kontrol dan Keterlacakan**
+  Setiap revisi, approval, dan distribusi terdokumentasi dengan jelas melalui revision history, approval history, dan audit timeline.
+- **Integritas Dokumen**
+  Hanya drawing dengan status `Completed` yang dapat diakses oleh consumer, memastikan validitas dan keakuratan informasi.
+
+### Relevansi terhadap Fungsi Aplikasi
+
+Nama **DrafTerra** selaras dengan fitur utama aplikasi, antara lain:
+
+- workflow terstruktur per revisi dengan approval berjenjang
+- repository terpusat untuk seluruh dokumen drawing
+- mekanisme upload untuk legacy drawing yang sudah wet sign
+- histori revisi dan audit trail yang lengkap
+- distribusi final drawing dalam format terstandarisasi
+
+Dengan demikian, aplikasi tidak hanya berfungsi sebagai alat penyimpanan, tetapi sebagai platform pengendali proses yang memastikan setiap drawing memiliki kualitas, konsistensi, dan validitas yang terjaga.
+
+### Kesimpulan
+
+Pemilihan nama **DrafTerra** mencerminkan positioning aplikasi sebagai:
+
+> Fondasi digital untuk pengelolaan drawing yang terstruktur, terkontrol, dan dapat ditelusuri.
+
+Nama ini diharapkan mampu merepresentasikan nilai profesionalisme, keandalan sistem, serta kesiapan aplikasi untuk digunakan dalam lingkungan kerja yang membutuhkan standar tinggi dalam pengelolaan dokumen teknis.
+
+### Tagline
+
+**Foundation of Drawing Excellence**

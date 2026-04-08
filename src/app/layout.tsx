@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { DemoAppProvider } from "@/components/providers/demo-app-provider";
+import { appBrand } from "@/lib/config/brand";
 import "@/app/globals.css";
 
 export const metadata: Metadata = {
-  title: "Datum Signet",
-  description: "Workspace pengelolaan drawing, approval, dan distribusi dokumen final.",
+  title: appBrand.name,
+  description: appBrand.description,
   icons: {
-    icon: "/logo.png"
+    icon: appBrand.assets.favicon,
+    shortcut: appBrand.assets.favicon,
+    apple: appBrand.assets.favicon
   }
 };
 

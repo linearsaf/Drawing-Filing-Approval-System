@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-04-08
+
+### Added
+- Added `brand.config.json` as the shared brand manifest for runtime metadata, logos, tagline, and owner identity.
+- Added reusable `BrandLogo` support for app surfaces that now consume the new `public/brand` assets.
+
+### Changed
+- Rebranded the product identity from `Datum Signet` to `DrafTerra` across runtime app surfaces, auth/email branding, and stakeholder-facing documentation.
+- Switched runtime logo usage to the new `public/brand` asset set, including favicon, light-background wordmark, and dark-background wordmark.
+- Updated the naming background document, DOCX generator, and executive presentation generator to align with the DrafTerra positioning and tagline.
+- Refined the generated DOCX content with integrated logo philosophy, embedded logo preview, lighter legal closing copy, and revised annual business value assumptions based on field estimates.
+
+### Notes
+- `LinearSAF` remains the developer and owner attribution brand.
+- `scripts/generate-datum-signet-executive-pptx.js` is treated as an internal helper and is now ignored by Git.
+
 ## 2026-04-07
 
 ### Added

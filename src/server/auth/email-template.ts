@@ -1,3 +1,5 @@
+import { appBrand } from "@/lib/config/brand";
+
 const BRAND = {
   brand: "#35559a",
   graphite: "#232833",
@@ -52,7 +54,7 @@ export function renderEmailLayout(input: {
   note?: string;
   footer?: string;
 }) {
-  const badge = escapeHtml(input.badge ?? "Datum Signet");
+  const badge = escapeHtml(input.badge ?? appBrand.name);
   const title = escapeHtml(input.title);
   const preheader = escapeHtml(input.preheader);
   const summary = escapeHtml(input.summary);
@@ -138,7 +140,7 @@ export function renderEmailLayout(input: {
                         ${footer}
                       </p>
                       <p style="margin: 0; font-size: 12px; line-height: 1.7; color: ${BRAND.sage}; font-weight: 600;">
-                        Datum Signet
+                        ${escapeHtml(appBrand.name)}
                       </p>
                     </div>
                   </td>

@@ -1,9 +1,9 @@
-# Datum Signet PRD
+# DrafTerra PRD
 
 ## 1. Informasi Dokumen
 
 - Nama Dokumen: Product Requirements Document
-- Nama Produk: Datum Signet
+- Nama Produk: DrafTerra
 - Status Dokumen: Updated to current implementation
 - Format: Web Application Full Stack
 - Target Stack: Next.js App Router, MySQL, Drizzle ORM, Better Auth
@@ -13,7 +13,7 @@
 
 ## 2. Ringkasan Produk
 
-Datum Signet adalah workspace internal untuk mengelola siklus hidup drawing dari pembuatan draft, proses check, approval bertingkat, distribusi final drawing, sampai audit trail aktivitas.
+DrafTerra adalah workspace internal untuk mengelola siklus hidup drawing dari pembuatan draft, proses check, approval bertingkat, distribusi final drawing, sampai audit trail aktivitas.
 
 Versi aplikasi yang berjalan saat ini sudah mencakup:
 
@@ -574,6 +574,6 @@ Fitur yang masih masuk fase lanjutan:
 
 ## 19. Kesimpulan
 
-Saat ini Datum Signet sudah berkembang dari draft MVP menjadi implementasi kerja yang mencakup auth, drawing workflow, revision management, admin management, dan request access flow.
+Saat ini DrafTerra sudah berkembang dari draft MVP menjadi implementasi kerja yang mencakup auth, drawing workflow, revision management, admin management, dan request access flow.
 
 PRD ini sekarang harus dibaca sebagai dokumen snapshot implementasi aktual, bukan lagi asumsi awal proyek.

@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { appBrand } from "@/lib/config/brand";
 import { savePasswordResetPreview } from "@/server/auth/password-reset-preview";
 import { renderEmailLayout } from "@/server/auth/email-template";
 
@@ -43,7 +44,7 @@ export async function sendPasswordResetEmail(input: PasswordResetInput) {
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Permintaan Reset Password Akun Anda - Datum Signet",
+    subject: `Permintaan Reset Password Akun Anda - ${appBrand.name}`,
     html: renderEmailLayout({
       preheader: "Gunakan tautan ini untuk mengatur password baru akun Anda.",
       title: "Bantuan untuk reset password",

@@ -4,11 +4,13 @@ import type { ReactNode } from "react";
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BrandLogo } from "@/components/app/brand-logo";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
+import { appBrand } from "@/lib/config/brand";
 
 const platformHighlights = ["Approval tertata", "Revisi terlacak", "Distribusi terkendali"] as const;
 
@@ -85,8 +87,14 @@ function LoginContent() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(58,80,151,0.45),transparent_28%),linear-gradient(160deg,rgba(255,255,255,0.06),transparent_42%)]" />
           <div className="relative flex h-full flex-col justify-between">
             <div>
-              <div className="inline-flex rounded-full border border-white/12 bg-white/7 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-white/72">
-                Datum Signet
+              <div className="inline-flex">
+                <BrandLogo
+                  className="h-auto w-[172px] sm:w-[198px] lg:w-[228px]"
+                  height={50}
+                  priority
+                  variant="dark"
+                  width={228}
+                />
               </div>
               <h1 className="mt-6 max-w-2xl text-4xl font-semibold leading-tight lg:text-[2.85rem]">
                 Workspace drawing yang lebih tertib, mudah dilacak, dan siap diaudit.
@@ -94,6 +102,9 @@ function LoginContent() {
               <p className="mt-5 max-w-xl text-sm leading-7 text-white/75">
                 Satu workspace untuk filing, review, approval, dan distribusi dokumen final secara
                 konsisten.
+              </p>
+              <p className="mt-4 text-xs font-bold uppercase tracking-[0.28em] text-white/54">
+                {appBrand.tagline}
               </p>
 
               <div className="mt-8 grid gap-3 md:grid-cols-3">

@@ -19,6 +19,7 @@ public/uploads/
 # Internal document-generation scripts
 scripts/generate-drawing-management-docx.js
 scripts/generate-drawing-management-proposal-pptx.js
+scripts/generate-datum-signet-executive-pptx.js
 
 # Internal presentation and document artifacts
 docs/**/*.docx

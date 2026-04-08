@@ -6,10 +6,11 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 import { env } from "@/lib/env";
+import { appBrand } from "@/lib/config/brand";
 import { sendPasswordResetEmail } from "@/server/auth/password-reset-email";
 
 export const auth = betterAuth({
-  appName: "Datum Signet",
+  appName: appBrand.name,
   baseURL: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {

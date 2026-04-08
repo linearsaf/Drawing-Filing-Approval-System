@@ -1,4 +1,5 @@
 import { env } from "@/lib/env";
+import { appBrand } from "@/lib/config/brand";
 import { saveAccountApprovedPreview } from "@/server/auth/account-approved-preview";
 import { renderEmailLayout } from "@/server/auth/email-template";
 
@@ -46,13 +47,13 @@ export async function sendAccountApprovedEmail(input: AccountApprovedEmailInput)
   await transporter.sendMail({
     from: env.SMTP_FROM_EMAIL,
     to: input.email,
-    subject: "Akun Anda Sudah Aktif - Datum Signet",
+    subject: `Akun Anda Sudah Aktif - ${appBrand.name}`,
     html: renderEmailLayout({
       preheader: "Akses Anda sudah aktif dan siap digunakan.",
-      title: "Selamat datang di Datum Signet",
+      title: `Selamat datang di ${appBrand.name}`,
       summary: `Halo ${input.name}, akses untuk akun Anda sudah tersedia.`,
       intro:
-        "Anda sekarang sudah dapat masuk ke Datum Signet untuk mulai mengelola proses filing, review, approval, dan distribusi drawing dengan lebih rapi, mudah dilacak, dan nyaman digunakan.",
+        `Anda sekarang sudah dapat masuk ke ${appBrand.name} untuk mulai mengelola proses filing, review, approval, dan distribusi drawing dengan lebih rapi, mudah dilacak, dan nyaman digunakan.`,
       details: [
         { label: "Email", value: input.email },
         { label: "Username", value: input.username },

@@ -1,8 +1,8 @@
-# Drawing Management Implementation Constraints and Mitigations
+# DrafTerra Implementation Constraints and Mitigations
 
 ## 1. Tujuan
 
-Dokumen ini merangkum constraint yang perlu dipertimbangkan bila aplikasi Drawing Management diimplementasikan di lingkungan perusahaan, beserta mitigasi praktisnya.
+Dokumen ini merangkum constraint yang perlu dipertimbangkan bila aplikasi DrafTerra diimplementasikan di lingkungan perusahaan, beserta mitigasi praktisnya.
 
 Dokumen ini sengaja fokus pada risiko implementasi nyata, bukan hanya fitur aplikasi. Artinya, yang dibahas adalah keterbatasan storage, operasional server, backup, keamanan file, performa, audit, dan sustainability saat volume drawing terus bertambah.
 

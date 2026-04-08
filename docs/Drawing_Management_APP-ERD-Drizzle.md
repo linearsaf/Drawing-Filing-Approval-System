@@ -1,4 +1,4 @@
-# Drawing Management App - ERD & Drizzle Schema Aktual
+# DrafTerra - ERD & Drizzle Schema Aktual
 
 ## 1. Tujuan Dokumen
 
