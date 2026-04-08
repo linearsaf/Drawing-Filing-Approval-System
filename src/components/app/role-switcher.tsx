@@ -45,10 +45,10 @@ export function RoleSwitcher() {
         aria-expanded={isOpen}
         aria-haspopup="true"
         className={cn(
-          "relative flex h-12 w-12 items-center justify-center rounded-full border transition",
+          "relative flex h-10 w-10 items-center justify-center rounded-none border-0 bg-transparent transition xl:h-12 xl:w-12 xl:rounded-full xl:border",
           isOpen
-            ? "border-brand/40 bg-brand/10 text-brand shadow-inset"
-            : "border-border/85 bg-surface/94 text-text hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
+            ? "text-brand xl:border-brand/40 xl:bg-brand/10 xl:shadow-inset"
+            : "text-text hover:text-brand xl:border-border/85 xl:bg-surface/94 xl:hover:border-brand/30 xl:hover:bg-brand/5"
         )}
         onClick={() => setIsOpen(!isOpen)}
         type="button"
@@ -96,12 +96,12 @@ function UserIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-[1.2rem] w-[1.2rem]"
+      className="h-[1.2rem] w-[1.2rem] xl:h-[1.15rem] xl:w-[1.15rem]"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="1.8"
+      strokeWidth="2"
       viewBox="0 0 24 24"
     >
       <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />

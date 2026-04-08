@@ -61,10 +61,10 @@ export function NotificationBell() {
   return (
     <Link
       className={cn(
-        "relative inline-flex h-12 w-12 items-center justify-center rounded-full border transition",
+        "relative inline-flex h-10 w-10 items-center justify-center rounded-none border-0 bg-transparent transition xl:h-12 xl:w-12 xl:rounded-full xl:border",
         pathname === "/notifications"
-          ? "border-brand/40 bg-brand/10 text-brand"
-          : "border-border/85 bg-surface/94 text-text hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
+          ? "text-brand xl:border-brand/40 xl:bg-brand/10"
+          : "text-text hover:text-brand xl:border-border/85 xl:bg-surface/94 xl:hover:border-brand/30 xl:hover:bg-brand/5"
       )}
       href="/notifications"
     >
@@ -83,16 +83,16 @@ function BellIcon() {
   return (
     <svg
       aria-hidden="true"
-      className="h-[1.15rem] w-[1.15rem]"
+      className="h-[1.2rem] w-[1.2rem] xl:h-[1.15rem] xl:w-[1.15rem]"
       fill="none"
       stroke="currentColor"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="1.8"
+      strokeWidth="2"
       viewBox="0 0 24 24"
     >
-      <path d="M15 17h5l-1.4-1.4a2 2 0 0 1-.6-1.4V10a6 6 0 1 0-12 0v4.2a2 2 0 0 1-.6 1.4L4 17h5" />
-      <path d="M10 17a2 2 0 0 0 4 0" />
+      <path d="M10.268 21a2 2 0 0 0 3.464 0" />
+      <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
     </svg>
   );
 }

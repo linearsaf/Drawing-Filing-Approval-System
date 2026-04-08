@@ -52,7 +52,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* Mobile Header */}
         <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/40 bg-white/95 px-3 shadow-sm backdrop-blur-md xl:hidden">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <button
               aria-label="Open navigation menu"
               className="flex h-9 w-9 items-center justify-center rounded-lg text-text hover:bg-panel/60 transition-colors"
@@ -60,9 +60,9 @@ export function AppShell({ children }: { children: ReactNode }) {
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </button>
-            <BrandLogo className="h-auto w-[110px] sm:w-[122px]" height={26} width={122} />
+            <BrandLogo className="-mb-1 h-auto w-[128px] sm:w-[138px]" height={30} width={138} />
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-0.5">
             <NotificationBell />
             <RoleSwitcher />
           </div>
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm xl:hidden"
+            className="fixed inset-0 z-40 bg-black/40 xl:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
@@ -80,7 +80,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           "fixed inset-y-0 left-0 z-50 w-[80%] max-w-[300px] transform transition-transform duration-300 ease-in-out xl:static xl:block xl:w-[19rem] xl:max-w-none xl:translate-x-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <Card className="sticky top-4 flex h-full xl:h-auto flex-col overflow-y-auto overflow-x-hidden border-transparent bg-graphite rounded-none shadow-none xl:rounded-xl p-6 text-white shadow-[0_8px_20px_rgba(17,24,39,0.08)]">
+          <Card className="sticky top-0 flex h-full xl:h-auto flex-col overflow-y-auto overflow-x-hidden border-transparent bg-graphite rounded-none shadow-none xl:top-4 xl:rounded-xl xl:shadow-[0_8px_20px_rgba(17,24,39,0.08)] p-6 text-white">
             <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
 
             {/* Close button inside sidebar for mobile */}
