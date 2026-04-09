@@ -58,7 +58,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               className="flex h-9 w-9 items-center justify-center rounded-lg text-text hover:bg-panel/60 transition-colors"
               onClick={() => setIsSidebarOpen(true)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[1.2rem] w-[1.2rem] xl:h-[1.15rem] xl:w-[1.15rem]"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M9 3v18"></path></svg>
             </button>
             <BrandLogo className="-mb-1 h-auto w-[128px] sm:w-[138px]" height={30} width={138} />
           </div>
@@ -85,10 +85,10 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {/* Close button inside sidebar for mobile */}
             <button
-              className="absolute right-4 top-4 rounded-full p-2 text-white/70 hover:bg-white/10 hover:text-white xl:hidden"
+              className="absolute right-4 top-4 p-2 text-white/70 hover:text-white xl:hidden"
               onClick={() => setIsSidebarOpen(false)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-[1.2rem] w-[1.2rem] xl:h-[1.15rem] xl:w-[1.15rem]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m10 15-3-3 3-3"></path></svg>
             </button>
 
             <div className="mb-8 mt-2 xl:mt-0">
@@ -152,7 +152,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </div>
             <main className="flex-1 px-3 py-3 sm:px-4 xl:px-5 xl:pb-5">{children}</main>
-            <footer className="mt-8 border-t border-border/50 pt-3 text-right">
+            <footer className="mt-8 border-t border-border/50 px-1 pb-1 pt-2 text-right sm:px-2">
               <p className="text-[11px] text-muted/80">
                 Pengembang app{" "}
                 <a
