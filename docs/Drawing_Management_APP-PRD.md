@@ -20,6 +20,7 @@ Versi aplikasi yang berjalan saat ini sudah mencakup:
 - authentication berbasis Better Auth
 - role-based access control
 - dashboard per role
+- new drawing request flow untuk role non-Drafter dan non-Draft Leader
 - create, edit, submit, check, approval, dan revision flow
 - upload old drawing sebagai legacy ready import
 - drawing list dengan search dan filter
@@ -61,23 +62,30 @@ Sistem ini dibangun untuk:
 
 ### Alur utama
 
+`New Drawing Request -> Draft Leader Review -> Drafter Acceptance -> Draft -> Check -> Approval -> Final Drawing -> Distribution`
+
 `Create Drawing -> Submit to Check -> Approval -> Final Drawing -> Distribution`
 
 `Upload Old Drawing -> Completed -> Distribution`
 
 ### Alur operasional
 
-1. Drafter membuat drawing baru dan upload PDF.
-2. Drawing disimpan sebagai `DRAFT` atau langsung dikirim ke `WAITING_CHECK`.
-3. Draft Leader melakukan `Check` sekaligus menentukan approver per revision.
-4. Jika lolos, drawing masuk ke `WAITING_APPROVAL_1` dengan approver level 1 yang ditugaskan.
-5. Approver Level 1 yang ditugaskan memproses approval level pertama.
-6. Jika level 2 disiapkan, drawing masuk ke `WAITING_APPROVAL_2`.
-7. Head yang ditugaskan memproses final approval bila level 2 memang dipakai.
-8. Jika level 2 tidak dipakai, approval level 1 langsung mengubah revision menjadi `COMPLETED`.
-9. Jika level 2 dipakai dan lolos, revision menjadi `COMPLETED`.
-10. Consumer dan role internal yang berhak dapat membuka, print, dan download final drawing.
-11. Jika ada perubahan lanjutan, Drafter/Admin membuat revision baru dari drawing yang sudah completed.
+1. Role selain `DRAFTER` dan `DRAFT_LEADER` dapat membuat `New Drawing Request`.
+2. Requester wajib mengisi `SAC / SBI Asset Code`, `Area`, `Description`, `Keperluan`, dan dapat menambah upload gambar opsional.
+3. Request masuk ke queue `Draft Leader` dengan status `PENDING_REVIEW`.
+4. `Draft Leader` dapat menolak request dengan alasan wajib, atau menyetujui lalu assign ke `Drafter` tertentu.
+5. `Drafter` dapat menerima assignment atau menolaknya dengan alasan wajib.
+6. Saat `Drafter` menerima assignment, sistem membuat `drawing` formal berstatus `DRAFT` dan item langsung masuk ke panel `My Queue / Prioritas pengerjaan Anda`.
+7. `Drafter` melanjutkan pekerjaan drawing, upload PDF, dan submit ke `WAITING_CHECK` saat siap.
+8. `Draft Leader` melakukan `Check` sekaligus menentukan approver per revision.
+9. Jika lolos, drawing masuk ke `WAITING_APPROVAL_1` dengan approver level 1 yang ditugaskan.
+10. Approver Level 1 yang ditugaskan memproses approval level pertama.
+11. Jika level 2 disiapkan, drawing masuk ke `WAITING_APPROVAL_2`.
+12. Head yang ditugaskan memproses final approval bila level 2 memang dipakai.
+13. Jika level 2 tidak dipakai, approval level 1 langsung mengubah revision menjadi `COMPLETED`.
+14. Jika level 2 dipakai dan lolos, revision menjadi `COMPLETED`.
+15. Consumer dan role internal yang berhak dapat membuka, print, dan download final drawing.
+16. Jika ada perubahan lanjutan, Drafter/Admin membuat revision baru dari drawing yang sudah completed.
 
 ### Alur legacy import
 
@@ -109,6 +117,7 @@ Sistem ini dibangun untuk:
 Hak akses:
 
 - create drawing
+- menerima atau menolak assignment `New Drawing Request` dengan alasan yang jelas
 - edit drawing pada status draft atau rejected
 - upload PDF revision
 - submit revision ke proses check
@@ -119,6 +128,9 @@ Hak akses:
 
 Hak akses:
 
+- melihat dan mereview `New Drawing Request`
+- menyetujui lalu assign request ke `Drafter` tertentu
+- menolak request dengan alasan wajib
 - melihat drawing dengan status `WAITING_CHECK`
 - membuka halaman `Check Drawing`
 - approve atau reject pada approval level `0`
@@ -149,6 +161,7 @@ Hak akses:
 
 Hak akses:
 
+- membuat `New Drawing Request` bila dibutuhkan
 - browse final drawing
 - membuka detail drawing yang completed
 - preview, print, dan download final drawing
@@ -217,6 +230,7 @@ Flow ini sudah aktif di aplikasi saat ini.
 - admin approval request access
 - role guard pada page dan API
 - dashboard per role
+- new drawing request
 - drawing list dengan search, filter, card view, dan compact list
 - drawing detail
 - create drawing
@@ -240,7 +254,6 @@ Flow ini sudah aktif di aplikasi saat ini.
 
 - approval workflow multi-level bebas di luar skema L1 wajib + L2 opsional
 - multi-role per user
-- user request drawing baru ke Draft Leader untuk didistribusikan ke Drafter sesuai antrean kerja
 - annotation langsung di PDF
 - compare visual antar revision
 - notification center in-app

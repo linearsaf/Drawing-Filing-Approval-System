@@ -62,6 +62,29 @@ async function fileExists(filePath: string) {
   }
 }
 
+async function writeManagedDrawingFile(params: {
+  drawingId: string;
+  revisionNo: string;
+  fileName: string;
+  buffer: Buffer;
+  createWatermarkedCopy?: boolean;
+}) {
+  const paths = buildPaths(params.drawingId, params.revisionNo, params.fileName);
+
+  await mkdir(paths.diskDir, { recursive: true });
+  await writeFile(paths.originalDiskPath, params.buffer);
+
+  if (params.createWatermarkedCopy) {
+    await copyFile(paths.originalDiskPath, paths.watermarkedDiskPath);
+  }
+
+  return {
+    fileName: paths.safeFileName,
+    fileOriginalPath: paths.originalPublicPath,
+    fileWatermarkedPath: params.createWatermarkedCopy ? paths.watermarkedPublicPath : null
+  };
+}
+
 async function findFileByBaseName(rootDir: string, baseName: string): Promise<string | null> {
   const entries = await readdir(rootDir, { withFileTypes: true });
 
@@ -126,20 +149,23 @@ export async function saveDrawingPdfFile(params: {
   ensurePdf(params.file);
 
   const buffer = Buffer.from(await params.file.arrayBuffer());
-  const paths = buildPaths(params.drawingId, params.revisionNo, params.file.name);
+  return writeManagedDrawingFile({
+    drawingId: params.drawingId,
+    revisionNo: params.revisionNo,
+    fileName: params.file.name,
+    buffer,
+    createWatermarkedCopy: params.createWatermarkedCopy
+  });
+}
 
-  await mkdir(paths.diskDir, { recursive: true });
-  await writeFile(paths.originalDiskPath, buffer);
-
-  if (params.createWatermarkedCopy) {
-    await copyFile(paths.originalDiskPath, paths.watermarkedDiskPath);
-  }
-
-  return {
-    fileName: paths.safeFileName,
-    fileOriginalPath: paths.originalPublicPath,
-    fileWatermarkedPath: params.createWatermarkedCopy ? paths.watermarkedPublicPath : null
-  };
+export async function saveGeneratedDrawingPdfFile(params: {
+  drawingId: string;
+  revisionNo: string;
+  fileName: string;
+  buffer: Buffer;
+  createWatermarkedCopy?: boolean;
+}) {
+  return writeManagedDrawingFile(params);
 }
 
 export async function removeDrawingRevisionFiles(params: {

@@ -14,7 +14,7 @@ type DbExecutor = Pick<typeof db, "select" | "insert" | "update" | "delete"> & {
   query: typeof db.query;
 };
 
-type NotificationEntityType = "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST";
+type NotificationEntityType = "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST" | "DRAWING_REQUEST";
 
 interface NotificationCreateInput {
   recipientUserId: string;
@@ -52,8 +52,16 @@ type AccessRequestContext = {
   status: AccessRequestStatus;
 };
 
+type DrawingRequestContext = {
+  id: string;
+  requestNumber: string;
+  status: typeof schema.drawingRequests.status._.data;
+  purpose: string;
+  drawingId: string | null;
+};
+
 function isActionableType(type: NotificationType) {
-  return type !== "DRAWING_COMPLETED";
+  return !["DRAWING_COMPLETED", "DRAWING_REQUEST_REVIEW_REJECTED", "DRAWING_REQUEST_ACCEPTED"].includes(type);
 }
 
 function buildSourceKey(parts: Array<string | number>) {
@@ -303,6 +311,187 @@ export async function notifyAdminsAccessRequestPending(
   );
 }
 
+export async function notifyDraftLeadersDrawingRequestPendingReview(
+  input: {
+    requestId: string;
+    requestNumber: string;
+    sacCode: string;
+    area: string;
+    purpose: string;
+    createdAt?: Date;
+  },
+  tx: DbExecutor = db
+) {
+  const recipients = await listActiveUserIdsByRole(["DRAFT_LEADER"], tx);
+  const createdAt = input.createdAt ?? new Date();
+
+  await insertNotifications(
+    recipients.map((recipientUserId) => ({
+      recipientUserId,
+      type: "DRAWING_REQUEST_PENDING_REVIEW" as NotificationType,
+      title: "Ada request drawing baru",
+      body: `${input.requestNumber} / ${input.area} / ${input.purpose} menunggu review Draft Leader.`,
+      entityType: "DRAWING_REQUEST" as NotificationEntityType,
+      entityId: input.requestId,
+      actionUrl: `/drawing-requests/${input.requestId}`,
+      sourceKey: buildSourceKey([
+        "notification",
+        "drawing-request-pending-review",
+        input.requestId,
+        createdAt.getTime(),
+        recipientUserId
+      ]),
+      createdAt
+    })),
+    tx
+  );
+}
+
+export async function notifyRequesterDrawingRequestRejected(
+  input: {
+    recipientUserId: string;
+    requestId: string;
+    requestNumber: string;
+    reason: string;
+    createdAt?: Date;
+  },
+  tx: DbExecutor = db
+) {
+    const createdAt = input.createdAt ?? new Date();
+
+    await insertNotifications(
+      [
+        {
+          recipientUserId: input.recipientUserId,
+          type: "DRAWING_REQUEST_REVIEW_REJECTED" as NotificationType,
+          title: "Request drawing ditolak",
+          body: `${input.requestNumber} ditolak oleh Draft Leader. Alasan: ${input.reason}`,
+          entityType: "DRAWING_REQUEST" as NotificationEntityType,
+          entityId: input.requestId,
+          actionUrl: `/drawing-requests/${input.requestId}`,
+          sourceKey: buildSourceKey([
+            "notification",
+            "drawing-request-review-rejected",
+            input.requestId,
+            createdAt.getTime(),
+            input.recipientUserId
+          ]),
+          createdAt
+        }
+      ],
+      tx
+    );
+}
+
+export async function notifyAssignedDrafterDrawingRequest(
+  input: {
+    recipientUserId: string;
+    requestId: string;
+    requestNumber: string;
+    area: string;
+    purpose: string;
+    createdAt?: Date;
+  },
+  tx: DbExecutor = db
+) {
+  const createdAt = input.createdAt ?? new Date();
+
+  await insertNotifications(
+    [
+      {
+        recipientUserId: input.recipientUserId,
+        type: "DRAWING_REQUEST_ASSIGNED" as NotificationType,
+        title: "Anda menerima assignment request drawing",
+        body: `${input.requestNumber} / ${input.area} / ${input.purpose} menunggu keputusan Anda sebagai drafter.`,
+        entityType: "DRAWING_REQUEST" as NotificationEntityType,
+        entityId: input.requestId,
+        actionUrl: `/drawing-requests/${input.requestId}`,
+        sourceKey: buildSourceKey([
+          "notification",
+          "drawing-request-assigned",
+          input.requestId,
+          input.recipientUserId,
+          createdAt.getTime()
+        ]),
+        createdAt
+      }
+    ],
+    tx
+  );
+}
+
+export async function notifyDraftLeadersDrawingRequestReturned(
+  input: {
+    requestId: string;
+    requestNumber: string;
+    reason: string;
+    createdAt?: Date;
+  },
+  tx: DbExecutor = db
+) {
+  const recipients = await listActiveUserIdsByRole(["DRAFT_LEADER"], tx);
+  const createdAt = input.createdAt ?? new Date();
+
+  await insertNotifications(
+    recipients.map((recipientUserId) => ({
+      recipientUserId,
+      type: "DRAWING_REQUEST_DRAFTER_REJECTED" as NotificationType,
+      title: "Assignment request dikembalikan Drafter",
+      body: `${input.requestNumber} dikembalikan ke Draft Leader. Alasan drafter: ${input.reason}`,
+      entityType: "DRAWING_REQUEST" as NotificationEntityType,
+      entityId: input.requestId,
+      actionUrl: `/drawing-requests/${input.requestId}`,
+      sourceKey: buildSourceKey([
+        "notification",
+        "drawing-request-drafter-rejected",
+        input.requestId,
+        recipientUserId,
+        createdAt.getTime()
+      ]),
+      createdAt
+    })),
+    tx
+  );
+}
+
+export async function notifyRequesterDrawingRequestAccepted(
+  input: {
+    recipientUserId: string;
+    requestId: string;
+    requestNumber: string;
+    drawingId: string;
+    drawingNumber: string;
+    drawingName: string;
+    createdAt?: Date;
+  },
+  tx: DbExecutor = db
+) {
+  const createdAt = input.createdAt ?? new Date();
+
+  await insertNotifications(
+    [
+      {
+        recipientUserId: input.recipientUserId,
+        type: "DRAWING_REQUEST_ACCEPTED" as NotificationType,
+        title: "Request drawing mulai dikerjakan",
+        body: `${input.requestNumber} sudah diterima Drafter dan dikonversi menjadi draft ${input.drawingNumber}.`,
+        entityType: "DRAWING_REQUEST" as NotificationEntityType,
+        entityId: input.requestId,
+        actionUrl: `/drawing-requests/${input.requestId}`,
+        sourceKey: buildSourceKey([
+          "notification",
+          "drawing-request-accepted",
+          input.requestId,
+          input.recipientUserId,
+          createdAt.getTime()
+        ]),
+        createdAt
+      }
+    ],
+    tx
+  );
+}
+
 export async function markRevisionNotificationsReadForUser(
   input: {
     recipientUserId: string;
@@ -380,6 +569,9 @@ async function enrichNotifications(
   const accessRequestIds = rows
     .filter((row) => row.entityType === "ACCESS_REQUEST")
     .map((row) => row.entityId);
+  const drawingRequestIds = rows
+    .filter((row) => row.entityType === "DRAWING_REQUEST")
+    .map((row) => row.entityId);
 
   const revisions: RevisionContext[] = revisionIds.length
     ? await db
@@ -435,18 +627,34 @@ async function enrichNotifications(
         .where(inArray(schema.userAccessRequests.id, accessRequestIds))
     : [];
   const accessRequestById = new Map(accessRequests.map((request) => [request.id, request]));
+  const drawingRequests: DrawingRequestContext[] = drawingRequestIds.length
+    ? await db
+        .select({
+          id: schema.drawingRequests.id,
+          requestNumber: schema.drawingRequests.requestNumber,
+          status: schema.drawingRequests.status,
+          purpose: schema.drawingRequests.purpose,
+          drawingId: schema.drawingRequests.drawingId
+        })
+        .from(schema.drawingRequests)
+        .where(inArray(schema.drawingRequests.id, drawingRequestIds))
+    : [];
+  const drawingRequestById = new Map(drawingRequests.map((request) => [request.id, request]));
 
   return rows.map((row) => {
     const revision = row.entityType === "REVISION" ? revisionById.get(row.entityId) ?? null : null;
     const drawing = revision ? drawingById.get(revision.drawingId) ?? null : null;
     const accessRequest =
       row.entityType === "ACCESS_REQUEST" ? accessRequestById.get(row.entityId) ?? null : null;
+    const drawingRequest =
+      row.entityType === "DRAWING_REQUEST" ? drawingRequestById.get(row.entityId) ?? null : null;
     const lifecycleStatus = deriveLifecycleStatus(
       row,
       recipientUserId,
       revision,
       drawing,
       accessRequest,
+      drawingRequest,
       stepByKey
     );
 
@@ -472,7 +680,11 @@ async function enrichNotifications(
         accessRequestId: accessRequest?.id ?? null,
         accessRequestName: accessRequest?.name ?? null,
         accessRequestEmail: accessRequest?.email ?? null,
-        accessRequestStatus: accessRequest?.status ?? null
+        accessRequestStatus: accessRequest?.status ?? null,
+        drawingRequestId: drawingRequest?.id ?? null,
+        drawingRequestNumber: drawingRequest?.requestNumber ?? null,
+        drawingRequestStatus: drawingRequest?.status ?? null,
+        drawingRequestPurpose: drawingRequest?.purpose ?? null
       }
     } satisfies NotificationItem;
   });
@@ -484,10 +696,31 @@ function deriveLifecycleStatus(
   revision: RevisionContext | null,
   drawing: DrawingContext | null,
   accessRequest: AccessRequestContext | null,
+  drawingRequest: DrawingRequestContext | null,
   stepByKey: Map<string, string | null>
 ): NotificationLifecycleStatus {
   if (row.type === "ACCESS_REQUEST_PENDING") {
     return accessRequest?.status === "PENDING" ? "ACTIVE" : "RESOLVED";
+  }
+
+  if (row.type === "DRAWING_REQUEST_PENDING_REVIEW") {
+    return drawingRequest?.status === "PENDING_REVIEW" ? "ACTIVE" : "RESOLVED";
+  }
+
+  if (row.type === "DRAWING_REQUEST_REVIEW_REJECTED") {
+    return drawingRequest?.status === "REVIEW_REJECTED" ? "ACTIVE" : "RESOLVED";
+  }
+
+  if (row.type === "DRAWING_REQUEST_ASSIGNED") {
+    return drawingRequest?.status === "WAITING_DRAFTER_ACCEPTANCE" ? "ACTIVE" : "RESOLVED";
+  }
+
+  if (row.type === "DRAWING_REQUEST_DRAFTER_REJECTED") {
+    return drawingRequest?.status === "DRAFTER_REJECTED" ? "ACTIVE" : "RESOLVED";
+  }
+
+  if (row.type === "DRAWING_REQUEST_ACCEPTED") {
+    return drawingRequest?.status === "CLOSED" && Boolean(drawingRequest.drawingId) ? "ACTIVE" : "RESOLVED";
   }
 
   if (!revision || !drawing) {

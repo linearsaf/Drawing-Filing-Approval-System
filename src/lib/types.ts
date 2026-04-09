@@ -7,6 +7,13 @@ export type UserRole =
   | "CONSUMER";
 
 export type AccessRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+export type DrawingRequestStatus =
+  | "PENDING_REVIEW"
+  | "REVIEW_REJECTED"
+  | "WAITING_DRAFTER_ACCEPTANCE"
+  | "DRAFTER_REJECTED"
+  | "IN_PROGRESS"
+  | "CLOSED";
 
 export type RevisionStatus =
   | "DRAFT"
@@ -30,7 +37,12 @@ export type NotificationType =
   | "APPROVAL_1_REJECTED"
   | "APPROVAL_2_REJECTED"
   | "DRAWING_COMPLETED"
-  | "ACCESS_REQUEST_PENDING";
+  | "ACCESS_REQUEST_PENDING"
+  | "DRAWING_REQUEST_PENDING_REVIEW"
+  | "DRAWING_REQUEST_REVIEW_REJECTED"
+  | "DRAWING_REQUEST_ASSIGNED"
+  | "DRAWING_REQUEST_DRAFTER_REJECTED"
+  | "DRAWING_REQUEST_ACCEPTED";
 export type NotificationLifecycleStatus = "ACTIVE" | "RESOLVED" | "SUPERSEDED";
 export type NotificationFilter = "ALL" | "UNREAD" | "ACTIONABLE";
 
@@ -82,6 +94,29 @@ export interface Drawing {
   updatedAt: string;
 }
 
+export interface DrawingRequest {
+  id: string;
+  requestNumber: string;
+  requestedByUserId: string;
+  reviewedByDraftLeaderId: string | null;
+  assignedDrafterId: string | null;
+  drawingId: string | null;
+  sacCode: string;
+  area: string;
+  description: string;
+  purpose: string;
+  referenceImagePath: string | null;
+  status: DrawingRequestStatus;
+  draftLeaderReviewNote: string | null;
+  drafterDecisionNote: string | null;
+  closedReason: string | null;
+  createdAt: string;
+  updatedAt: string;
+  reviewedAt: string | null;
+  assignedAt: string | null;
+  closedAt: string | null;
+}
+
 export interface DrawingRevision {
   id: string;
   drawingId: string;
@@ -129,7 +164,7 @@ export interface ApprovalAction {
 
 export interface AuditLog {
   id: string;
-  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST";
+  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST" | "DRAWING_REQUEST";
   entityId: string;
   action: string;
   userId: string | null;
@@ -193,6 +228,10 @@ export interface NotificationContext {
   accessRequestName: string | null;
   accessRequestEmail: string | null;
   accessRequestStatus: AccessRequestStatus | null;
+  drawingRequestId: string | null;
+  drawingRequestNumber: string | null;
+  drawingRequestStatus: DrawingRequestStatus | null;
+  drawingRequestPurpose: string | null;
 }
 
 export interface NotificationItem {
@@ -200,7 +239,7 @@ export interface NotificationItem {
   type: NotificationType;
   title: string;
   body: string;
-  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST";
+  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST" | "DRAWING_REQUEST";
   entityId: string;
   actionUrl: string;
   isRead: boolean;
@@ -256,4 +295,34 @@ export interface LegacyDrawingFormInput {
   drawnByUserId: string;
   legacyReadyNote: string;
   fileName: string;
+}
+
+export interface DrawingRequestCreateInput {
+  sacCode: string;
+  area: string;
+  description: string;
+  purpose: string;
+  referenceImageName?: string;
+}
+
+export interface DrawingRequestListItem extends DrawingRequest {
+  requestedByName: string | null;
+  requestedByUsername: string | null;
+  reviewedByName: string | null;
+  reviewedByUsername: string | null;
+  assignedDrafterName: string | null;
+  assignedDrafterUsername: string | null;
+  linkedDrawingNumber: string | null;
+  linkedDrawingName: string | null;
+}
+
+export interface DrawingRequestTimelineEvent {
+  id: string;
+  action: string;
+  note: string | null;
+  createdAt: string;
+  actorId: string | null;
+  actorName: string | null;
+  actorUsername: string | null;
+  actorRole: UserRole | null;
 }

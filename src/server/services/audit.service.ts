@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { schema } from "@/lib/db/schema";
 
 interface AuditInput {
-  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST";
+  entityType: "DRAWING" | "REVISION" | "USER" | "ACCESS_REQUEST" | "DRAWING_REQUEST";
   entityId: string;
   action: string;
   userId?: string | null;

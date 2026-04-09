@@ -36,6 +36,18 @@ export function canCreateDrawing(role: UserRole) {
   return role === "DRAFTER" || role === "ADMIN";
 }
 
+export function canCreateDrawingRequest(role: UserRole) {
+  return !["DRAFTER", "DRAFT_LEADER"].includes(role);
+}
+
+export function canReviewDrawingRequest(role: UserRole) {
+  return role === "DRAFT_LEADER";
+}
+
+export function canRespondToDrawingRequestAssignment(role: UserRole) {
+  return role === "DRAFTER";
+}
+
 export function canUploadOldDrawing(role: UserRole) {
   return role === "DRAFT_LEADER" || role === "ADMIN";
 }

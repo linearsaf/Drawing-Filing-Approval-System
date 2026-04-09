@@ -13,7 +13,14 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { DashboardSummary, RevisionStatus, UserRole, WorkflowSource } from "@/lib/types";
 import { formatDateTime } from "@/lib/utils/format";
-import { canCreateDrawing, canUploadOldDrawing, getRoleLabel } from "@/lib/utils/permissions";
+import {
+  canCreateDrawing,
+  canCreateDrawingRequest,
+  canRespondToDrawingRequestAssignment,
+  canReviewDrawingRequest,
+  canUploadOldDrawing,
+  getRoleLabel
+} from "@/lib/utils/permissions";
 
 interface ActivityItem {
   id: string;
@@ -120,6 +127,21 @@ function DashboardContent({ role }: { role: UserRole }) {
       {canCreateDrawing(role) ? (
         <Link className="w-full sm:w-auto" href="/drawings/new">
           <Button className="w-full">Create Drawing</Button>
+        </Link>
+      ) : null}
+      {canCreateDrawingRequest(role) ? (
+        <Link className="w-full sm:w-auto" href="/drawing-requests/new">
+          <Button className="w-full">Request New Drawing</Button>
+        </Link>
+      ) : null}
+      {canReviewDrawingRequest(role) ? (
+        <Link className="w-full sm:w-auto" href="/drawing-requests">
+          <Button className="w-full" variant="secondary">Review Drawing Requests</Button>
+        </Link>
+      ) : null}
+      {canRespondToDrawingRequestAssignment(role) ? (
+        <Link className="w-full sm:w-auto" href="/drawing-requests">
+          <Button className="w-full" variant="secondary">Open Request Assignments</Button>
         </Link>
       ) : null}
       {canUploadOldDrawing(role) ? (

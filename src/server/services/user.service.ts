@@ -20,6 +20,18 @@ export async function listDrafterUsers() {
     .orderBy(asc(schema.user.name));
 }
 
+export async function listAssignableDrafterUsers() {
+  return db
+    .select({
+      id: schema.user.id,
+      name: schema.user.name,
+      username: schema.user.username
+    })
+    .from(schema.user)
+    .where(and(eq(schema.user.role, "DRAFTER"), eq(schema.user.isActive, true)))
+    .orderBy(asc(schema.user.name));
+}
+
 export async function listApproverUsers(level: 1 | 2) {
   const allowedRoles =
     level === 1

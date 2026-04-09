@@ -457,6 +457,10 @@ function getEmptyDescription(filter: NotificationFilter) {
 }
 
 function getNotificationContextLine(item: NotificationItem) {
+  if (item.context.drawingRequestId) {
+    return `${item.context.drawingRequestNumber ?? "Drawing Request"} / ${item.context.drawingRequestPurpose ?? "-"}`;
+  }
+
   if (item.context.accessRequestId) {
     return `${item.context.accessRequestName ?? "Request Access"} / ${item.context.accessRequestEmail ?? "-"}`;
   }
@@ -483,6 +487,18 @@ function getNotificationActionLabel(type: NotificationType) {
 
   if (type === "ACCESS_REQUEST_PENDING") {
     return "Open User Management";
+  }
+
+  if (
+    [
+      "DRAWING_REQUEST_PENDING_REVIEW",
+      "DRAWING_REQUEST_REVIEW_REJECTED",
+      "DRAWING_REQUEST_ASSIGNED",
+      "DRAWING_REQUEST_DRAFTER_REJECTED",
+      "DRAWING_REQUEST_ACCEPTED"
+    ].includes(type)
+  ) {
+    return "Open Request Detail";
   }
 
   if (type === "DRAWING_COMPLETED") {

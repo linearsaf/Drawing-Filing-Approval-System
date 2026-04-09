@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   accessRequestStatusValues,
   approvalDecisionValues,
+  drawingRequestStatusValues,
   revisionStatusValues,
   userRoleValues,
   workflowSourceValues
@@ -119,6 +120,31 @@ export const accessRequestListQuerySchema = z.object({
   status: z.enum(accessRequestStatusValues).optional(),
   page: z.coerce.number().int().min(1).optional().default(1),
   pageSize: z.coerce.number().int().min(1).max(100).optional().default(6)
+});
+
+export const drawingRequestCreateSchema = z.object({
+  sacCode: z.string().min(1),
+  area: z.string().min(1),
+  description: z.string().min(1),
+  purpose: z.string().min(1),
+  referenceImageName: z.string().optional()
+});
+
+export const drawingRequestListQuerySchema = z.object({
+  status: z.enum(["ALL", ...drawingRequestStatusValues]).optional().default("ALL"),
+  page: z.coerce.number().int().min(1).optional().default(1),
+  pageSize: z.coerce.number().int().min(1).max(100).optional().default(8)
+});
+
+export const drawingRequestReviewSchema = z.object({
+  action: z.enum(["APPROVE_ASSIGN", "REJECT"]),
+  assignedDrafterId: z.string().optional(),
+  note: z.string().optional().default("")
+});
+
+export const drawingRequestDrafterDecisionSchema = z.object({
+  action: z.enum(["ACCEPT", "REJECT"]),
+  note: z.string().optional().default("")
 });
 
 export const adminUserListQuerySchema = z.object({

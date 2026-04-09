@@ -22,6 +22,14 @@ export const userRoleValues = [
 ] as const;
 
 export const accessRequestStatusValues = ["PENDING", "APPROVED", "REJECTED"] as const;
+export const drawingRequestStatusValues = [
+  "PENDING_REVIEW",
+  "REVIEW_REJECTED",
+  "WAITING_DRAFTER_ACCEPTANCE",
+  "DRAFTER_REJECTED",
+  "IN_PROGRESS",
+  "CLOSED"
+] as const;
 
 export const revisionStatusValues = [
   "DRAFT",
@@ -46,15 +54,30 @@ export const notificationTypeValues = [
   "APPROVAL_1_REJECTED",
   "APPROVAL_2_REJECTED",
   "DRAWING_COMPLETED",
-  "ACCESS_REQUEST_PENDING"
+  "ACCESS_REQUEST_PENDING",
+  "DRAWING_REQUEST_PENDING_REVIEW",
+  "DRAWING_REQUEST_REVIEW_REJECTED",
+  "DRAWING_REQUEST_ASSIGNED",
+  "DRAWING_REQUEST_DRAFTER_REJECTED",
+  "DRAWING_REQUEST_ACCEPTED"
 ] as const;
 
-export const auditEntityTypeValues = ["DRAWING", "REVISION", "USER", "ACCESS_REQUEST"] as const;
+export const auditEntityTypeValues = [
+  "DRAWING",
+  "REVISION",
+  "USER",
+  "ACCESS_REQUEST",
+  "DRAWING_REQUEST"
+] as const;
 
 export const userRoleEnum = mysqlEnum("user_role", userRoleValues);
 export const accessRequestStatusEnum = mysqlEnum(
   "access_request_status",
   accessRequestStatusValues
+);
+export const drawingRequestStatusEnum = mysqlEnum(
+  "drawing_request_status",
+  drawingRequestStatusValues
 );
 export const revisionStatusEnum = mysqlEnum("revision_status", revisionStatusValues);
 export const approvalDecisionEnum = mysqlEnum("approval_decision", approvalDecisionValues);
@@ -200,6 +223,51 @@ export const drawings = mysqlTable(
     createdByIdx: index("drawings_created_by_idx").on(table.createdBy),
     drawnByIdx: index("drawings_drawn_by_user_idx").on(table.drawnByUserId),
     workflowSourceIdx: index("drawings_workflow_source_idx").on(table.workflowSource)
+  })
+);
+
+export const drawingRequests = mysqlTable(
+  "drawing_requests",
+  {
+    id: varchar("id", { length: 36 }).primaryKey(),
+    requestNumber: varchar("request_number", { length: 50 }).notNull(),
+    requestedByUserId: varchar("requested_by_user_id", { length: 36 })
+      .notNull()
+      .references(() => user.id),
+    reviewedByDraftLeaderId: varchar("reviewed_by_draft_leader_id", { length: 36 }).references(
+      () => user.id,
+      { onDelete: "set null" }
+    ),
+    assignedDrafterId: varchar("assigned_drafter_id", { length: 36 }).references(() => user.id, {
+      onDelete: "set null"
+    }),
+    drawingId: varchar("drawing_id", { length: 36 }).references(() => drawings.id, {
+      onDelete: "set null"
+    }),
+    sacCode: varchar("sac_code", { length: 100 }).notNull(),
+    area: varchar("area", { length: 100 }).notNull(),
+    description: text("description").notNull(),
+    purpose: text("purpose").notNull(),
+    referenceImagePath: varchar("reference_image_path", { length: 500 }),
+    status: drawingRequestStatusEnum.notNull().default("PENDING_REVIEW"),
+    draftLeaderReviewNote: text("draft_leader_review_note"),
+    drafterDecisionNote: text("drafter_decision_note"),
+    closedReason: text("closed_reason"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull().onUpdateNow(),
+    reviewedAt: timestamp("reviewed_at"),
+    assignedAt: timestamp("assigned_at"),
+    closedAt: timestamp("closed_at")
+  },
+  (table) => ({
+    requestNumberUniqueIdx: uniqueIndex("drawing_requests_number_unique").on(table.requestNumber),
+    requestedByIdx: index("drawing_requests_requested_by_idx").on(table.requestedByUserId),
+    statusIdx: index("drawing_requests_status_idx").on(table.status),
+    assignedDrafterIdx: index("drawing_requests_assigned_drafter_idx").on(table.assignedDrafterId),
+    reviewQueueIdx: index("drawing_requests_review_queue_idx").on(
+      table.status,
+      table.reviewedByDraftLeaderId
+    )
   })
 );
 
@@ -357,6 +425,9 @@ export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   accessRequests: many(userAccessRequests),
+  drawingRequests: many(drawingRequests, { relationName: "drawing_request_requester" }),
+  reviewedDrawingRequests: many(drawingRequests, { relationName: "drawing_request_reviewer" }),
+  assignedDrawingRequests: many(drawingRequests, { relationName: "drawing_request_assignee" }),
   drawings: many(drawings, { relationName: "drawing_creator" }),
   assignedDrawings: many(drawings, { relationName: "drawing_drawn_by" }),
   revisions: many(drawingRevisions),
@@ -371,6 +442,28 @@ export const accessRequestRelations = relations(userAccessRequests, ({ one }) =>
   })
 }));
 
+export const drawingRequestRelations = relations(drawingRequests, ({ one }) => ({
+  requester: one(user, {
+    relationName: "drawing_request_requester",
+    fields: [drawingRequests.requestedByUserId],
+    references: [user.id]
+  }),
+  reviewer: one(user, {
+    relationName: "drawing_request_reviewer",
+    fields: [drawingRequests.reviewedByDraftLeaderId],
+    references: [user.id]
+  }),
+  assignedDrafter: one(user, {
+    relationName: "drawing_request_assignee",
+    fields: [drawingRequests.assignedDrafterId],
+    references: [user.id]
+  }),
+  drawing: one(drawings, {
+    fields: [drawingRequests.drawingId],
+    references: [drawings.id]
+  })
+}));
+
 export const drawingRelations = relations(drawings, ({ one, many }) => ({
   creator: one(user, {
     relationName: "drawing_creator",
@@ -382,7 +475,8 @@ export const drawingRelations = relations(drawings, ({ one, many }) => ({
     fields: [drawings.drawnByUserId],
     references: [user.id]
   }),
-  revisions: many(drawingRevisions)
+  revisions: many(drawingRevisions),
+  sourceRequests: many(drawingRequests)
 }));
 
 export const revisionRelations = relations(drawingRevisions, ({ one, many }) => ({
@@ -456,6 +550,7 @@ export const schema = {
   account,
   verification,
   userAccessRequests,
+  drawingRequests,
   drawings,
   drawingRevisions,
   approvalActions,

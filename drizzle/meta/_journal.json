@@ -43,6 +43,13 @@
       "when": 1775476206604,
       "tag": "0005_lonely_skaar",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1775738121265,
+      "tag": "0006_red_may_parker",
+      "breakpoints": true
     }
   ]
 }

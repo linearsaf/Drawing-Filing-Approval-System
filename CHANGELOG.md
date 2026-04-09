@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-04-09
+
+### Added
+- Added a new `drawing_requests` workflow so non-drafter roles can request new drawings and track request status from submission to closure.
+- Added requester-facing pages and APIs for `Request New Drawing`, request detail, and request timeline.
+- Added Draft Leader review and Drafter assignment-response flows, including optional image reference uploads and role-specific request queues.
+
+### Changed
+- Updated the dashboard and navigation to expose `Drawing Requests` and the new request CTA/assignment entry points by role.
+- Wired request acceptance to automatically create a draft drawing that appears in the Drafter `My Queue` flow.
+- Extended notifications, audit logging, and validation to support the new drawing request lifecycle end-to-end.
+- Updated the PRD and generated stakeholder documents so the new intake workflow is presented as an active capability instead of future scope.
+- Replaced the legacy `DM` empty-state fallback marker with a branded SVG icon derived from the current DrafTerra favicon.
+
 ## 2026-04-08
 
 ### Added
