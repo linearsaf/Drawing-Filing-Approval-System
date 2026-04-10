@@ -127,7 +127,7 @@ export const drawingRequestCreateSchema = z.object({
   area: z.string().min(1),
   description: z.string().min(1),
   purpose: z.string().min(1),
-  referenceImageName: z.string().optional()
+  referenceImageNames: z.array(z.string()).max(3).optional().default([])
 });
 
 export const drawingRequestListQuerySchema = z.object({
@@ -174,6 +174,10 @@ export const accountChangePasswordSchema = z
     message: "Konfirmasi password baru tidak cocok.",
     path: ["confirmPassword"]
   });
+
+export const accountProfileUpdateSchema = z.object({
+  email: z.email()
+});
 
 export const adminSetUserPasswordSchema = z
   .object({

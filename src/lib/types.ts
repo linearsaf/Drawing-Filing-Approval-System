@@ -50,12 +50,15 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  image?: string | null;
   username: string;
   role: UserRole;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
+
+export interface AccountProfile extends User {}
 
 export interface AccessRequest {
   id: string;
@@ -106,6 +109,7 @@ export interface DrawingRequest {
   description: string;
   purpose: string;
   referenceImagePath: string | null;
+  referenceImagePaths: string[];
   status: DrawingRequestStatus;
   draftLeaderReviewNote: string | null;
   drafterDecisionNote: string | null;
@@ -302,7 +306,7 @@ export interface DrawingRequestCreateInput {
   area: string;
   description: string;
   purpose: string;
-  referenceImageName?: string;
+  referenceImageNames?: string[];
 }
 
 export interface DrawingRequestListItem extends DrawingRequest {

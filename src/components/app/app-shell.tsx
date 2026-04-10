@@ -17,11 +17,13 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const { currentUser } = useDemoApp();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [mobileTooltipHref, setMobileTooltipHref] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setIsSidebarOpen(false);
+        setMobileTooltipHref(null);
       }
     };
     if (isSidebarOpen) {
@@ -38,6 +40,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setIsSidebarOpen(false);
+    setMobileTooltipHref(null);
   }, [pathname]);
 
   if (!currentUser) {
@@ -71,16 +74,16 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
           <div
-            className="fixed inset-0 z-40 bg-black/40 xl:hidden"
+            className="fixed transform transition-all duration-300 inset-0 z-40 backdrop-blur-md xl:hidden"
             onClick={() => setIsSidebarOpen(false)}
           />
         )}
 
         <aside className={cn(
-          "fixed inset-y-0 left-0 z-50 w-[80%] max-w-[300px] transform transition-transform duration-300 ease-in-out xl:static xl:block xl:w-[19rem] xl:max-w-none xl:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 w-[80%] max-w-[300px] transform transition-all duration-300 ease-in-out xl:static xl:block xl:w-[19rem] xl:max-w-none xl:translate-x-0",
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <Card className="sticky top-0 flex h-full xl:h-auto flex-col overflow-y-auto overflow-x-hidden border-transparent bg-graphite rounded-none shadow-none xl:top-4 xl:rounded-xl xl:shadow-[0_8px_20px_rgba(17,24,39,0.08)] p-6 text-white">
+          <Card className="sticky top-0 flex h-full xl:h-auto flex-col overflow-y-auto overflow-x-hidden border-transparent bg-graphite rounded-none shadow-none !shadow-[#eff1f51f] xl:top-4 xl:rounded-xl xl:shadow-[0_8px_20px_rgba(17,24,39,0.08)] p-6 text-white">
             <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
 
             {/* Close button inside sidebar for mobile */}
@@ -99,7 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 variant="dark"
                 width={220}
               />
-              <h1 className="mt-4 text-[1.75rem] font-semibold tracking-[-0.02em]">
+              <h1 className="hidden mt-4 text-[1.75rem] font-semibold tracking-[-0.02em]">
                 Drawing Control Console
               </h1>
               <p className="mt-3 text-sm leading-7 text-white/72">
@@ -122,19 +125,59 @@ export function AppShell({ children }: { children: ReactNode }) {
                   pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
                 return (
-                  <Link
-                    className={cn(
-                      "block rounded-[20px] border px-4 py-3 transition",
-                      active
-                        ? "border-brand/70 bg-brand text-white shadow-[0_10px_30px_rgba(53,85,154,0.24)]"
-                        : "border-white/10 bg-white/0 text-white/78 hover:border-white/20 hover:bg-white/6 hover:text-white"
-                    )}
-                    href={item.href}
-                    key={item.href}
-                  >
-                    <p className="text-sm font-semibold">{item.label}</p>
-                    <p className="mt-1 text-xs leading-5 text-inherit/80">{item.description}</p>
-                  </Link>
+                  <div className="group relative" key={item.href}>
+                    <div
+                      className={cn(
+                        "relative rounded-full transition",
+                        active
+                          ? "border-brand/70 bg-brand text-white shadow-[0_10px_30px_rgba(53,85,154,0.24)]"
+                          : "border-white/10 bg-white/0 text-white/78 hover:bg-white/5 hover:border-white/20 hover:bg-white/6 hover:text-white"
+                      )}
+                    >
+                      <Link
+                        aria-label={`${item.label}. ${item.description}`}
+                        className="block rounded-[20px] px-4 py-3 pr-14 xl:pr-4"
+                        href={item.href}
+                        title={item.description}
+                      >
+                        <p className="text-sm font-semibold">{item.label}</p>
+                      </Link>
+                      <button
+                        aria-expanded={mobileTooltipHref === item.href}
+                        aria-label={`Info ${item.label}`}
+                        className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-white/55 transition hover:bg-white/12 hover:text-white xl:hidden"
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          setMobileTooltipHref((current) => (current === item.href ? null : item.href));
+                        }}
+                        type="button"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="h-4 w-4"
+                        >
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M12 16v-4"/>
+                          <path d="M12 8h.01"/>
+                        </svg>
+                      </button>
+                    </div>
+                    {mobileTooltipHref === item.href ? (
+                      <div className="text-xs sm:text-sm text-white/65 sm:mt-1 px-3 py-2 text-xs leading-5 text-white/65 shadow-[0_12px_28px_rgba(15,23,42,0.28)] xl:hidden">
+                        {item.description}
+                      </div>
+                    ) : null}
+                    {/* <div className="pointer-events-none absolute left-4 top-full z-20 mt-2 hidden max-w-[220px] rounded-2xl border border-[rgba(190,205,235,0.34)] bg-[#1f2530] px-3 py-2 text-xs leading-5 text-white/88 opacity-0 shadow-[0_12px_28px_rgba(15,23,42,0.28)] transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100 xl:block">
+                      {item.description}
+                    </div> */}
+                  </div>
                 );
               })}
             </nav>

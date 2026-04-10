@@ -249,6 +249,7 @@ export const drawingRequests = mysqlTable(
     description: text("description").notNull(),
     purpose: text("purpose").notNull(),
     referenceImagePath: varchar("reference_image_path", { length: 500 }),
+    referenceImagePaths: text("reference_image_paths"),
     status: drawingRequestStatusEnum.notNull().default("PENDING_REVIEW"),
     draftLeaderReviewNote: text("draft_leader_review_note"),
     drafterDecisionNote: text("drafter_decision_note"),

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { AuthGuard } from "@/components/app/auth-guard";
@@ -74,6 +75,11 @@ export default function AccountPasswordPage() {
           eyebrow="Akun"
           title="Update Password"
           description="Perbarui password akun untuk menjaga keamanan akses."
+          actions={
+            <Link href="/account">
+              <Button variant="secondary">Back to Account</Button>
+            </Link>
+          }
         />
 
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

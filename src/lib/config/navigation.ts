@@ -8,7 +8,7 @@ export interface NavItem {
 
 const sharedItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", description: "Ringkasan pekerjaan" },
-  { href: "/drawings", label: "Drawing List", description: "Browse dan telusuri drawing" },
+  { href: "/drawings", label: "Drawing Library", description: "Browse dan telusuri drawing" },
   { href: "/drawing-requests", label: "Drawing Requests", description: "Request baru dan assignment drawing" }
 ];
 

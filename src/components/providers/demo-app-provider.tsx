@@ -26,6 +26,10 @@ function normalizeCurrentUser(session: AuthSession | null): User | null {
     id: session.user.id,
     name: session.user.name,
     email: session.user.email,
+    image:
+      "image" in session.user && typeof session.user.image === "string"
+        ? session.user.image
+        : null,
     username:
       ("username" in session.user && typeof session.user.username === "string"
         ? session.user.username

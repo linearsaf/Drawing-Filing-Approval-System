@@ -6,7 +6,7 @@ export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectE
     <div className="relative">
       <select
         className={cn(
-          "w-full appearance-none rounded-full border border-border/90 bg-white/96 px-4 py-3 pr-11 text-base md:text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/12",
+          "w-full appearance-none rounded-full border border-border/90 bg-white/96 px-3 py-2 pr-11 xl:px-4 xl:py-3 pr-11 pr-11 text-base md:text-sm sm:text-sm sm:placeholder:text-sm text-text shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] outline-none transition focus:border-brand focus:ring-4 focus:ring-brand/12",
           className
         )}
         {...props}

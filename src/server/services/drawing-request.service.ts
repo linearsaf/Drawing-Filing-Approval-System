@@ -26,6 +26,26 @@ function buildRequestNumber() {
   return `DRQ-${datePart}-${crypto.randomUUID().slice(0, 6).toUpperCase()}`;
 }
 
+function parseReferenceImagePaths(
+  request: Pick<
+    typeof schema.drawingRequests.$inferSelect,
+    "referenceImagePath" | "referenceImagePaths"
+  >
+) {
+  if (request.referenceImagePaths) {
+    try {
+      const parsed = JSON.parse(request.referenceImagePaths) as unknown;
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string" && item.length > 0);
+      }
+    } catch {
+      return request.referenceImagePath ? [request.referenceImagePath] : [];
+    }
+  }
+
+  return request.referenceImagePath ? [request.referenceImagePath] : [];
+}
+
 async function assertActiveDrafterUser(userId: string) {
   const drafter = await db.query.user.findFirst({
     where: and(eq(schema.user.id, userId), eq(schema.user.role, "DRAFTER"), eq(schema.user.isActive, true))
@@ -141,6 +161,7 @@ async function enrichRequests(
 
     return {
       ...item,
+      referenceImagePaths: parseReferenceImagePaths(item),
       requestedByName: requester?.name ?? null,
       requestedByUsername: requester?.username ?? null,
       reviewedByName: reviewer?.name ?? null,
@@ -160,7 +181,7 @@ export async function createDrawingRequest(
     area: string;
     description: string;
     purpose: string;
-    referenceImagePath?: string | null;
+    referenceImagePaths?: string[];
   },
   actor: {
     userId: string;
@@ -184,7 +205,11 @@ export async function createDrawingRequest(
       area: input.area.trim(),
       description: input.description.trim(),
       purpose: input.purpose.trim(),
-      referenceImagePath: input.referenceImagePath ?? null,
+      referenceImagePath: input.referenceImagePaths?.[0] ?? null,
+      referenceImagePaths:
+        input.referenceImagePaths && input.referenceImagePaths.length > 0
+          ? JSON.stringify(input.referenceImagePaths)
+          : null,
       status: "PENDING_REVIEW",
       createdAt,
       updatedAt: createdAt

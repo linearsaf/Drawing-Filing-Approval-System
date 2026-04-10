@@ -19,7 +19,7 @@ export function StatusBadge({
     <Badge
       className={cn(
         tone.badge,
-        compact ? "w-fit max-w-full gap-1.5 px-3 py-1 text-[11px] tracking-[0.12em] whitespace-nowrap" : undefined
+        compact ? "w-fit max-w-full gap-1.5 px-3 py-2 text-[11px] tracking-[0.12em] whitespace-nowrap" : undefined
       )}
     >
       <span className={`h-2 w-2 rounded-full ${tone.dot}`} />

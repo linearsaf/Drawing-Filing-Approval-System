@@ -58,7 +58,7 @@ export default function RequestAccessPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(58,80,151,0.45),transparent_28%),linear-gradient(160deg,rgba(255,255,255,0.06),transparent_42%)]" />
           <div className="relative flex h-full flex-col justify-between">
             <div>
-              <div className="inline-flex rounded-full border border-white/12 bg-white/7 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-white/72">
+              <div className="inline-flex rounded-full border border-[rgba(190,205,235,0.34)] bg-white/7 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.32em] text-white/72">
                 Request Access
               </div>
               <h1 className="mt-6 max-w-xl text-4xl font-semibold leading-tight">

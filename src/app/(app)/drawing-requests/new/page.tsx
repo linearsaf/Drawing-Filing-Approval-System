@@ -30,12 +30,25 @@ function NewDrawingRequestContent() {
     description: "",
     purpose: ""
   });
-  const [referenceImage, setReferenceImage] = useState<File | null>(null);
+  const [referenceImages, setReferenceImages] = useState<File[]>([]);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const setField = (key: keyof typeof form, value: string) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const handleReferenceImageChange = (files: FileList | null) => {
+    const selectedFiles = Array.from(files ?? []).filter((file) => file.size > 0);
+
+    if (selectedFiles.length > 3) {
+      setError("Maksimal 3 gambar referensi dapat dipilih.");
+      setReferenceImages(selectedFiles.slice(0, 3));
+      return;
+    }
+
+    setError("");
+    setReferenceImages(selectedFiles);
   };
 
   const handleSubmit = async () => {
@@ -49,8 +62,8 @@ function NewDrawingRequestContent() {
       payload.set("description", form.description);
       payload.set("purpose", form.purpose);
 
-      if (referenceImage) {
-        payload.set("referenceImage", referenceImage);
+      for (const file of referenceImages) {
+        payload.append("referenceImages", file);
       }
 
       const result = await apiFetch<{ requestId: string }>("/api/drawing-requests", {
@@ -102,7 +115,7 @@ function NewDrawingRequestContent() {
             <Checklist text="Gunakan SAC / SBI Asset Code yang relevan dengan objek kerja." />
             <Checklist text="Tulis Area yang cukup spesifik untuk membantu Draft Leader melakukan triage." />
             <Checklist text="Jelaskan Description dan Keperluan dengan bahasa yang operasional." />
-            <Checklist text="Lampirkan gambar referensi bila ada untuk mempercepat pemahaman konteks." />
+            <Checklist text="Lampirkan hingga 3 gambar referensi bila ada untuk mempercepat pemahaman konteks." />
           </div>
         </Card>
       </div>
@@ -161,7 +174,8 @@ function NewDrawingRequestContent() {
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Reference Image</p>
               <h2 className="mt-2 text-2xl font-semibold text-text">Lampiran opsional</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
-                Gambar referensi dapat membantu Draft Leader dan Drafter memahami kebutuhan lebih cepat.
+                Gambar referensi dapat membantu Draft Leader dan Drafter memahami kebutuhan lebih cepat. Anda dapat
+                memilih lebih dari satu gambar, maksimal 3 file.
               </p>
             </div>
 
@@ -170,18 +184,25 @@ function NewDrawingRequestContent() {
                 <input
                   accept="image/*"
                   className="sr-only"
-                  onChange={(event) => setReferenceImage(event.target.files?.[0] ?? null)}
+                  multiple
+                  onChange={(event) => handleReferenceImageChange(event.target.files)}
                   type="file"
                 />
                 <div className="flex flex-col gap-3">
                   <p className="text-sm font-semibold text-text">
-                    {referenceImage ? "Image siap diunggah" : "Pilih gambar referensi"}
+                    {referenceImages.length > 0
+                      ? `${referenceImages.length} image siap diunggah`
+                      : "Pilih gambar referensi"}
                   </p>
-                  <p className="text-sm text-muted">
-                    {referenceImage ? referenceImage.name : "Tidak ada file yang dipilih"}
-                  </p>
+                  <div className="space-y-1 text-sm text-muted">
+                    {referenceImages.length > 0 ? (
+                      referenceImages.map((file) => <p key={`${file.name}-${file.size}`}>{file.name}</p>)
+                    ) : (
+                      <p>Tidak ada file yang dipilih</p>
+                    )}
+                  </div>
                   <span className="inline-flex w-fit items-center justify-center rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-text">
-                    Browse Image
+                    Browse Images
                   </span>
                 </div>
               </label>

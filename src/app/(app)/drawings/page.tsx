@@ -36,6 +36,9 @@ const defaultFilters: DrawingFilters = {
   dateTo: ""
 };
 
+const compactFilterControlClass =
+  "px-3 py-2.5 text-sm placeholder:text-xs sm:px-4 sm:py-3 sm:text-sm sm:placeholder:text-sm";
+
 type ViewMode = "card" | "list";
 
 interface DrawingListItem {
@@ -412,6 +415,7 @@ function DrawingsContent({
             <div className="md:col-span-2 xl:col-span-6">
               <FilterField label="Kata kunci">
                 <Input
+                  className={compactFilterControlClass}
                   onChange={(event) => updateFilters({ ...filters, search: event.target.value })}
                   placeholder="Nomor drawing, nama, SAC, atau area"
                   value={filters.search}
@@ -421,6 +425,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Status">
                 <Select
+                  className={compactFilterControlClass}
                   onChange={(event) =>
                     updateFilters({ ...filters, status: event.target.value as RevisionStatus | "ALL" })
                   }
@@ -441,6 +446,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Drafter">
                 <Select
+                  className={compactFilterControlClass}
                   onChange={(event) => updateFilters({ ...filters, drawnBy: event.target.value })}
                   value={filters.drawnBy}
                 >
@@ -460,6 +466,7 @@ function DrawingsContent({
               <div className="grid gap-4 md:grid-cols-[minmax(0,1.7fr)_minmax(0,0.85fr)]">
                 <FilterField label="Area">
                   <Input
+                    className={compactFilterControlClass}
                     onChange={(event) => updateFilters({ ...filters, area: event.target.value })}
                     placeholder="Semua area"
                     value={filters.area}
@@ -467,6 +474,7 @@ function DrawingsContent({
                 </FilterField>
                 <FilterField label="Revisi">
                   <Input
+                    className={compactFilterControlClass}
                     onChange={(event) => updateFilters({ ...filters, revision: event.target.value })}
                     placeholder="Contoh A / B / C"
                     value={filters.revision}
@@ -477,6 +485,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Dari tanggal">
                 <Input
+                  className={compactFilterControlClass}
                   onChange={(event) => updateFilters({ ...filters, dateFrom: event.target.value })}
                   type="date"
                   value={filters.dateFrom}
@@ -486,6 +495,7 @@ function DrawingsContent({
             <div className="xl:col-span-3">
               <FilterField label="Sampai tanggal">
                 <Input
+                  className={compactFilterControlClass}
                   onChange={(event) => updateFilters({ ...filters, dateTo: event.target.value })}
                   type="date"
                   value={filters.dateTo}
@@ -845,7 +855,7 @@ function getCompactStatusLabel(status: RevisionStatus) {
 function FilterField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-text">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-text sm:mb-2 sm:text-sm">{label}</span>
       {children}
     </label>
   );

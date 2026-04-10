@@ -46,6 +46,28 @@ export async function saveDrawingRequestReferenceImage(params: {
   };
 }
 
+export async function saveDrawingRequestReferenceImages(params: {
+  requestId: string;
+  files: File[];
+}) {
+  if (params.files.length > 3) {
+    throw new HttpError(422, "Maksimal 3 gambar referensi dapat diunggah.");
+  }
+
+  const storedFiles = [];
+
+  for (const file of params.files) {
+    storedFiles.push(
+      await saveDrawingRequestReferenceImage({
+        requestId: params.requestId,
+        file
+      })
+    );
+  }
+
+  return storedFiles;
+}
+
 export async function removeDrawingRequestFiles(requestId: string) {
   await rm(path.join(uploadRoot, requestId), { recursive: true, force: true });
 }

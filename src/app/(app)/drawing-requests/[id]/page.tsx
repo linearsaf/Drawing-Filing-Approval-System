@@ -266,17 +266,29 @@ function DrawingRequestDetailContent({
             <InfoRow label="Area" value={request.area} />
             <InfoRow label="Purpose" value={request.purpose} />
             <InfoRow
-              label="Reference Image"
-              value={request.referenceImagePath ? "Tersedia" : "Tidak ada lampiran"}
+              label="Reference Images"
+              value={
+                request.referenceImagePaths.length > 0
+                  ? `${request.referenceImagePaths.length} gambar tersedia`
+                  : "Tidak ada lampiran"
+              }
             />
             {request.linkedDrawingNumber ? (
               <InfoRow label="Linked Draft" value={`${request.linkedDrawingNumber} / ${request.linkedDrawingName ?? "-"}`} />
             ) : null}
           </div>
-          {request.referenceImagePath ? (
-            <div className="mt-5 overflow-hidden rounded-[24px] border border-border bg-white p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img alt={`Reference ${request.requestNumber}`} className="w-full rounded-[18px] object-cover" src={request.referenceImagePath} />
+          {request.referenceImagePaths.length > 0 ? (
+            <div className="mt-5 grid gap-3 md:grid-cols-2">
+              {request.referenceImagePaths.map((imagePath, index) => (
+                <div className="overflow-hidden rounded-[24px] border border-border bg-white p-2" key={imagePath}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={`Reference ${request.requestNumber} ${index + 1}`}
+                    className="h-full w-full rounded-[18px] object-cover"
+                    src={imagePath}
+                  />
+                </div>
+              ))}
             </div>
           ) : null}
         </Card>

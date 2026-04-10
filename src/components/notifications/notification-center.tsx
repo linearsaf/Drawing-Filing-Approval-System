@@ -211,7 +211,7 @@ export function NotificationCenter() {
                       "rounded-full border px-4 py-2 text-sm font-semibold transition",
                       filter === item
                         ? "border-white/10 bg-white text-graphite"
-                        : "border-white/12 bg-white/5 text-white/82 hover:bg-white/10"
+                        : "border-[rgba(190,205,235,0.34)] bg-white/[0.04] text-white/82 hover:border-[rgba(208,220,244,0.46)] hover:bg-white/[0.08]"
                     )}
                     key={item}
                     onClick={() => {

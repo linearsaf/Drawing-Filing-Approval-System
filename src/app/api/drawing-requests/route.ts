@@ -8,7 +8,7 @@ import {
 } from "@/server/services/drawing-request.service";
 import {
   removeDrawingRequestFiles,
-  saveDrawingRequestReferenceImage
+  saveDrawingRequestReferenceImages
 } from "@/server/storage/drawing-request-files";
 
 export async function GET(request: Request) {
@@ -37,32 +37,34 @@ export async function POST(request: Request) {
   try {
     const session = await requireSession(request);
     const formData = await request.formData();
-    const referenceImage = formData.get("referenceImage");
+    const referenceImages = formData
+      .getAll("referenceImages")
+      .filter((entry): entry is File => entry instanceof File && entry.size > 0);
 
     const parsedBody = drawingRequestCreateSchema.safeParse({
       sacCode: formData.get("sacCode"),
       area: formData.get("area"),
       description: formData.get("description"),
       purpose: formData.get("purpose"),
-      referenceImageName: referenceImage instanceof File ? referenceImage.name : undefined
+      referenceImageNames: referenceImages.map((file) => file.name)
     });
 
     if (!parsedBody.success) {
       return apiError(parsedBody.error);
     }
 
-    const storedReference = referenceImage instanceof File && referenceImage.size > 0
-      ? await saveDrawingRequestReferenceImage({
+    const storedReferences = referenceImages.length
+      ? await saveDrawingRequestReferenceImages({
           requestId,
-          file: referenceImage
+          files: referenceImages
         })
-      : null;
+      : [];
 
     const data = await createDrawingRequest(
       {
         requestId,
         ...parsedBody.data,
-        referenceImagePath: storedReference?.filePath ?? null
+        referenceImagePaths: storedReferences.map((item) => item.filePath)
       },
       {
         userId: session.user.id,

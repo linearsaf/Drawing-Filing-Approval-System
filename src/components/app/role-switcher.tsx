@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useDemoApp } from "@/components/providers/demo-app-provider";
+import { UserAvatar } from "@/components/app/user-avatar";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/cn";
 import { getRoleLabel } from "@/lib/utils/permissions";
@@ -53,29 +54,44 @@ export function RoleSwitcher() {
         onClick={() => setIsOpen(!isOpen)}
         type="button"
       >
-        <UserIcon />
+        <UserAvatar
+          className="h-10 w-10 border-transparent bg-brand/10 text-brand xl:h-12 xl:w-12"
+          image={currentUser.image}
+          imageClassName="h-full w-full object-cover"
+          labelClassName="text-sm xl:text-base"
+          name={currentUser.name}
+          username={currentUser.username}
+        />
         <span className="sr-only">Menu pengguna</span>
       </button>
 
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-3 w-64 origin-top-right rounded-[24px] border border-border/85 bg-white p-5 shadow-xl animate-in fade-in zoom-in duration-150">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">Peran</p>
-            <p className="mt-2.5 text-sm font-semibold text-text">{getRoleLabel(currentUser.role)}</p>
-            <p className="mt-1 text-xs text-muted">{currentUser.username}</p>
+          <div className="flex items-center gap-3">
+            <UserAvatar
+              className="h-12 w-12"
+              image={currentUser.image}
+              name={currentUser.name}
+              username={currentUser.username}
+            />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-text">{currentUser.name}</p>
+              <p className="mt-0.5 text-xs text-muted">{getRoleLabel(currentUser.role)}</p>
+              <p className="mt-0.5 truncate text-xs text-muted">@{currentUser.username}</p>
+            </div>
           </div>
 
           <div className="mt-5 border-t border-border/60 pt-4">
             <Link
               className={cn(
                 "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-medium transition",
-                pathname === "/account/password"
+                pathname === "/account" || pathname === "/account/password"
                   ? "bg-brand/8 text-brand"
                   : "text-text/80 hover:bg-surface/80 hover:text-text"
               )}
-              href="/account/password"
+              href="/account"
             >
-              <span>Ubah password</span>
+              <span>Account Settings</span>
               <ArrowRightIcon />
             </Link>
             <Button
@@ -89,24 +105,6 @@ export function RoleSwitcher() {
         </div>
       )}
     </div>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-[1.2rem] w-[1.2rem] xl:h-[1.15rem] xl:w-[1.15rem]"
-      fill="none"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
   );
 }
 

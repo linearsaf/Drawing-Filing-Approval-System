@@ -50,6 +50,13 @@
       "when": 1775738121265,
       "tag": "0006_red_may_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1775815200000,
+      "tag": "0007_sturdy_surge",
+      "breakpoints": true
     }
   ]
 }

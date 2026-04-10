@@ -1,5 +1,27 @@
 # Changelog
 
+## 2026-04-10
+
+### Added
+- Added a new self-service `Account Settings` page so users can review account details, update their email directly, manage an avatar image, and jump to password settings from one place.
+- Added self-service account APIs and local avatar storage for profile email updates, avatar upload, avatar removal, and session refresh sync after profile changes.
+- Added reusable user avatar rendering for account surfaces and header account controls.
+- Added support for up to 3 reference images on `Request New Drawing`, including multi-file upload handling, storage, and request detail rendering.
+
+### Changed
+- Simplified the header user dropdown into a cleaner account entry point with identity context, `Account Settings`, and `Keluar`.
+- Updated drawing request storage and request detail views to support multiple reference images while staying backward-compatible with earlier single-image requests.
+- Polished sidebar behavior by hiding the temporary `Drawing Control Console` heading, moving menu descriptions into desktop tooltips, and adding mobile-friendly info toggles.
+- Renamed the sidebar navigation label from `Drawing List` to `Drawing Library`.
+- Compacted the `Drawing List` filter panel on mobile so search, status, drafter, area, revision, and date inputs feel denser and more consistent.
+- Replaced the empty-state fallback text marker with the branded DrafTerra favicon-derived SVG icon.
+- Refined the account `Profile Management` panel with a custom avatar picker, clearer preview and helper states, and more balanced email action layout.
+- Softened the notifications inbox filter button outline treatment to avoid the overly bright border look on the graphite hero panel.
+
+### Notes
+- Account profile edits intentionally remain limited to avatar and email in v1; name, username, role, and account status are still read-only.
+- The new drawing request multi-image support stores the first image path for legacy compatibility and the full image set for current request rendering.
+
 ## 2026-04-09
 
 ### Added
