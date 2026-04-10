@@ -528,7 +528,7 @@ export default function AdminUsersPage() {
                           <p className="mt-2 text-sm text-muted">
                             {request.email} / {request.username}
                           </p>
-                          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                          <p className="mt-2 text-xs uppercase text-muted">
                             Request received {formatDateTime(request.createdAt)}
                           </p>
                         </div>
@@ -644,7 +644,7 @@ export default function AdminUsersPage() {
                           <p className="mt-3 text-sm text-muted">
                             {user.email} / {user.username}
                           </p>
-                          <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted">
+                          <p className="mt-2 text-xs uppercase text-muted">
                             Updated {formatDateTime(user.updatedAt)}
                           </p>
                         </div>

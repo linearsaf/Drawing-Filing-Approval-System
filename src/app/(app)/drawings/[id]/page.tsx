@@ -23,7 +23,7 @@ import {
   RevisionApprovalStep,
   UserRole
 } from "@/lib/types";
-import { formatDate, formatDateTime } from "@/lib/utils/format";
+import { formatDate, formatDateTime, formatDateTimeParts } from "@/lib/utils/format";
 import {
   canApproveRevision,
   canCheckRevision,
@@ -584,9 +584,7 @@ function DetailContent({
                   </div>
                   <StatusBadge status={revision.status} />
                 </div>
-                <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted">
-                  {formatDateTime(revision.updatedAt)}
-                </p>
+                <TimelineTimestamp value={revision.updatedAt} className="mt-3" />
               </div>
             ))}
           </div>
@@ -621,9 +619,7 @@ function DetailContent({
                         Diproses oleh role {getRoleLabel(action.actorRole)}.
                       </p>
                     </div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                      {formatDateTime(action.actedAt)}
-                    </p>
+                    <TimelineTimestamp value={action.actedAt} />
                   </div>
                   <p className="mt-3 text-sm leading-6 text-muted">
                     {action.decisionNote || "Tidak ada catatan keputusan."}
@@ -653,9 +649,7 @@ function DetailContent({
                         {item.note || "Tidak ada catatan tambahan."}
                       </p>
                     </div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-muted">
-                      {formatDateTime(item.createdAt)}
-                    </p>
+                    <TimelineTimestamp value={item.createdAt} />
                   </div>
                 </div>
               ))
@@ -746,6 +740,25 @@ function ApprovalStepRow({
         </span>
       </div>
       {note ? <p className="mt-3 text-sm leading-6 text-muted">{note}</p> : null}
+    </div>
+  );
+}
+
+function TimelineTimestamp({
+  value,
+  className = ""
+}: {
+  value: string | null | undefined;
+  className?: string;
+}) {
+  const parts = formatDateTimeParts(value);
+
+  return (
+    <div
+      className={`shrink-0 text-right text-[11px] font-medium leading-4 text-muted sm:min-w-[66px] ${className}`.trim()}
+    >
+      <p>{parts.date}</p>
+      <p>{parts.time}</p>
     </div>
   );
 }

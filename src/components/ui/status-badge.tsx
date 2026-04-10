@@ -18,11 +18,12 @@ export function StatusBadge({
   return (
     <Badge
       className={cn(
-        tone.badge,
-        compact ? "w-fit max-w-full gap-1.5 px-3 py-2 text-[11px] tracking-[0.12em] whitespace-nowrap" : undefined
+        tone.badgeClassName,
+        compact ? "w-fit max-w-full gap-1.5 px-3 py-2 text-[11px] tracking-[0.06em] whitespace-nowrap" : undefined
       )}
+      style={tone.badgeStyle}
     >
-      <span className={`h-2 w-2 rounded-full ${tone.dot}`} />
+      <span className="h-2 w-2 rounded-full" style={{ backgroundColor: tone.dotColor }} />
       {label ?? getStatusLabel(status)}
     </Badge>
   );

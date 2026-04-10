@@ -2,51 +2,105 @@ import { RevisionStatus } from "@/lib/types";
 
 export const statusToneMap: Record<
   RevisionStatus,
-  { badge: string; dot: string; watermark: string }
+  {
+    badgeClassName?: string;
+    badgeStyle: {
+      backgroundColor: string;
+      borderColor: string;
+      color: string;
+    };
+    dotColor: string;
+    watermark: string;
+  }
 > = {
   DRAFT: {
-    badge: "bg-[#999999]/15 text-[#404040] border-[#999999]/30",
-    dot: "bg-[#999999]",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(153,153,153,0.15)",
+      borderColor: "rgba(153,153,153,0.3)",
+      color: "#404040"
+    },
+    dotColor: "rgba(153,153,153,1)",
     watermark: "DRAFT"
   },
   WAITING_CHECK: {
-    badge: "border-[#35559a]/22 bg-[#35559a]/10 text-[#35559a]",
-    dot: "bg-brand",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(53,85,154,0.1)",
+      borderColor: "rgba(53,85,154,0.22)",
+      color: "#35559a"
+    },
+    dotColor: "#35559a",
     watermark: "LEAD CHECK"
   },
   CHECK_REJECTED: {
-    badge: "bg-danger/10 text-danger border-danger/25",
-    dot: "bg-danger",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(220,49,54,0.1)",
+      borderColor: "rgba(220,49,54,0.22)",
+      color: "#dc3136"
+    },
+    dotColor: "#dc3136",
     watermark: "REJECTED"
   },
   WAITING_APPROVAL_1: {
-    badge: "border-[#5d5cbc]/22 bg-[#5d5cbc]/10 text-[#4d4ca6]",
-    dot: "bg-[#5d5cbc]",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(93,92,188,0.1)",
+      borderColor: "rgba(93,92,188,0.24)",
+      color: "#4d4ca6"
+    },
+    dotColor: "rgba(93,92,188,1)",
     watermark: "APPROVAL LEVEL 1"
   },
   APPROVAL_1_REJECTED: {
-    badge: "bg-danger/10 text-danger border-danger/25",
-    dot: "bg-danger",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(220,49,54,0.1)",
+      borderColor: "rgba(220,49,54,0.22)",
+      color: "#dc3136"
+    },
+    dotColor: "#dc3136",
     watermark: "REJECTED"
   },
   WAITING_APPROVAL_2: {
-    badge: "border-[#b98526]/24 bg-[#b98526]/11 text-[#8a6214]",
-    dot: "bg-[#b98526]",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(185,133,38,0.11)",
+      borderColor: "rgba(185,133,38,0.24)",
+      color: "#8a6214"
+    },
+    dotColor: "rgba(185,133,38,1)",
     watermark: "FINAL APPROVAL"
   },
   APPROVAL_2_REJECTED: {
-    badge: "bg-danger/10 text-danger border-danger/25",
-    dot: "bg-danger",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(220,49,54,0.1)",
+      borderColor: "rgba(220,49,54,0.22)",
+      color: "#dc3136"
+    },
+    dotColor: "#dc3136",
     watermark: "REJECTED"
   },
   COMPLETED: {
-    badge: "border-[#5f8c73]/26 bg-[#5f8c73]/12 text-[#476a58]",
-    dot: "bg-[#5f8c73]",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(95,140,115,0.12)",
+      borderColor: "rgba(95,140,115,0.26)",
+      color: "#476a58"
+    },
+    dotColor: "rgba(95,140,115,1)",
     watermark: "COMPLETED"
   },
   OBSOLETE: {
-    badge: "bg-[#666666]/15 text-[#404040] border-[#666666]/25",
-    dot: "bg-[#666666]",
+    badgeClassName: "md:min-w-max whitespace-nowrap",
+    badgeStyle: {
+      backgroundColor: "rgba(102,102,102,0.15)",
+      borderColor: "rgba(102,102,102,0.25)",
+      color: "#404040"
+    },
+    dotColor: "rgba(102,102,102,1)",
     watermark: "OBSOLETE"
   }
 };

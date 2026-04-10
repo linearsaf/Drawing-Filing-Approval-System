@@ -104,7 +104,7 @@
         display: flex;
         flex-wrap: nowrap;
         align-items: center;
-        gap: 6px;
+        gap: 8px;
         min-width: 0;
       }
 
@@ -134,7 +134,9 @@
           box-shadow 160ms ease,
           transform 160ms ease;
       }
-
+      .toolbar button.icon-button {
+        padding: 7px 7px;
+      }
       .toolbar button:hover:not(:disabled) {
         background: rgba(255, 255, 255, 0.96);
         border-color: rgba(53, 85, 154, 0.24);
@@ -161,6 +163,20 @@
         height: 13px;
       }
 
+      .icon-button--icon-only {
+        width: 36px;
+        min-width: 36px;
+        height: 36px;
+        min-height: 36px;
+        padding: 0;
+        border-radius: 999px;
+      }
+
+      .icon-button--icon-only svg {
+        width: 16px;
+        height: 16px;
+      }
+
       .pill {
         border: 1px solid var(--viewer-border);
         border-radius: 999px;
@@ -169,8 +185,8 @@
         font-size: 11px;
         font-weight: 600;
         line-height: 1;
-        min-height: 32px;
-        padding: 7px 12px;
+        min-height: 36px;
+        padding: 0 14px;
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92);
         align-content: center;
       }
@@ -269,29 +285,116 @@
         line-height: 1.7;
       }
 
-      @media (max-width: 640px) {
+      @media (max-width: 370px) {
         body {
           /* padding: 8px; */
         }
 
         .toolbar {
-          /* flex-direction: column; */
-          align-items: stretch;
-          gap: 8px;
-          padding: 7px 14px;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: start;
+          gap: 6px;
+          margin-bottom: 8px;
+          padding: 6px 10px 8px;
         }
 
         .toolbar-group {
           flex-wrap: wrap;
+          gap: 6px;
           justify-content: flex-start;
         }
 
-        .toolbar-group:last-child > * {
+        .toolbar-group:first-child {
+          grid-column: 1 / 2;
+          grid-row: 1 / 2;
+          justify-content: flex-start;
           flex: 1 1 auto;
         }
 
+        .toolbar-group:last-child {
+          grid-column: 2 / 3;
+          grid-row: 1 / 3;
+          display: grid;
+          grid-template-columns: auto auto auto;
+          grid-template-areas:
+            "print print print"
+            "zoomOut zoomLabel zoomIn";
+          align-items: center;
+          justify-content: end;
+          justify-items: end;
+          width: auto;
+        }
+
+        #printButton {
+          grid-area: print;
+          margin-left: 0;
+        }
+
+        #zoomOut {
+          grid-area: zoomOut;
+          margin-left: 0;
+        }
+
+        #zoomLabel {
+          grid-area: zoomLabel;
+          min-width: 76px;
+        }
+
+        #zoomIn {
+          grid-area: zoomIn;
+        }
+
+        #zoomOut,
+        #zoomLabel,
+        #zoomIn {
+          margin-top: 0;
+        }
+
+        .toolbar-meta {
+          text-align: left;
+          font-size: 11px;
+        }
+
+        .toolbar button {
+          min-height: 34px;
+          padding: 6px 10px;
+        }
+
+        .icon-button {
+          gap: 6px;
+        }
+
+        .icon-button--icon-only {
+          width: 34px;
+          min-width: 34px;
+          height: 34px;
+          min-height: 34px;
+        }
+
+        .icon-button--icon-only svg {
+          width: 15px;
+          height: 15px;
+        }
+
+        .pill {
+          min-height: 34px;
+          justify-self: stretch;
+          text-align: center;
+          padding: 0 12px;
+        }
+
         .viewer {
-          min-height: calc(100vh - 84px);
+          min-height: calc(100vh - 74px);
+        }
+
+        .page {
+          gap: 6px;
+        }
+
+        .page-label {
+          font-size: 10px;
+          letter-spacing: 0.16em;
         }
       }
 
@@ -331,20 +434,28 @@
       <div class="toolbar-group">
         <button class="icon-button" hidden id="printButton" type="button" title="Print drawing">
           <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
-            <path
-              d="M7 9V4h10v5M7 17H5a2 2 0 0 1-2-2v-4a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2M7 14h10v6H7v-6Z"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="1.8"
-            />
-            <circle cx="17" cy="12" fill="currentColor" r="1.1" />
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            <rect x="6" y="14" width="12" height="8" rx="1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></rect>
           </svg>
           <span>Print</span>
         </button>
-        <button id="zoomOut" type="button">Zoom -</button>
+        <button class="icon-button icon-button--icon-only" id="zoomOut" type="button" title="Zoom out" aria-label="Zoom out">
+          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle>
+            <line x1="21" x2="16.65" y1="21" y2="16.65" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line>
+            <line x1="8" x2="14" y1="11" y2="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line>
+          </svg>
+        </button>
         <span class="pill" id="zoomLabel">100%</span>
-        <button id="zoomIn" type="button">Zoom +</button>
+        <button class="icon-button icon-button--icon-only" id="zoomIn" type="button" title="Zoom in" aria-label="Zoom in">
+          <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></circle>
+            <line x1="21" x2="16.65" y1="21" y2="16.65" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line>
+            <line x1="11" x2="11" y1="8" y2="14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line>
+            <line x1="8" x2="14" y1="11" y2="11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></line>
+          </svg>
+        </button>
       </div>
     </div>
 

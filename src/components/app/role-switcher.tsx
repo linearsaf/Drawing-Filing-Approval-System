@@ -46,7 +46,7 @@ export function RoleSwitcher() {
         aria-expanded={isOpen}
         aria-haspopup="true"
         className={cn(
-          "relative flex h-10 w-10 items-center justify-center rounded-none border-0 bg-transparent transition xl:h-12 xl:w-12 xl:rounded-full xl:border",
+          "relative flex h-10 w-10 items-center justify-center rounded-none border-0 bg-transparent transition xl:h-11 xl:w-11 xl:rounded-full xl:border",
           isOpen
             ? "text-brand xl:border-brand/40 xl:bg-brand/10 xl:shadow-inset"
             : "text-text hover:text-brand xl:border-border/85 xl:bg-surface/94 xl:hover:border-brand/30 xl:hover:bg-brand/5"
@@ -55,7 +55,7 @@ export function RoleSwitcher() {
         type="button"
       >
         <UserAvatar
-          className="h-10 w-10 border-transparent bg-brand/10 text-brand xl:h-12 xl:w-12"
+          className="h-10 w-10 border-transparent bg-brand/10 text-brand xl:h-11 xl:w-11"
           image={currentUser.image}
           imageClassName="h-full w-full object-cover"
           labelClassName="text-sm xl:text-base"

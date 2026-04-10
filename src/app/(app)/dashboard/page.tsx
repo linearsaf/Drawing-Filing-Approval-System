@@ -12,7 +12,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { apiFetch, getErrorMessage } from "@/lib/api-client";
 import { DashboardSummary, RevisionStatus, UserRole, WorkflowSource } from "@/lib/types";
-import { formatDateTime } from "@/lib/utils/format";
+import { formatDateTime, formatDateTimeParts } from "@/lib/utils/format";
 import {
   canCreateDrawing,
   canCreateDrawingRequest,
@@ -405,10 +405,9 @@ function DashboardContent({ role }: { role: UserRole }) {
                       <p className="text-[14px] font-semibold leading-5 text-text min-w-0">
                         {humanizeAuditAction(item.action)}
                       </p>
-                      <div className="flex-shrink-0 flex items-center gap-1 rounded-full border border-border/80 bg-panel/24 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-muted whitespace-nowrap">
-                        <span>{formatActivityDate(item.createdAt)}</span>
-                        <span className="h-1 w-1 rounded-full bg-border" />
-                        <span>{formatActivityTime(item.createdAt)}</span>
+                      <div className="flex-shrink-0 min-w-[60px] flex flex-col items-end text-[10px] font-semibold text-muted">
+                        <span>{formatDateTimeParts(item.createdAt).date}</span>
+                        <span>{formatDateTimeParts(item.createdAt).time}</span>
                       </div>
                     </div>
 
@@ -429,14 +428,14 @@ function DashboardContent({ role }: { role: UserRole }) {
                     ) : null}
 
                     <div className="flex items-center justify-between gap-2 min-w-0">
-                      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                        {item.currentStatus ? <StatusBadge compact status={item.currentStatus} /> : null}
+                      <div className="flex min-w-0 flex-col items-start gap-1.5">
                         {item.actorName ? (
-                          <span className="min-w-0 rounded-full border border-border bg-panel/28 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-text/90 truncate max-w-[140px]">
+                          <span className="min-w-0 text-[10px] font-semibold uppercase text-text/90 truncate">
                             {item.actorName}
                             {item.actorRole ? ` / ${getRoleLabel(item.actorRole)}` : ""}
                           </span>
                         ) : null}
+                        {item.currentStatus ? <StatusBadge compact status={item.currentStatus} /> : null}
                       </div>
                       <Link
                         className="shrink-0 text-xs font-semibold text-brand transition hover:text-brand/80"
@@ -829,20 +828,3 @@ function humanizeAuditAction(action: string) {
   return labels[action] ?? action.replace(/_/g, " ").toLowerCase();
 }
 
-function formatActivityDate(value: string) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    timeZone: "Asia/Jakarta"
-  }).format(new Date(value));
-}
-
-function formatActivityTime(value: string) {
-  return new Intl.DateTimeFormat("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "Asia/Jakarta"
-  }).format(new Date(value));
-}

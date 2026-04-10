@@ -321,7 +321,7 @@ function DrawingRequestDetailContent({
                       {item.actorName ?? item.actorUsername ?? "System"}{item.actorRole ? ` / ${getRoleLabel(item.actorRole)}` : ""}
                     </p>
                   </div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-muted">{formatDateTime(item.createdAt)}</p>
+                  <p className="text-xs uppercase text-muted">{formatDateTime(item.createdAt)}</p>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-muted">{item.note || "Tidak ada catatan tambahan."}</p>
               </div>

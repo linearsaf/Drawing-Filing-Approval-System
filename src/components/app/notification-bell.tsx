@@ -61,7 +61,7 @@ export function NotificationBell() {
   return (
     <Link
       className={cn(
-        "relative inline-flex h-10 w-10 items-center justify-center rounded-none border-0 bg-transparent transition xl:h-12 xl:w-12 xl:rounded-full xl:border",
+        "relative inline-flex h-10 w-10 items-center justify-center rounded-none border-0 bg-transparent transition xl:h-11 xl:w-11 xl:rounded-full xl:border",
         pathname === "/notifications"
           ? "text-brand xl:border-brand/40 xl:bg-brand/10"
           : "text-text hover:text-brand xl:border-border/85 xl:bg-surface/94 xl:hover:border-brand/30 xl:hover:bg-brand/5"

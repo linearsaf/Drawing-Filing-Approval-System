@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-04-11
+
+### Changed
+- Polished drawing detail, request detail, admin users, notifications, and account-adjacent UI surfaces with cleaner spacing, lighter visual noise, and more consistent badge treatment.
+- Reworked status badge color rendering to use deterministic inline tones so border and dot colors no longer fall back incorrectly in Tailwind-driven views.
+- Standardized date-time formatting across key cards and activity surfaces to a more stable `day month year, HH:MM` presentation with cleaner timestamp slots.
+- Refined the embedded PDF preview experience with a more compact mobile wrapper, SVG-based zoom and print controls, and a tighter internal toolbar treatment.
+- Tuned dashboard and notification timeline chips so recent activity timestamps feel more consistent with drawing detail history cards.
+
 ## 2026-04-10
 
 ### Added
