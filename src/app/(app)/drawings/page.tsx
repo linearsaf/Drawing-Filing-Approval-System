@@ -106,7 +106,7 @@ async function fetchDrawings(
 export default function DrawingsPage() {
   const { currentUser } = useDemoApp();
   const [filters, setFilters] = useState<DrawingFilters>(defaultFilters);
-  const [viewMode, setViewMode] = useState<ViewMode>("card");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   return (
     <AuthGuard>

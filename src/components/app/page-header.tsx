@@ -30,7 +30,7 @@ export function PageHeader({
           ) : null}
         </div>
       </div>
-      {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+      {/* CTA header disembunyikan sementara sesuai request */}
     </div>
   );
 }
