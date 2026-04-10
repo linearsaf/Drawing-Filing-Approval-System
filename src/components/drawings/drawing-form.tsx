@@ -17,7 +17,7 @@ const defaultValues: DrawingFormInput = {
   area: "",
   discipline: "",
   description: "",
-  revisionNo: "A",
+  revisionNo: "0",
   fileName: "",
   changeNote: ""
 };
@@ -241,10 +241,10 @@ export function DrawingForm({
             </div>
 
             <div className="mt-5 grid gap-5">
-              <Field hint="Gunakan pola revisi yang konsisten, misalnya A, B, C." label="Revision Number" required>
+              <Field hint="Gunakan numbering revisi yang konsisten, misalnya 0, 1, 2." label="Revision Number" required>
                 <Input
-                  onChange={(event) => setField("revisionNo", event.target.value.toUpperCase())}
-                  placeholder="Contoh: A"
+                  onChange={(event) => setField("revisionNo", event.target.value)}
+                  placeholder="Contoh: 0"
                   value={form.revisionNo}
                 />
               </Field>

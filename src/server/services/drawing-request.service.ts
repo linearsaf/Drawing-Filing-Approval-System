@@ -544,7 +544,7 @@ export async function decideDrawingRequestByDrafter(
 
   const drawingId = crypto.randomUUID();
   const revisionId = crypto.randomUUID();
-  const revisionNo = "A";
+  const revisionNo = "0";
   const drawingNumber = `REQ-${request.requestNumber}`;
   const drawingName = request.description.slice(0, 120) || `Request ${request.requestNumber}`;
   const discipline = "Pending";

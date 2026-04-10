@@ -25,7 +25,7 @@ function ensurePdf(file: File | null): asserts file is File {
 }
 
 function buildPaths(drawingId: string, revisionNo: string, fileName: string) {
-  const safeRevision = sanitizeSegment(revisionNo.toLowerCase()) || "a";
+  const safeRevision = sanitizeSegment(revisionNo.toLowerCase()) || "0";
   const safeFileName = sanitizeSegment(fileName) || "drawing.pdf";
   const publicDir = `/uploads/drawings/${drawingId}/rev-${safeRevision}`;
   const diskDir = path.join(uploadRoot, drawingId, `rev-${safeRevision}`);
@@ -172,7 +172,7 @@ export async function removeDrawingRevisionFiles(params: {
   drawingId: string;
   revisionNo: string;
 }) {
-  const safeRevision = sanitizeSegment(params.revisionNo.toLowerCase()) || "a";
+  const safeRevision = sanitizeSegment(params.revisionNo.toLowerCase()) || "0";
   const revisionDir = path.join(uploadRoot, params.drawingId, `rev-${safeRevision}`);
 
   await rm(revisionDir, { recursive: true, force: true });

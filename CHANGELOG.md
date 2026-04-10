@@ -7,6 +7,9 @@
 - Reworked status badge color rendering to use deterministic inline tones so border and dot colors no longer fall back incorrectly in Tailwind-driven views.
 - Standardized date-time formatting across key cards and activity surfaces to a more stable `day month year, HH:MM` presentation with cleaner timestamp slots.
 - Refined the embedded PDF preview experience with a more compact mobile wrapper, SVG-based zoom and print controls, and a tighter internal toolbar treatment.
+- Updated the `Preview Drawing` panel to use icon-based fullscreen, shrink, and completed-only download actions with more balanced mobile sizing and spacing.
+- Fixed the completed PDF download action so it opens the actual attachment response instead of the intermediate JSON metadata endpoint.
+- Shifted new revision defaults and helper copy toward numeric numbering (`0, 1, 2 ...`), including drawing creation, drawing-request conversion, and next-revision generation for numeric flows.
 - Tuned dashboard and notification timeline chips so recent activity timestamps feel more consistent with drawing detail history cards.
 
 ## 2026-04-10

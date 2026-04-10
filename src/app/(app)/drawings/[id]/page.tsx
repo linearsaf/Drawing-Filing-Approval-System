@@ -448,6 +448,7 @@ function DetailContent({
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
         <PdfPreview
+          downloadUrl={`/api/revisions/${currentRevision.id}/preview?download=1`}
           drawingNumber={drawing.drawingNumber}
           fileName={currentRevision.fileName}
           previewUrl={`/api/revisions/${currentRevision.id}/preview`}

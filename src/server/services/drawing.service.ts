@@ -67,6 +67,20 @@ function nextRevisionStatus(submit?: boolean) {
   return submit ? "WAITING_CHECK" : "DRAFT";
 }
 
+function getNextRevisionNo(currentRevisionNo: string) {
+  const trimmed = currentRevisionNo.trim();
+
+  if (/^\d+$/.test(trimmed)) {
+    return String(Number.parseInt(trimmed, 10) + 1);
+  }
+
+  if (/^[A-Za-z]$/.test(trimmed)) {
+    return String.fromCharCode(trimmed.toUpperCase().charCodeAt(0) + 1);
+  }
+
+  return `${trimmed}-1`;
+}
+
 const editableStatuses: ReadonlySet<string> = new Set([
   "DRAFT",
   "CHECK_REJECTED",
@@ -715,7 +729,7 @@ export async function createRevisionFromCompleted(drawingId: string, userId: str
     }
 
     const currentRevisionNo = currentRevision.revisionNo;
-    const nextRevisionNo = String.fromCharCode(currentRevisionNo.toUpperCase().charCodeAt(0) + 1);
+    const nextRevisionNo = getNextRevisionNo(currentRevisionNo);
     const revisionId = crypto.randomUUID();
     const fileName = `${drawing.drawingNumber}-rev-${nextRevisionNo}.pdf`;
     const paths = buildFilePaths(drawing.id, nextRevisionNo, fileName);

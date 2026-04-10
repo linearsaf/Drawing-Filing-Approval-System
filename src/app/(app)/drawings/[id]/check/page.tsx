@@ -148,6 +148,7 @@ function CheckContent({
       />
       <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <PdfPreview
+          downloadUrl={`/api/revisions/${revision.id}/preview?download=1`}
           drawingNumber={drawing.drawingNumber}
           fileName={revision.fileName}
           previewUrl={`/api/revisions/${revision.id}/preview`}

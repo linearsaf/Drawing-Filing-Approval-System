@@ -476,7 +476,7 @@ function DrawingsContent({
                   <Input
                     className={compactFilterControlClass}
                     onChange={(event) => updateFilters({ ...filters, revision: event.target.value })}
-                    placeholder="Contoh A / B / C"
+                    placeholder="Contoh 0 / 1 / 2"
                     value={filters.revision}
                   />
                 </FilterField>

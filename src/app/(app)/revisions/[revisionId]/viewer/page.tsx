@@ -125,6 +125,7 @@ function RevisionViewerContent({ revisionId }: { revisionId: string }) {
       ) : null}
 
       <PdfPreview
+        downloadUrl={`/api/revisions/${data.revision.id}/preview?download=1`}
         drawingNumber={data.drawing.drawingNumber}
         fileName={data.revision.fileName}
         previewUrl={`/api/revisions/${data.revision.id}/preview`}

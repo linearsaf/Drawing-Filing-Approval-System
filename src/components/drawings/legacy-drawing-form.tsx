@@ -273,7 +273,7 @@ export function LegacyDrawingForm({
             <div className="mt-5 grid gap-5">
               <Field hint="Gunakan nomor revisi sesuai dokumen lama. Nilai default 0 bisa diganti jika perlu." label="Revision Number" required>
                 <Input
-                  onChange={(event) => setField("revisionNo", event.target.value.toUpperCase())}
+                  onChange={(event) => setField("revisionNo", event.target.value)}
                   placeholder="Contoh: 0"
                   value={form.revisionNo}
                 />

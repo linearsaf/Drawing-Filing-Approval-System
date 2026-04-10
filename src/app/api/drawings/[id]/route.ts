@@ -48,7 +48,7 @@ export async function PATCH(
       file instanceof File
         ? await saveDrawingPdfFile({
             drawingId: id,
-            revisionNo: body.revisionNo ?? "a",
+            revisionNo: body.revisionNo ?? "0",
             file,
             createWatermarkedCopy: body.submit
           })
