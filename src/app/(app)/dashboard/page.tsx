@@ -83,6 +83,11 @@ function DashboardContent({ role }: { role: UserRole }) {
   const [error, setError] = useState("");
 
   const dashboardCopy = getDashboardCopy(role);
+  const headerActionGroups = getDashboardHeaderActions(role);
+  const hasHeaderActions =
+    Boolean(headerActionGroups.primary) ||
+    headerActionGroups.secondary.length > 0 ||
+    headerActionGroups.showLibraryLink;
 
   useEffect(() => {
     let cancelled = false;
@@ -119,38 +124,30 @@ function DashboardContent({ role }: { role: UserRole }) {
     };
   }, [role]);
 
-  const headerActions = (
-    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-      <Link className="w-full sm:w-auto" href="/drawings">
-        <Button className="w-full" variant="secondary">{dashboardCopy.headerLinkLabel}</Button>
-      </Link>
-      {canCreateDrawing(role) ? (
-        <Link className="w-full sm:w-auto" href="/drawings/new">
-          <Button className="w-full">Create Drawing</Button>
+  const headerActions = hasHeaderActions ? (
+    <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+      {headerActionGroups.primary ? (
+        <Link className="w-full sm:w-auto" href={headerActionGroups.primary.href}>
+          <Button className="w-full min-w-[11rem]">{headerActionGroups.primary.label}</Button>
         </Link>
       ) : null}
-      {canCreateDrawingRequest(role) ? (
-        <Link className="w-full sm:w-auto" href="/drawing-requests/new">
-          <Button className="w-full">Request New Drawing</Button>
+      {headerActionGroups.secondary.map((action) => (
+        <Link className="w-full sm:w-auto" href={action.href} key={action.href}>
+          <Button className="w-full" variant="secondary">
+            {action.label}
+          </Button>
         </Link>
-      ) : null}
-      {canReviewDrawingRequest(role) ? (
-        <Link className="w-full sm:w-auto" href="/drawing-requests">
-          <Button className="w-full" variant="secondary">Review Drawing Requests</Button>
-        </Link>
-      ) : null}
-      {canRespondToDrawingRequestAssignment(role) ? (
-        <Link className="w-full sm:w-auto" href="/drawing-requests">
-          <Button className="w-full" variant="secondary">Open Request Assignments</Button>
-        </Link>
-      ) : null}
-      {canUploadOldDrawing(role) ? (
-        <Link className="w-full sm:w-auto" href="/drawings/legacy/new">
-          <Button className="w-full" variant="secondary">Upload Old Drawing</Button>
+      ))}
+      {headerActionGroups.showLibraryLink ? (
+        <Link
+          className="inline-flex min-h-[2.75rem] items-center justify-center text-sm font-semibold text-brand transition hover:text-brand/80 sm:min-h-0 sm:justify-start"
+          href="/drawings"
+        >
+          {dashboardCopy.headerLinkLabel}
         </Link>
       ) : null}
     </div>
-  );
+  ) : null;
 
   if (isLoading) {
     return (
@@ -360,7 +357,7 @@ function DashboardContent({ role }: { role: UserRole }) {
                       ) : null}
                     </div>
 
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-start sm:justify-between gap-2">
                       <StatusBadge
                         compact
                         label={getCompactDashboardStatusLabel(drawing.currentStatus)}
@@ -455,6 +452,99 @@ function DashboardContent({ role }: { role: UserRole }) {
   );
 }
 
+interface DashboardHeaderAction {
+  href: string;
+  label: string;
+}
+
+function getDashboardHeaderActions(role: UserRole): {
+  primary: DashboardHeaderAction | null;
+  secondary: DashboardHeaderAction[];
+  showLibraryLink: boolean;
+} {
+  if (role === "DRAFTER") {
+    return {
+      primary: canCreateDrawing(role)
+        ? {
+            href: "/drawings/new",
+            label: "Create New Drawing"
+          }
+        : null,
+      secondary: canUploadOldDrawing(role)
+        ? [
+            {
+              href: "/drawings/legacy/new",
+              label: "Upload Old Drawing"
+            }
+          ]
+        : [],
+      showLibraryLink: true
+    };
+  }
+
+  if (role === "DRAFT_LEADER") {
+    return {
+      primary: {
+        href: "/drawings",
+        label: "Open Check Queue"
+      },
+      secondary: canReviewDrawingRequest(role)
+        ? [
+            {
+              href: "/drawing-requests",
+              label: "Review Drawing Requests"
+            }
+          ]
+        : [],
+      showLibraryLink: true
+    };
+  }
+
+  if (role === "APPROVER_L1") {
+    return {
+      primary: {
+        href: "/drawings",
+        label: "Open Approval Queue"
+      },
+      secondary: [],
+      showLibraryLink: true
+    };
+  }
+
+  if (role === "HEAD") {
+    return {
+      primary: {
+        href: "/drawings",
+        label: "Open Final Approval Queue"
+      },
+      secondary: [],
+      showLibraryLink: true
+    };
+  }
+
+  if (role === "CONSUMER") {
+    return {
+      primary: canCreateDrawingRequest(role)
+        ? {
+            href: "/drawing-requests/new",
+            label: "Request New Drawing"
+          }
+        : {
+            href: "/drawings",
+            label: "Open Drawing Library"
+          },
+      secondary: [],
+      showLibraryLink: false
+    };
+  }
+
+  return {
+    primary: null,
+    secondary: [],
+    showLibraryLink: false
+  };
+}
+
 function DashboardLoadingState() {
   return (
     <div className="space-y-8 animate-pulse">
@@ -530,7 +620,7 @@ function getDashboardCopy(role: UserRole) {
       queueEmptyTitle: "Tidak ada draft yang mendesak",
       queueEmptyDescription:
         "Semua draft Anda sudah selesai diproses atau sedang menunggu tahap berikutnya.",
-      headerLinkLabel: "Open Drawing List"
+      headerLinkLabel: "Open Drawing Library"
     };
   }
 
@@ -551,7 +641,7 @@ function getDashboardCopy(role: UserRole) {
       queueEmptyTitle: "Tidak ada drawing untuk di-check",
       queueEmptyDescription:
         "Antrian check sedang kosong. Dashboard ini akan otomatis terisi saat ada revisi baru masuk.",
-      headerLinkLabel: "Open Drawing List"
+      headerLinkLabel: "Open Drawing Library"
     };
   }
 
@@ -572,7 +662,7 @@ function getDashboardCopy(role: UserRole) {
       queueEmptyTitle: "Approval level 1 sedang kosong",
       queueEmptyDescription:
         "Belum ada drawing yang masuk ke meja approval level 1 pada saat ini.",
-      headerLinkLabel: "Open Drawing List"
+      headerLinkLabel: "Open Drawing Library"
     };
   }
 
@@ -593,7 +683,7 @@ function getDashboardCopy(role: UserRole) {
       queueEmptyTitle: "Belum ada final approval",
       queueEmptyDescription:
         "Saat ini tidak ada drawing yang menunggu keputusan final di dashboard Anda.",
-      headerLinkLabel: "Open Drawing List"
+      headerLinkLabel: "Open Drawing Library"
     };
   }
 
@@ -614,7 +704,7 @@ function getDashboardCopy(role: UserRole) {
       queueEmptyTitle: "Belum ada dokumen final",
       queueEmptyDescription:
         "Belum ada drawing completed yang tersedia untuk role consumer saat ini.",
-      headerLinkLabel: "Open Drawing List"
+      headerLinkLabel: "Open Drawing Library"
     };
   }
 
@@ -633,7 +723,7 @@ function getDashboardCopy(role: UserRole) {
     queueEmptyTitle: "Semua alur sedang bersih",
     queueEmptyDescription:
       "Tidak ada drawing aktif yang tertahan. Mayoritas item sudah selesai atau belum ada pekerjaan berjalan.",
-    headerLinkLabel: "Open Drawing List"
+    headerLinkLabel: "Open Drawing Library"
   };
 }
 

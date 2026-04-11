@@ -26,6 +26,7 @@ export function NotificationCenter() {
   const [filter, setFilter] = useState<NotificationFilter>("ALL");
   const [data, setData] = useState<NotificationListResponse | null>(null);
   const [activeNotification, setActiveNotification] = useState<NotificationItem | null>(null);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [isMarkingAll, setIsMarkingAll] = useState(false);
@@ -198,7 +199,7 @@ export function NotificationCenter() {
                     Inbox ini melengkapi queue dashboard dengan konteks event yang lebih spesifik per user.
                   </p>
                 </div>
-                <div className="grid gap-3 md:min-w-[240px]">
+                <div className="grid grid-cols-2 gap-2 md:min-w-[240px] md:grid-cols-1 md:gap-3">
                   <HeroStat label="Unread" value={String(data?.unreadCount ?? 0)} />
                   <HeroStat label="Visible Items" value={String(data?.total ?? 0)} />
                 </div>
@@ -208,7 +209,7 @@ export function NotificationCenter() {
                 {filters.map((item) => (
                   <button
                     className={cn(
-                      "rounded-full border px-4 py-2 text-sm font-semibold transition",
+                      "rounded-full border px-3.5 py-2 text-sm font-semibold transition sm:px-4",
                       filter === item
                         ? "border-white/10 bg-white text-graphite"
                         : "border-[rgba(190,205,235,0.34)] bg-white/[0.04] text-white/82 hover:border-[rgba(208,220,244,0.46)] hover:bg-white/[0.08]"
@@ -224,10 +225,18 @@ export function NotificationCenter() {
                   </button>
                 ))}
               </div>
+
+              <button
+                className="inline-flex w-fit text-xs font-semibold text-white/72 underline-offset-4 transition hover:text-white hover:underline xl:hidden"
+                onClick={() => setIsHelpOpen(true)}
+                type="button"
+              >
+                Apa arti status notifikasi?
+              </button>
             </div>
           </Card>
 
-          <Card className="bg-white/75">
+          <Card className="hidden bg-white/75 xl:block">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">How It Works</p>
             <h2 className="mt-2 text-2xl font-semibold text-text">Inbox behavior</h2>
             <div className="mt-5 space-y-3">
@@ -280,31 +289,36 @@ export function NotificationCenter() {
                       onClick={() => void handleOpenNotification(item.id)}
                       type="button"
                     >
-                      <div className="flex flex-col gap-4">
+                      <div className="flex flex-col gap-3 sm:gap-4">
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-2">
                               {!item.isRead ? (
                                 <span className="inline-flex h-2.5 w-2.5 rounded-full bg-brand" />
                               ) : null}
-                              <p className="text-lg font-semibold text-text">{item.title}</p>
+                              <p className="text-base font-semibold leading-6 text-text sm:text-lg">{item.title}</p>
                             </div>
-                            <p className="mt-2 text-sm leading-6 text-muted">{item.body}</p>
+                            <p className="mt-1.5 line-clamp-2 text-sm leading-6 text-muted">{item.body}</p>
+                            <p className="mt-2 text-[11px] font-medium text-muted sm:hidden">
+                              {formatDateTime(item.createdAt)}
+                            </p>
                           </div>
-                          <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-muted">
+                          <span className="hidden shrink-0 text-xs uppercase tracking-[0.16em] text-muted sm:block">
                             {formatDateTime(item.createdAt)}
                           </span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2">
                           <LifecycleBadge status={item.lifecycleStatus} />
-                          <TypeBadge type={item.type} />
+                          <div className="hidden sm:block">
+                            <TypeBadge type={item.type} />
+                          </div>
                           {item.isActionable ? (
                             <Badge className="border-brand/20 bg-brand/10 text-brand">Actionable</Badge>
                           ) : null}
                         </div>
 
-                        <p className="text-sm text-muted">{getNotificationContextLine(item)}</p>
+                        <p className="line-clamp-2 text-sm text-muted">{getNotificationContextLine(item)}</p>
                       </div>
                     </button>
                   );
@@ -342,7 +356,7 @@ export function NotificationCenter() {
             ) : null}
           </Card>
 
-          <Card>
+          <Card className="hidden xl:block">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Detail</p>
             <h2 className="mt-2 text-2xl font-semibold text-text">
               {activeNotification ? "Context notifikasi" : "Pilih notifikasi terlebih dahulu"}
@@ -415,6 +429,127 @@ export function NotificationCenter() {
             )}
           </Card>
         </div>
+
+        {activeNotification ? (
+          <div className="xl:hidden">
+            <div
+              className="fixed inset-0 z-40 bg-graphite/28 backdrop-blur-[1px]"
+              onClick={() => setActiveNotification(null)}
+            />
+            <div className="fixed inset-x-0 bottom-0 z-50 max-h-[82vh] overflow-y-auto rounded-t-[28px] border border-border/80 bg-white px-5 pb-5 pt-4 shadow-[0_-18px_42px_rgba(29,36,48,0.16)]">
+              <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-border/80" />
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Detail</p>
+                  <h2 className="mt-2 text-xl font-semibold text-text">Context notifikasi</h2>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    Detail ini membantu Anda memahami konteks event sebelum berpindah ke halaman kerja yang relevan.
+                  </p>
+                </div>
+                <button
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/85 bg-surface/94 text-text transition hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
+                  onClick={() => setActiveNotification(null)}
+                  type="button"
+                >
+                  <span className="text-lg leading-none">×</span>
+                </button>
+              </div>
+
+              <div className="mt-5 rounded-[24px] border border-border/80 bg-white p-5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <LifecycleBadge status={activeNotification.lifecycleStatus} />
+                  <TypeBadge type={activeNotification.type} />
+                  {activeNotification.isRead ? (
+                    <Badge className="border-border/90 bg-panel/28 text-muted">Read</Badge>
+                  ) : (
+                    <Badge className="border-brand/20 bg-brand/10 text-brand">Unread</Badge>
+                  )}
+                </div>
+
+                <h3 className="mt-4 text-xl font-semibold text-text">{activeNotification.title}</h3>
+                <p className="mt-2 text-sm leading-7 text-muted">{activeNotification.body}</p>
+
+                <div className="mt-5 grid gap-3">
+                  <InfoTile
+                    label="Dibuat"
+                    value={formatDateTime(activeNotification.createdAt)}
+                  />
+                  <InfoTile
+                    label="Target"
+                    value={getNotificationContextLine(activeNotification)}
+                  />
+                </div>
+
+                <div className="mt-5 rounded-2xl border border-border/80 bg-panel/20 px-4 py-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted">
+                    Lifecycle
+                  </p>
+                  <p className="mt-2 text-sm text-text">
+                    {getLifecycleDescription(activeNotification.lifecycleStatus)}
+                  </p>
+                </div>
+
+                <div className="mt-6 flex flex-col gap-3">
+                  <Link href={activeNotification.actionUrl}>
+                    <Button className="w-full">{getNotificationActionLabel(activeNotification.type)}</Button>
+                  </Link>
+                  <button
+                    className="w-full rounded-full border border-border/90 bg-surface/92 px-4 py-2.5 text-sm font-semibold text-text transition hover:border-brand/35 hover:bg-brand/5 hover:text-brand"
+                    onClick={() => setActiveNotification(null)}
+                    type="button"
+                  >
+                    Tutup Detail
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {isHelpOpen ? (
+          <div className="xl:hidden">
+            <div
+              className="fixed inset-0 z-40 bg-graphite/28 backdrop-blur-[1px]"
+              onClick={() => setIsHelpOpen(false)}
+            />
+            <div className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] overflow-y-auto rounded-t-[28px] border border-border/80 bg-white px-5 pb-5 pt-4 shadow-[0_-18px_42px_rgba(29,36,48,0.16)]">
+              <div className="mx-auto mb-4 h-1.5 w-14 rounded-full bg-border/80" />
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">How It Works</p>
+                  <h2 className="mt-2 text-xl font-semibold text-text">Arti status notifikasi</h2>
+                  <p className="mt-2 text-sm leading-6 text-muted">
+                    Ringkasan ini membantu Anda membaca lifecycle notifikasi tanpa memenuhi area inbox utama.
+                  </p>
+                </div>
+                <button
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border/85 bg-surface/94 text-text transition hover:border-brand/30 hover:bg-brand/5 hover:text-brand"
+                  onClick={() => setIsHelpOpen(false)}
+                  type="button"
+                >
+                  <span className="text-lg leading-none">×</span>
+                </button>
+              </div>
+
+              <div className="mt-5 space-y-3">
+                <InfoRow label="Unread" value="Item belum pernah dibuka dari inbox ini." />
+                <InfoRow label="Active" value="Masih relevan dengan status atau assignment saat ini." />
+                <InfoRow label="Resolved" value="Flow terkait sudah selesai atau status sudah bergeser." />
+                <InfoRow label="Superseded" value="Assignment terkait sudah berpindah ke user lain." />
+              </div>
+
+              <div className="mt-6">
+                <button
+                  className="w-full rounded-full border border-border/90 bg-surface/92 px-4 py-2.5 text-sm font-semibold text-text transition hover:border-brand/35 hover:bg-brand/5 hover:text-brand"
+                  onClick={() => setIsHelpOpen(false)}
+                  type="button"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </AuthGuard>
   );
@@ -521,14 +656,26 @@ function getLifecycleDescription(status: NotificationLifecycleStatus) {
 }
 
 function LifecycleBadge({ status }: { status: NotificationLifecycleStatus }) {
-  const className =
+  const style =
     status === "ACTIVE"
-      ? "border-brand/20 bg-brand/10 text-brand"
+      ? {
+          borderColor: "rgba(53,85,154,0.2)",
+          backgroundColor: "rgba(53,85,154,0.1)",
+          color: "#35559a"
+        }
       : status === "SUPERSEDED"
-        ? "border-danger/15 bg-danger/8 text-danger"
-        : "border-[#49605a]/15 bg-[#49605a]/8 text-[#49605a]";
+        ? {
+            borderColor: "rgba(220,49,54,0.15)",
+            backgroundColor: "rgba(220,49,54,0.08)",
+            color: "#dc3136"
+          }
+        : {
+            borderColor: "rgba(73,96,90,0.15)",
+            backgroundColor: "rgba(73,96,90,0.08)",
+            color: "#49605a"
+          };
 
-  return <Badge className={className}>{status}</Badge>;
+  return <Badge style={style}>{status}</Badge>;
 }
 
 function TypeBadge({ type }: { type: NotificationType }) {
@@ -541,9 +688,9 @@ function TypeBadge({ type }: { type: NotificationType }) {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/6 px-4 py-3">
+    <div className="rounded-2xl border border-white/10 bg-white/6 px-3 py-3 sm:px-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/55">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
+      <p className="mt-1.5 text-2xl font-semibold text-white sm:mt-2 sm:text-3xl">{value}</p>
     </div>
   );
 }

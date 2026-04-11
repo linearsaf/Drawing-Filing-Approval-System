@@ -106,28 +106,32 @@ export function DrawingForm({
         <Card className="relative overflow-hidden border-transparent bg-graphite text-white">
           <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
           <div className="absolute -right-16 top-0 h-44 w-44 rounded-full bg-white/5 blur-3xl" />
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/55">
                 {mode === "create" ? "Create Drawing" : "Edit Drawing"}
               </p>
-              <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight">
+              <h2 className="mt-2 max-w-2xl text-lg font-semibold leading-snug tracking-tight sm:text-2xl xl:text-3xl">
                 {formCopy.title}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72 line-clamp-3">
                 {formCopy.description}
               </p>
             </div>
 
-            <div className="grid gap-3 md:min-w-[240px]">
+            <div className="grid grid-cols-2 gap-3 sm:min-w-[240px] sm:grid-cols-1">
               <SummaryChip label="Drafter" value={drawnByName ?? "-"} />
               <SummaryChip label="Current Revision" value={form.revisionNo || "-"} />
-              <SummaryChip label="Current File" value={form.fileName || "Belum ada file"} />
+              <SummaryChip
+                className="col-span-2 sm:col-span-1"
+                label="Current File"
+                value={form.fileName || "Belum ada file"}
+              />
             </div>
           </div>
         </Card>
 
-        <Card className="bg-white/75">
+        <Card className="hidden bg-white/75 xl:block">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Submission Notes</p>
           <h2 className="mt-2 text-2xl font-semibold text-text">Checklist sebelum simpan</h2>
 
@@ -147,11 +151,11 @@ export function DrawingForm({
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-4">
+        <div className="order-1 space-y-4">
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Drawing Metadata</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Metadata utama</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Metadata utama</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Isi identitas drawing dengan jelas agar mudah dicari, diaudit, dan dilacak pada tahap approval berikutnya.
               </p>
@@ -205,7 +209,7 @@ export function DrawingForm({
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Document Context</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Description dan Change Note</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Description dan Change Note</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Tambahkan konteks secukupnya untuk membantu checker dan approver memahami isi dokumen.
               </p>
@@ -230,11 +234,24 @@ export function DrawingForm({
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="order-2 space-y-4">
+          <CollapsibleHelperCard
+            className="xl:hidden"
+            eyebrow="Submission Notes"
+            title="Checklist sebelum simpan"
+          >
+            <div className="space-y-3">
+              <ChecklistRow text="Pastikan drawing number unik dan konsisten dengan standar proyek." />
+              <ChecklistRow text="Gunakan current revision yang benar sebelum mengganti file PDF." />
+              <ChecklistRow text="Isi Change Note bila perubahan perlu mudah dilacak reviewer." />
+              <ChecklistRow text="Pilih submit hanya saat dokumen sudah siap masuk alur check." />
+            </div>
+          </CollapsibleHelperCard>
+
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Revision & File</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Current Revision document</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Current Revision document</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Tentukan nomor revision dan file PDF yang akan dipakai sebagai sumber dokumen aktif.
               </p>
@@ -296,7 +313,7 @@ export function DrawingForm({
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Save Actions</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Pilih tahap berikutnya</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Pilih tahap berikutnya</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Simpan sebagai draft bila masih ada revisi internal, atau submit bila dokumen sudah siap masuk proses check.
               </p>
@@ -352,16 +369,16 @@ function Field({
         {label} {required ? <span className="text-danger">*</span> : null}
       </span>
       {children}
-      {hint ? <p className="mt-2 text-xs leading-5 text-muted">{hint}</p> : null}
+      {hint ? <p className="mt-2 text-xs leading-5 text-muted sm:text-xs">{hint}</p> : null}
     </label>
   );
 }
 
-function SummaryChip({ label, value }: { label: string; value: string }) {
+function SummaryChip({ label, value, className = "" }: { label: string; value: string; className?: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+    <div className={`rounded-2xl border border-white/10 bg-white/5 px-4 py-3 ${className}`.trim()}>
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/55">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+      <p className="mt-2 text-sm font-semibold leading-6 text-white">{value}</p>
     </div>
   );
 }
@@ -380,5 +397,51 @@ function ActionPanel({ title, description }: { title: string; description: strin
       <p className="text-sm font-semibold text-text">{title}</p>
       <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
     </div>
+  );
+}
+
+function CollapsibleHelperCard({
+  eyebrow,
+  title,
+  children,
+  className = ""
+}: {
+  eyebrow: string;
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card className={className}>
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">{eyebrow}</p>
+            <h2 className="mt-2 text-xl font-semibold text-text">{title}</h2>
+          </div>
+          <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-panel/26 text-sm font-semibold text-text transition group-open:rotate-180">
+            <CollapseChevronIcon />
+          </span>
+        </summary>
+        <div className="mt-5">{children}</div>
+      </details>
+    </Card>
+  );
+}
+
+function CollapseChevronIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }

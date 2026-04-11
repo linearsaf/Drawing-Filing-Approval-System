@@ -7,6 +7,7 @@ import {
   buildApprovalPlanMap,
   canUserApproveAssignedStep,
   getActiveApprovalLevel,
+  listApprovalActionsByRevisionIds,
   listApprovalStepsByRevisionIds
 } from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
@@ -93,7 +94,7 @@ function assertViewerCanSee(role: AppRole, currentStatus: string, createdBy: str
     throw new HttpError(403, "Drawing belum tersedia untuk role ini.");
   }
 
-  if (role === "DRAFTER" && createdBy !== userId) {
+  if (role === "DRAFTER" && createdBy !== userId && currentStatus !== "COMPLETED") {
     throw new HttpError(403, "Anda hanya dapat melihat drawing milik sendiri.");
   }
 }
@@ -223,7 +224,12 @@ export async function listDrawings(params: {
     .from(schema.drawings)
     .where(
       and(
-        params.role === "DRAFTER" ? eq(schema.drawings.createdBy, params.userId) : undefined,
+        params.role === "DRAFTER"
+          ? or(
+              eq(schema.drawings.createdBy, params.userId),
+              eq(schema.drawings.currentStatus, "COMPLETED")
+            )
+          : undefined,
         params.role === "CONSUMER" ? eq(schema.drawings.currentStatus, "COMPLETED") : undefined,
         params.status && params.status !== "ALL"
           ? eq(schema.drawings.currentStatus, params.status as typeof schema.drawings.currentStatus._.data)
@@ -261,13 +267,7 @@ export async function listDrawings(params: {
     : [];
   const revisionById = new Map(revisions.map((revision) => [revision.id, revision]));
   const approvalSteps = await listApprovalStepsByRevisionIds(revisions.map((revision) => revision.id));
-  const approvalActions = revisions.length
-    ? await db
-        .select()
-        .from(schema.approvalActions)
-        .where(inArray(schema.approvalActions.revisionId, revisions.map((revision) => revision.id)))
-        .orderBy(desc(schema.approvalActions.actedAt))
-    : [];
+  const approvalActions = await listApprovalActionsByRevisionIds(revisions.map((revision) => revision.id));
   const approvalPlanByRevision = buildApprovalPlanMap(revisions, approvalSteps, approvalActions);
 
   const filteredItems = rows
@@ -366,18 +366,7 @@ export async function getDrawingDetail(drawingId: string, role: AppRole, userId:
     .where(eq(schema.drawingRevisions.drawingId, drawing.id))
     .orderBy(desc(schema.drawingRevisions.createdAt));
 
-  const approvalHistory = revisions.length
-    ? await db
-        .select()
-        .from(schema.approvalActions)
-        .where(
-          inArray(
-            schema.approvalActions.revisionId,
-            revisions.map((revision) => revision.id)
-          )
-        )
-        .orderBy(desc(schema.approvalActions.actedAt))
-    : [];
+  const approvalHistory = await listApprovalActionsByRevisionIds(revisions.map((revision) => revision.id));
   const approvalSteps = await listApprovalStepsByRevisionIds(revisions.map((revision) => revision.id));
   const approvalPlanByRevision = buildApprovalPlanMap(revisions, approvalSteps, approvalHistory);
   const currentRevision = revisions.find((revision) => revision.id === drawing.currentRevisionId) ?? null;

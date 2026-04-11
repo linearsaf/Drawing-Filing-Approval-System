@@ -28,6 +28,19 @@ type ApprovalStepView = {
   state: StepState;
 };
 
+function parseDecisionImagePaths(value: string | null) {
+  if (!value) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
 type DbExecutor = Pick<typeof db, "select" | "insert" | "update" | "delete"> & {
   query: typeof db.query;
 };
@@ -170,11 +183,16 @@ export async function listApprovalActionsByRevisionIds(revisionIds: string[]) {
     return [];
   }
 
-  return db
+  const actions = await db
     .select()
     .from(schema.approvalActions)
     .where(inArray(schema.approvalActions.revisionId, revisionIds))
     .orderBy(desc(schema.approvalActions.actedAt));
+
+  return actions.map((action) => ({
+    ...action,
+    decisionImagePaths: parseDecisionImagePaths(action.decisionImagePaths)
+  }));
 }
 
 export function buildApprovalPlanMap(

@@ -19,7 +19,7 @@ export function StatusBadge({
     <Badge
       className={cn(
         tone.badgeClassName,
-        compact ? "w-fit max-w-full gap-1.5 px-3 py-2 text-[11px] tracking-[0.06em] whitespace-nowrap" : undefined
+        compact ? "w-fit max-w-full text-[11px] tracking-[0.06em] whitespace-nowrap" : undefined
       )}
       style={tone.badgeStyle}
     >

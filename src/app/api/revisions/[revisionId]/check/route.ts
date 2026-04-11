@@ -1,6 +1,6 @@
 import { apiError, apiSuccess, parseJson } from "@/lib/server/api";
 import { requireRole } from "@/lib/server/auth";
-import { checkDecisionSchema } from "@/lib/validations/api";
+import { checkDecisionFormSchema, checkDecisionSchema } from "@/lib/validations/api";
 import { decideApproval } from "@/server/services/approval.service";
 
 export async function POST(
@@ -10,7 +10,42 @@ export async function POST(
   try {
     const session = await requireRole(request, ["DRAFT_LEADER", "ADMIN"]);
     const { revisionId } = await params;
-    const body = await parseJson(request, checkDecisionSchema);
+    const contentType = request.headers.get("content-type") ?? "";
+    let body: {
+      decision: "APPROVED" | "REJECTED";
+      note: string;
+      signPdf: boolean;
+      approvalPlan?: {
+        level1ApproverId: string;
+        level2ApproverId?: string | null;
+      };
+      decisionImages?: File[];
+    };
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await request.formData();
+      const parsed = checkDecisionFormSchema.safeParse({
+        decision: formData.get("decision"),
+        note: formData.get("note") ?? "",
+        signPdf: formData.get("signPdf") ?? "true",
+        approvalPlan: formData.get("approvalPlan")
+      });
+
+      if (!parsed.success) {
+        throw parsed.error;
+      }
+
+      body = {
+        ...parsed.data,
+        decisionImages: formData
+          .getAll("decisionImages")
+          .filter((item): item is File => item instanceof File && item.size > 0)
+      };
+    } else {
+      const parsed = await parseJson(request, checkDecisionSchema);
+      body = parsed;
+    }
+
     const role = (session.user.role ?? "CONSUMER") as Parameters<typeof decideApproval>[0]["role"];
 
     const data = await decideApproval({
@@ -22,6 +57,7 @@ export async function POST(
       note: body.note,
       signPdf: body.signPdf,
       approvalPlan: body.approvalPlan,
+      decisionImages: "decisionImages" in body ? body.decisionImages : undefined,
       expectedStatus: "WAITING_CHECK"
     });
 

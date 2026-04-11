@@ -79,8 +79,8 @@ export function canApproveRevision(role: UserRole, status: RevisionStatus, isAss
   return matchesLevel && isAssigned;
 }
 
-export function canCreateRevision(role: UserRole, status: RevisionStatus) {
-  return (role === "DRAFTER" || role === "ADMIN") && status === "COMPLETED";
+export function canCreateRevision(role: UserRole, status: RevisionStatus, isOwner = true) {
+  return (role === "ADMIN" || (role === "DRAFTER" && isOwner)) && status === "COMPLETED";
 }
 
 export function canDownload(role: UserRole, status: RevisionStatus) {

@@ -30,7 +30,7 @@ export function PageHeader({
           ) : null}
         </div>
       </div>
-      {/* CTA header disembunyikan sementara sesuai request */}
+      {actions}
     </div>
   );
 }

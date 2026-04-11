@@ -162,6 +162,7 @@ export interface ApprovalAction {
   actorRole: UserRole;
   decision: ApprovalDecision;
   decisionNote: string;
+  decisionImagePaths?: string[];
   actedAt: string;
   createdAt: string;
 }

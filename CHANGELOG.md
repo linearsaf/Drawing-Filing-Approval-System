@@ -2,7 +2,16 @@
 
 ## 2026-04-11
 
+### Added
+- Added reject-note image attachments for check, approval level 1, and final approval so approvers can include up to 3 supporting images alongside a rejected review decision.
+- Added local storage handling and detail-history rendering for approval reject images, including inline thumbnails in `Approval History`.
+
 ### Changed
+- Reworked the shared approval decision panel into a clearer single-decision flow with adaptive submit actions, approval-only e-sign controls, and richer reject-image upload previews.
+- Upgraded image upload UX on approval reject notes and `Request New Drawing` with thumbnail previews, per-image delete actions, additive `Add Images` behavior, and cleaner mobile scrolling.
+- Improved mobile UX across key app surfaces including login, dashboard, notifications, drawings list/detail, drawing requests list/detail/new, new drawing, legacy drawing upload, and admin user management.
+- Simplified dashboard heading CTAs so each role sees a more focused next action, with the admin dashboard now relying on sidebar navigation instead of a crowded header action cluster.
+- Expanded drafter visibility rules so completed drawings from other drafters can be opened for reference, including PDF preview access, while keeping revision ownership protections in place.
 - Polished drawing detail, request detail, admin users, notifications, and account-adjacent UI surfaces with cleaner spacing, lighter visual noise, and more consistent badge treatment.
 - Reworked status badge color rendering to use deterministic inline tones so border and dot colors no longer fall back incorrectly in Tailwind-driven views.
 - Standardized date-time formatting across key cards and activity surfaces to a more stable `day month year, HH:MM` presentation with cleaner timestamp slots.

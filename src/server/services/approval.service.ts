@@ -11,6 +11,7 @@ import {
   notifyDrafterCompletedDrawing,
   notifyDrafterRejectedRevision
 } from "@/server/services/notification.service";
+import { saveApprovalDecisionImages } from "@/server/storage/approval-action-files";
 import { stampApprovalPdf } from "@/server/storage/pdf-signature";
 
 type ApprovalDecision = (typeof approvalDecisionValues)[number];
@@ -64,6 +65,7 @@ export async function decideApproval(params: {
   actorName: string;
   decision: ApprovalDecision;
   note?: string;
+  decisionImages?: File[];
   signPdf?: boolean;
   approvalPlan?: {
     level1ApproverId: string;
@@ -197,14 +199,24 @@ export async function decideApproval(params: {
         .where(eq(schema.drawingRevisions.id, drawing.latestCompletedRevisionId ?? "__none__"));
     }
 
+    const approvalActionId = crypto.randomUUID();
+    const storedDecisionImages =
+      params.decision === "REJECTED" && params.decisionImages && params.decisionImages.length > 0
+        ? await saveApprovalDecisionImages({
+            approvalActionId,
+            files: params.decisionImages
+          })
+        : [];
+
     await tx.insert(schema.approvalActions).values({
-      id: crypto.randomUUID(),
+      id: approvalActionId,
       revisionId: revision.id,
       approvalLevel: transition.level,
       actorId: params.userId,
       actorRole: params.role,
       decision: params.decision,
       decisionNote: params.note ?? "",
+      decisionImagePaths: JSON.stringify(storedDecisionImages.map((item) => item.filePath)),
       actedAt
     });
 

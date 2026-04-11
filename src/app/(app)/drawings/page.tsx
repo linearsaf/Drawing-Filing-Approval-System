@@ -152,6 +152,7 @@ function DrawingsContent({
   });
   const [drafters, setDrafters] = useState<DrafterOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -303,10 +304,10 @@ function DrawingsContent({
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/55">
                   Workspace {getRoleLabel(role)}
                 </p>
-                <h2 className="mt-2 max-w-2xl text-lg md:text-2xl xl:text-3xl font-semibold tracking-tight leading-snug">
+                <h2 className="mt-2 max-w-2xl text-lg font-semibold tracking-tight leading-snug sm:text-2xl xl:text-3xl">
                   {pageCopy.heroTitle}
                 </h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72 line-clamp-3">
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72 line-clamp-2 sm:line-clamp-3">
                   {pageCopy.heroDescription}
                 </p>
               </div>
@@ -321,7 +322,7 @@ function DrawingsContent({
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               <OverviewStat label="Visible" value={summary.total} />
               <OverviewStat label="Draft" value={summary.drafts} />
               <OverviewStat label="Need Review" value={summary.waiting} />
@@ -330,7 +331,7 @@ function DrawingsContent({
           </div>
         </Card>
 
-        <Card className="bg-white/75">
+        <Card className="hidden bg-white/75 xl:block">
           <div className="flex items-start gap-4">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">View & Summary</p>
@@ -404,13 +405,20 @@ function DrawingsContent({
             <div className="rounded-full border border-border bg-panel/35 px-4 py-2 text-sm font-semibold text-text">
               {total} drawing visible
             </div>
+            <Button
+              className="xl:hidden"
+              onClick={() => setIsFilterPanelOpen((current) => !current)}
+              variant="secondary"
+            >
+              {isFilterPanelOpen ? "Hide Filters" : "Show Filters"}
+            </Button>
             <Button onClick={resetFilters} variant="secondary">
               Reset Filter
             </Button>
           </div>
         </div>
 
-        <div className="mt-5 space-y-5">
+        <div className={`mt-5 space-y-5 ${isFilterPanelOpen ? "block" : "hidden xl:block"}`}>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-12">
             <div className="md:col-span-2 xl:col-span-6">
               <FilterField label="Kata kunci">
@@ -548,7 +556,7 @@ function DrawingsContent({
                     </div>
                   </div>
 
-                  <p className="text-sm leading-6 text-muted">
+                  <p className="line-clamp-2 text-sm leading-6 text-muted">
                     {drawing.description || "Belum ada deskripsi tambahan untuk drawing ini."}
                   </p>
 
@@ -865,7 +873,7 @@ function OverviewStat({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-[22px] border border-white/10 bg-white/8 px-4 py-4">
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-white">{value}</p>
+      <p className="mt-1.5 text-2xl font-semibold text-white sm:mt-2 sm:text-3xl">{value}</p>
     </div>
   );
 }

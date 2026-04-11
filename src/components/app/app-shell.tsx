@@ -195,7 +195,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
             </div>
             <main className="flex-1 px-3 py-3 sm:px-4 xl:px-5 xl:pb-5">{children}</main>
-            <footer className="mt-8 border-t border-border/50 px-1 pb-1 pt-2 text-right sm:px-2">
+            <footer className="mt-8 border-t border-border/50 px-3 pb-2.5 pt-4 md:pt-5 md:pb-4 md:px-5 text-right ">
               <p className="text-[11px] text-muted/80">
                 Pengembang app{" "}
                 <a

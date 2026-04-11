@@ -47,7 +47,7 @@ export default function RequestAccessPage() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,rgba(58,80,151,0.14),transparent_30%),linear-gradient(180deg,#f7f7f7_0%,#eeeeee_100%)] px-4 py-8">
+    <div className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,rgba(58,80,151,0.14),transparent_30%),linear-gradient(180deg,#f7f7f7_0%,#eeeeee_100%)] px-3 py-6 sm:px-4 sm:py-8">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-[-8%] top-[-6%] h-72 w-72 rounded-full bg-brand/10 blur-3xl" />
         <div className="absolute bottom-[-10%] right-[-4%] h-80 w-80 rounded-full bg-sage/10 blur-3xl" />

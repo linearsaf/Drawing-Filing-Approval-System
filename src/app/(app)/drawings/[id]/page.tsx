@@ -55,7 +55,12 @@ export default function DrawingDetailPage() {
   return (
     <AuthGuard>
       {currentUser ? (
-        <DetailContent drawingId={params.id} role={currentUser.role} routerPush={router.push} />
+        <DetailContent
+          drawingId={params.id}
+          role={currentUser.role}
+          routerPush={router.push}
+          userId={currentUser.id}
+        />
       ) : null}
     </AuthGuard>
   );
@@ -64,11 +69,13 @@ export default function DrawingDetailPage() {
 function DetailContent({
   drawingId,
   role,
-  routerPush
+  routerPush,
+  userId
 }: {
   drawingId: string;
   role: UserRole;
   routerPush: (href: string) => void;
+  userId: string;
 }) {
   const [data, setData] = useState<DrawingDetailResponse | null>(null);
   const [level1Approvers, setLevel1Approvers] = useState<ApproverOption[]>([]);
@@ -242,6 +249,12 @@ function DetailContent({
   const canManageApprovalPlan =
     ["DRAFT_LEADER", "ADMIN"].includes(role) &&
     ["WAITING_APPROVAL_1", "WAITING_APPROVAL_2"].includes(currentRevision.status);
+  const isOwnedByCurrentUser = drawing.createdBy === userId;
+  const canCreateFollowUpRevision = canCreateRevision(
+    role,
+    currentRevision.status,
+    isOwnedByCurrentUser
+  );
 
   const handleSubmitRevision = async () => {
     setIsActing(true);
@@ -348,7 +361,7 @@ function DetailContent({
           <Button>Approve</Button>
         </Link>
       ) : null}
-      {canCreateRevision(role, currentRevision.status) ? (
+      {canCreateFollowUpRevision ? (
         <Button disabled={isActing} onClick={() => void handleCreateRevision()} variant="secondary">
           Create Revision
         </Button>
@@ -383,13 +396,13 @@ function DetailContent({
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/55">
                   Snapshot
                 </p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+                <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
                   {getStatusLabel(drawing.currentStatus)}
                 </h2>
                 <div className="mt-3">
                   <WorkflowSourceBadge source={drawing.workflowSource} />
                 </div>
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72 sm:text-sm">
                   Current revision saat ini adalah rev {currentRevision.revisionNo} dengan status{" "}
                   {getStatusLabel(currentRevision.status).toLowerCase()}. Area kerja dan tindakan yang tersedia akan menyesuaikan dengan role aktif Anda.
                 </p>
@@ -397,7 +410,7 @@ function DetailContent({
               <StatusBadge status={drawing.currentStatus} />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <HeroStat label="Area" value={drawing.area} />
               <HeroStat label="Discipline" value={drawing.discipline} />
               <HeroStat label="Drafter" value={drawing.drawnByName ?? drawing.drawnByUsername ?? "-"} />
@@ -458,8 +471,8 @@ function DetailContent({
           title={drawing.drawingName}
         />
 
-        <div className="space-y-4">
-          <Card className="space-y-5">
+        <div className="flex flex-col gap-4">
+          <Card className="order-2 space-y-5 xl:order-1">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Metadata</p>
@@ -482,18 +495,26 @@ function DetailContent({
             </div>
           </Card>
 
-          <Card>
+          <Card className="order-1 xl:order-2">
             <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Next Step</p>
             <h2 className="mt-2 text-2xl font-semibold text-text">Langkah berikutnya</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              {getNextStepMessage(role, currentRevision.status, canCurrentUserApprove)}
+              {getNextStepMessage(
+                role,
+                currentRevision.status,
+                canCurrentUserApprove,
+                isOwnedByCurrentUser
+              )}
             </p>
           </Card>
 
-          <Card>
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Approval Plan</p>
-            <h2 className="mt-2 text-2xl font-semibold text-text">Routing approver revisi aktif</h2>
-
+          <CollapsibleInfoCard
+            className="order-3 xl:order-3"
+            contentClassName="space-y-0"
+            defaultOpen
+            eyebrow="Approval Plan"
+            title="Routing approver revisi aktif"
+          >
             <div className="mt-5 space-y-3">
               <ApprovalStepRow
                 isActive={activeApprovalLevel === 1}
@@ -567,96 +588,102 @@ function DetailContent({
                 </Button>
               </div>
             ) : null}
-          </Card>
+          </CollapsibleInfoCard>
         </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <Card>
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Revision History</p>
-          <h2 className="mt-2 text-2xl font-semibold text-text">Riwayat revisi</h2>
-          <div className="mt-5 space-y-4">
-            {revisions.map((revision) => (
-              <div className="rounded-[24px] border border-border bg-white p-4" key={revision.id}>
+        <CollapsibleInfoCard
+          contentClassName="space-y-4"
+          defaultOpen
+          eyebrow="Revision History"
+          title="Riwayat revisi"
+        >
+          {revisions.map((revision) => (
+            <div className="rounded-[24px] border border-border bg-white p-4" key={revision.id}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-text">Rev {revision.revisionNo}</p>
+                  <p className="mt-1 text-sm text-muted">{revision.changeNote || "Tanpa catatan perubahan."}</p>
+                </div>
+                <StatusBadge status={revision.status} />
+              </div>
+              <TimelineTimestamp value={revision.updatedAt} className="mt-3" />
+            </div>
+          ))}
+        </CollapsibleInfoCard>
+
+        <CollapsibleInfoCard
+          contentClassName="space-y-4"
+          defaultOpen
+          eyebrow="Approval History"
+          title="Keputusan revisi aktif"
+        >
+          {approvalForCurrentRevision.length === 0 ? (
+            <EmptyState
+              description={
+                drawing.workflowSource === "LEGACY_READY"
+                  ? "Approval historis terjadi sebelum sistem ini digunakan, sehingga revisi legacy ini tidak memiliki keputusan digital di dalam aplikasi."
+                  : "Belum ada keputusan approval untuk revisi aktif ini."
+              }
+              title={
+                drawing.workflowSource === "LEGACY_READY"
+                  ? "Approval historis berada di luar sistem"
+                  : "Approval masih kosong"
+              }
+            />
+          ) : (
+            approvalForCurrentRevision.map((action) => (
+              <div className="rounded-[24px] border border-border bg-white p-4" key={action.id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-text">Rev {revision.revisionNo}</p>
-                    <p className="mt-1 text-sm text-muted">{revision.changeNote || "Tanpa catatan perubahan."}</p>
+                    <p className="text-sm font-semibold text-text">
+                      Level {action.approvalLevel} / {humanizeDecision(action.decision)}
+                    </p>
+                    <p className="mt-1 text-sm text-muted">
+                      Diproses oleh role {getRoleLabel(action.actorRole)}.
+                    </p>
                   </div>
-                  <StatusBadge status={revision.status} />
+                  <TimelineTimestamp value={action.actedAt} />
                 </div>
-                <TimelineTimestamp value={revision.updatedAt} className="mt-3" />
+                <p className="mt-3 text-sm leading-6 text-muted">
+                  {action.decisionNote || "Tidak ada catatan keputusan."}
+                </p>
+                {(action.decisionImagePaths?.length ?? 0) > 0 ? (
+                  <ApprovalDecisionImages imagePaths={action.decisionImagePaths ?? []} />
+                ) : null}
               </div>
-            ))}
-          </div>
-        </Card>
+            ))
+          )}
+        </CollapsibleInfoCard>
 
-        <Card>
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Approval History</p>
-          <h2 className="mt-2 text-2xl font-semibold text-text">Keputusan revisi aktif</h2>
-          <div className="mt-5 space-y-4">
-            {approvalForCurrentRevision.length === 0 ? (
-              <EmptyState
-                description={
-                  drawing.workflowSource === "LEGACY_READY"
-                    ? "Approval historis terjadi sebelum sistem ini digunakan, sehingga revisi legacy ini tidak memiliki keputusan digital di dalam aplikasi."
-                    : "Belum ada keputusan approval untuk revisi aktif ini."
-                }
-                title={
-                  drawing.workflowSource === "LEGACY_READY"
-                    ? "Approval historis berada di luar sistem"
-                    : "Approval masih kosong"
-                }
-              />
-            ) : (
-              approvalForCurrentRevision.map((action) => (
-                <div className="rounded-[24px] border border-border bg-white p-4" key={action.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-text">
-                        Level {action.approvalLevel} / {humanizeDecision(action.decision)}
-                      </p>
-                      <p className="mt-1 text-sm text-muted">
-                        Diproses oleh role {getRoleLabel(action.actorRole)}.
-                      </p>
-                    </div>
-                    <TimelineTimestamp value={action.actedAt} />
+        <CollapsibleInfoCard
+          contentClassName="space-y-4"
+          defaultOpen
+          eyebrow="Audit Timeline"
+          title="Jejak aktivitas"
+        >
+          {auditLogs.length === 0 ? (
+            <EmptyState
+              description="Belum ada aktivitas audit yang tercatat untuk drawing ini."
+              title="Timeline masih kosong"
+            />
+          ) : (
+            auditLogs.map((item) => (
+              <div className="rounded-[24px] border border-border bg-white p-4" key={item.id}>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-text">{humanizeAuditAction(item.action)}</p>
+                    <p className="mt-2 text-sm leading-6 text-muted">
+                      {item.note || "Tidak ada catatan tambahan."}
+                    </p>
                   </div>
-                  <p className="mt-3 text-sm leading-6 text-muted">
-                    {action.decisionNote || "Tidak ada catatan keputusan."}
-                  </p>
+                  <TimelineTimestamp value={item.createdAt} />
                 </div>
-              ))
-            )}
-          </div>
-        </Card>
-
-        <Card>
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Audit Timeline</p>
-          <h2 className="mt-2 text-2xl font-semibold text-text">Jejak aktivitas</h2>
-          <div className="mt-5 space-y-4">
-            {auditLogs.length === 0 ? (
-              <EmptyState
-                description="Belum ada aktivitas audit yang tercatat untuk drawing ini."
-                title="Timeline masih kosong"
-              />
-            ) : (
-              auditLogs.map((item) => (
-                <div className="rounded-[24px] border border-border bg-white p-4" key={item.id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold text-text">{humanizeAuditAction(item.action)}</p>
-                      <p className="mt-2 text-sm leading-6 text-muted">
-                        {item.note || "Tidak ada catatan tambahan."}
-                      </p>
-                    </div>
-                    <TimelineTimestamp value={item.createdAt} />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </Card>
+              </div>
+            ))
+          )}
+        </CollapsibleInfoCard>
       </div>
     </div>
   );
@@ -745,6 +772,56 @@ function ApprovalStepRow({
   );
 }
 
+function CollapsibleInfoCard({
+  eyebrow,
+  title,
+  children,
+  defaultOpen = false,
+  className = "",
+  contentClassName = ""
+}: {
+  eyebrow: string;
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+  contentClassName?: string;
+}) {
+  return (
+    <Card className={className}>
+      <details className="group" open={defaultOpen}>
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">{eyebrow}</p>
+            <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">{title}</h2>
+          </div>
+          <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-panel/26 text-sm font-semibold text-text transition group-open:rotate-180">
+            <CollapseChevronIcon />
+          </span>
+        </summary>
+        <div className={`mt-5 ${contentClassName}`.trim()}>{children}</div>
+      </details>
+    </Card>
+  );
+}
+
+function CollapseChevronIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
 function TimelineTimestamp({
   value,
   className = ""
@@ -760,6 +837,32 @@ function TimelineTimestamp({
     >
       <p>{parts.date}</p>
       <p>{parts.time}</p>
+    </div>
+  );
+}
+
+function ApprovalDecisionImages({ imagePaths }: { imagePaths: string[] }) {
+  return (
+    <div className="mt-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted">Lampiran catatan</p>
+      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {imagePaths.map((imagePath, index) => (
+          <a
+            className="overflow-hidden rounded-[18px] border border-border bg-panel/18 transition hover:border-brand/30 hover:bg-brand/5"
+            href={imagePath}
+            key={`${imagePath}-${index}`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              alt={`Lampiran catatan approval ${index + 1}`}
+              className="h-28 w-full object-cover"
+              src={imagePath}
+            />
+          </a>
+        ))}
+      </div>
     </div>
   );
 }
@@ -804,7 +907,8 @@ function humanizeAuditAction(action: string) {
 function getNextStepMessage(
   role: UserRole,
   status: DrawingRevision["status"],
-  canCurrentUserApprove = true
+  canCurrentUserApprove = true,
+  isOwnedByCurrentUser = true
 ) {
   if (canEditRevision(role, status)) {
     return "Dokumen ini masih berada pada tahap yang bisa Anda edit. Lengkapi perubahan lalu kirim ke tahap check saat sudah siap.";
@@ -830,8 +934,12 @@ function getNextStepMessage(
     return "Tahap approval aktif sedang menunggu assignee yang benar. Jika Anda bukan approver yang ditugaskan, gunakan detail ini untuk melihat routing atau minta reassignment.";
   }
 
-  if (canCreateRevision(role, status)) {
+  if (canCreateRevision(role, status, isOwnedByCurrentUser)) {
     return "Drawing ini sudah selesai. Jika perlu perubahan baru, buat revisi lanjutan agar histori tetap rapi dan terlacak.";
+  }
+
+  if (role === "DRAFTER" && status === "COMPLETED" && !isOwnedByCurrentUser) {
+    return "Drawing final ini dapat Anda lihat sebagai referensi, namun revisi lanjutan hanya dapat dibuat oleh drafter pemilik dokumen atau admin.";
   }
 
   if (canDownload(role, status)) {

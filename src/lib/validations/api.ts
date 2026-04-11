@@ -62,6 +62,25 @@ export const decisionSchema = z.object({
   signPdf: z.boolean().optional().default(true)
 });
 
+export const decisionFormSchema = z.object({
+  decision: z.enum(approvalDecisionValues),
+  note: z.string().optional().default(""),
+  signPdf: z
+    .union([z.boolean(), z.string()])
+    .optional()
+    .transform((value) => {
+      if (typeof value === "boolean") {
+        return value;
+      }
+
+      if (typeof value === "string") {
+        return value === "true";
+      }
+
+      return true;
+    })
+});
+
 export const approvalPlanInputSchema = z.object({
   level1ApproverId: z.string().min(1),
   level2ApproverId: z.string().nullable().optional()
@@ -69,6 +88,29 @@ export const approvalPlanInputSchema = z.object({
 
 export const checkDecisionSchema = decisionSchema.extend({
   approvalPlan: approvalPlanInputSchema.optional()
+});
+
+export const checkDecisionFormSchema = decisionFormSchema.extend({
+  approvalPlan: z
+    .union([approvalPlanInputSchema, z.string()])
+    .optional()
+    .transform((value) => {
+      if (!value) {
+        return undefined;
+      }
+
+      if (typeof value === "string") {
+        try {
+          const parsed = JSON.parse(value);
+          const result = approvalPlanInputSchema.safeParse(parsed);
+          return result.success ? result.data : undefined;
+        } catch {
+          return undefined;
+        }
+      }
+
+      return value;
+    })
 });
 
 export const approvalPlanUpdateSchema = z.object({

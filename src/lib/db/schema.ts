@@ -316,6 +316,7 @@ export const approvalActions = mysqlTable(
     actorRole: userRoleEnum.notNull(),
     decision: approvalDecisionEnum.notNull(),
     decisionNote: text("decision_note"),
+    decisionImagePaths: text("decision_image_paths"),
     actedAt: timestamp("acted_at").defaultNow().notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull()
   },

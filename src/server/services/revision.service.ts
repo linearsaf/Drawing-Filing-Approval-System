@@ -7,6 +7,7 @@ import {
   buildApprovalPlanMap,
   canUserApproveAssignedStep,
   getActiveApprovalLevel,
+  listApprovalActionsByRevisionIds,
   listApprovalStepsByRevisionIds
 } from "@/server/services/approval-plan.service";
 import { createAuditLog } from "@/server/services/audit.service";
@@ -32,7 +33,7 @@ export async function getRevisionDetail(revisionId: string, role: AppRole, userI
     throw new HttpError(404, "Drawing tidak ditemukan.");
   }
 
-  if (role === "DRAFTER" && drawing.createdBy !== userId) {
+  if (role === "DRAFTER" && drawing.createdBy !== userId && revision.status !== "COMPLETED") {
     throw new HttpError(403, "Anda tidak memiliki akses ke revisi ini.");
   }
 
@@ -50,11 +51,7 @@ export async function getRevisionDetail(revisionId: string, role: AppRole, userI
     .where(inArray(schema.user.id, [drawing.createdBy, drawing.drawnByUserId]));
   const userById = new Map(users.map((user) => [user.id, user]));
 
-  const approvals = await db
-    .select()
-    .from(schema.approvalActions)
-    .where(eq(schema.approvalActions.revisionId, revision.id))
-    .orderBy(desc(schema.approvalActions.actedAt));
+  const approvals = await listApprovalActionsByRevisionIds([revision.id]);
 
   const approvalSteps = await listApprovalStepsByRevisionIds([revision.id]);
   const approvalPlan = buildApprovalPlanMap([revision], approvalSteps, approvals).get(revision.id) ?? [];

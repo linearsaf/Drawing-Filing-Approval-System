@@ -114,22 +114,23 @@ export function LegacyDrawingForm({
         <Card className="relative overflow-hidden border-transparent bg-graphite text-white">
           <div className="absolute inset-x-0 top-0 h-1 bg-brand" />
           <div className="absolute -right-16 top-0 h-44 w-44 rounded-full bg-white/5 blur-3xl" />
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
+          <div className="relative flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-white/55">
                 Upload Old Drawing
               </p>
-              <h2 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight">
+              <h2 className="mt-2 max-w-2xl text-lg font-semibold leading-snug tracking-tight sm:text-2xl xl:text-3xl">
                 Import drawing lama yang sudah ready tanpa mengganggu alur standar.
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/72 line-clamp-3">
                 Flow ini khusus untuk drawing yang approval wet sign-nya sudah selesai sebelum sistem ini digunakan. Dokumen akan langsung masuk status completed dan langsung tersedia untuk consumer.
               </p>
             </div>
 
-            <div className="grid gap-3 md:min-w-[260px]">
+            <div className="grid grid-cols-2 gap-3 sm:min-w-[260px] sm:grid-cols-1">
               <SummaryChip label="Uploaded by" value={uploaderName ?? "-"} />
               <SummaryChip
+                className="col-span-2 sm:col-span-1"
                 label="Drawn by"
                 value={selectedDrawnBy ? `${selectedDrawnBy.name} / ${selectedDrawnBy.role}` : "-"}
               />
@@ -138,7 +139,7 @@ export function LegacyDrawingForm({
           </div>
         </Card>
 
-        <Card className="bg-white/75">
+        <Card className="hidden bg-white/75 xl:block">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Legacy Import Notes</p>
           <h2 className="mt-2 text-2xl font-semibold text-text">Checklist sebelum upload</h2>
 
@@ -158,11 +159,11 @@ export function LegacyDrawingForm({
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-4">
+        <div className="order-1 space-y-4">
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Legacy Metadata</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Metadata utama drawing</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Metadata utama drawing</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Field ini tetap wajib agar old drawing bisa masuk ke library final tanpa merusak kualitas pencarian, filter, dan audit trail.
               </p>
@@ -224,7 +225,7 @@ export function LegacyDrawingForm({
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Ownership Context</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Drawn by dan legacy note</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Drawn by dan legacy note</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Pisahkan siapa yang menggambar dokumen dari siapa yang menginputnya ke sistem agar histori legacy tetap jujur dan mudah dipahami.
               </p>
@@ -260,11 +261,24 @@ export function LegacyDrawingForm({
           </Card>
         </div>
 
-        <div className="space-y-4">
+        <div className="order-2 space-y-4">
+          <CollapsibleHelperCard
+            className="xl:hidden"
+            eyebrow="Legacy Import Notes"
+            title="Checklist sebelum upload"
+          >
+            <div className="space-y-3">
+              <ChecklistRow text="Masukkan metadata utama lengkap agar drawing tetap bisa dicari dan difilter." />
+              <ChecklistRow text="Pilih Drawn by untuk mencatat pemilik bisnis drawing, bukan sekadar uploader." />
+              <ChecklistRow text="Gunakan Legacy Ready Note untuk menjelaskan bahwa approval historis terjadi di luar sistem." />
+              <ChecklistRow text="PDF yang diupload akan tetap utuh tanpa overlay approval baru." />
+            </div>
+          </CollapsibleHelperCard>
+
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Ready Document</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Revision dan PDF final</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Revision dan PDF final</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Old drawing akan langsung dianggap ready, jadi pastikan revision dan PDF yang diupload benar-benar final.
               </p>
@@ -316,7 +330,7 @@ export function LegacyDrawingForm({
           <Card className="border-border/90">
             <div className="border-b border-border/70 pb-5">
               <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">Final Action</p>
-              <h2 className="mt-2 text-2xl font-semibold text-text">Upload sebagai drawing siap pakai</h2>
+              <h2 className="mt-2 text-xl font-semibold text-text sm:text-2xl">Upload sebagai drawing siap pakai</h2>
               <p className="mt-2 text-sm leading-6 text-muted">
                 Tidak ada tahap Save Draft atau Submit to Check di flow ini. Begitu berhasil, drawing langsung masuk completed dan bisa diakses consumer.
               </p>
@@ -359,16 +373,16 @@ function Field({
         {label} {required ? <span className="text-danger">*</span> : null}
       </span>
       {children}
-      {hint ? <p className="mt-2 text-xs leading-5 text-muted">{hint}</p> : null}
+      {hint ? <p className="mt-2 text-xs leading-5 text-muted sm:text-xs">{hint}</p> : null}
     </label>
   );
 }
 
-function SummaryChip({ label, value }: { label: string; value: string }) {
+function SummaryChip({ label, value, className = "" }: { label: string; value: string; className?: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+    <div className={`rounded-2xl border border-white/10 bg-white/5 px-4 py-3 ${className}`.trim()}>
       <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/55">{label}</p>
-      <p className="mt-2 text-sm font-semibold text-white">{value}</p>
+      <p className="mt-2 text-sm font-semibold leading-6 text-white">{value}</p>
     </div>
   );
 }
@@ -387,5 +401,51 @@ function ActionPanel({ title, description }: { title: string; description: strin
       <p className="text-sm font-semibold text-text">{title}</p>
       <p className="mt-1 text-sm leading-6 text-muted">{description}</p>
     </div>
+  );
+}
+
+function CollapsibleHelperCard({
+  eyebrow,
+  title,
+  children,
+  className = ""
+}: {
+  eyebrow: string;
+  title: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <Card className={className}>
+      <details className="group">
+        <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.28em] text-brand">{eyebrow}</p>
+            <h2 className="mt-2 text-xl font-semibold text-text">{title}</h2>
+          </div>
+          <span className="mt-1 inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-panel/26 text-sm font-semibold text-text transition group-open:rotate-180">
+            <CollapseChevronIcon />
+          </span>
+        </summary>
+        <div className="mt-5">{children}</div>
+      </details>
+    </Card>
+  );
+}
+
+function CollapseChevronIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
   );
 }
